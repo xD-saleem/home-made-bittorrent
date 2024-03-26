@@ -14,7 +14,7 @@ BencodeParser::~BencodeParser() {}
 
 int BencodeParser::parse(std::string bencoded_string, int index) {
   fmt::print("Parsing bencoded string: {}\n", bencoded_string);
-  // Parse the bencoded string
+
   return 0;
 }
 

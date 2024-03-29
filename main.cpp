@@ -2,6 +2,7 @@
 #include <fmt/core.h>
 
 #include <fstream>
+#include <optional>
 #include <string>
 
 #include "bencode_parser.hpp"
@@ -13,6 +14,31 @@ struct TorrentFile {
   std::string pieces;
   int64_t length;
   int64_t created_date;
+
+  std::optional<std::string> build_tracker_url() {
+    if (announce.empty()) {
+      return std::nullopt;
+    }
+
+    std::string tracker_url = announce;
+    tracker_url += "?info_hash=";
+    tracker_url += "info_hash";
+    tracker_url += "&peer_id=";
+    tracker_url += "peer_id";
+    tracker_url += "&port=";
+    tracker_url += "port";
+    tracker_url += "&uploaded=";
+    tracker_url += "uploaded";
+    tracker_url += "&downloaded=";
+    tracker_url += "downloaded";
+    tracker_url += "&left=";
+    tracker_url += "left";
+    tracker_url += "&compact=1";
+    tracker_url += "&event=";
+    tracker_url += "event";
+
+    return tracker_url;
+  }
 };
 
 int main() {
@@ -57,7 +83,7 @@ int main() {
   torrent_file.length = length_value;
   torrent_file.created_date = created_date_value;
 
-  fmt::print("announce: {}\n", torrent_file.announce);
+  torrent_file.build_tracker_url();
 
   return 0;
 }

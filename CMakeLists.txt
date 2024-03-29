@@ -4,6 +4,7 @@ project(main)
 # Find required libraries
 find_package(GTest CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # Set include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -12,7 +13,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(main main.cpp)
 
 # Link fmt and Google Test libraries to the main executable
-target_link_libraries(main PUBLIC fmt::fmt GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+target_link_libraries(main PUBLIC OpenSSL::SSL OpenSSL::Crypto fmt::fmt GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 
 # Enable testing
 enable_testing()

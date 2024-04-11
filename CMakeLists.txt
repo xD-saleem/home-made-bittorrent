@@ -2,9 +2,16 @@ cmake_minimum_required(VERSION 3.10)
 project(main)
 
 # Find required libraries
-find_package(GTest CONFIG REQUIRED)
+# find_package(GTest CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(LibtorrentRasterbar CONFIG REQUIRED)
+
+include_directories(include)
+
+# Bencoding
+file(GLOB BENCODING_SRC "lib/bencode/*.cpp" "include/bencode/*.h")
+add_library(bencoding STATIC ${BENCODING_SRC})
 
 # Set include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -13,8 +20,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(main main.cpp)
 
 # Link fmt and Google Test libraries to the main executable
-target_link_libraries(main PUBLIC OpenSSL::SSL OpenSSL::Crypto fmt::fmt GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+# target_link_libraries(main PUBLIC OpenSSL::SSL OpenSSL::Crypto fmt::fmt GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main, LibtorrentRasterbar::torrent-rasterbar)
 
+
+target_link_libraries(main PUBLIC OpenSSL::SSL OpenSSL::Crypto fmt::fmt LibtorrentRasterbar::torrent-rasterbar)
 # Enable testing
 enable_testing()
 

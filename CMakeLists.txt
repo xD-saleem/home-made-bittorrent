@@ -19,7 +19,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 # Add the main executable
-add_executable(main main.cpp)
+add_executable(main main.cpp, include/bencode_parser.h, include/bencode_parser.cpp)
 
 # Link fmt and Google Test libraries to the main executable
 # target_link_libraries(main PUBLIC OpenSSL::SSL OpenSSL::Crypto fmt::fmt GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main, LibtorrentRasterbar::torrent-rasterbar)

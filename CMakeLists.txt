@@ -1,34 +1,25 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.19)
 project(main)
 
-# Find required libraries
-find_package(GTest CONFIG REQUIRED)
+# find_package(GTest CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-# Set include directories
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(CMAKE_CXX_STANDARD 17)
+include_directories(lib)
+include_directories(include)
 
-# Add the main executable
-add_executable(main main.cpp)
+# Bencoding
+file(GLOB BENCODING_SRC "lib/bencode/*.cpp" "include/bencode/*.h")
+add_library(bencoding STATIC ${BENCODING_SRC})
 
-# Link fmt and Google Test libraries to the main executable
-target_link_libraries(main PUBLIC OpenSSL::SSL OpenSSL::Crypto fmt::fmt GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+add_executable(main main.cpp include/torrent_parser.cpp include/torrent_parser.h)
 
-# Enable testing
-enable_testing()
+target_link_libraries(main PRIVATE bencoding crypto OpenSSL::SSL OpenSSL::Crypto fmt::fmt)
 
-# Add test executable for bencode_parser_test.cpp
-# add_executable(bencode_parser_test)
+## test
+# enable_testing()
+# add_executable(tests include/torrent_parser_test.cpp, include/torrent_parser.cpp)
+# add_test(NAME tests COMMAND torrent_parser_test)
 
-# Link fmt and Google Test libraries to the test executable
-# target_link_libraries(bencode_parser_test PRIVATE fmt::fmt GTest::gtest GTest::gtest_main)
-
-# Register the test
-# add_test(NAME bencode_parser_test COMMAND bencode_parser_test)
-
-# Set the build type and compiler flags
-set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
-
-project(main)

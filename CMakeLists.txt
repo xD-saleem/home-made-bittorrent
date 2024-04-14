@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(main)
 
-# find_package(GTest CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 
@@ -18,7 +18,7 @@ add_executable(main main.cpp include/torrent_parser.cpp include/torrent_parser.h
 target_link_libraries(main PRIVATE bencoding crypto OpenSSL::SSL OpenSSL::Crypto fmt::fmt)
 
 ## test
-# enable_testing()
+enable_testing()
 # add_executable(tests include/torrent_parser_test.cpp, include/torrent_parser.cpp)
 # add_test(NAME tests COMMAND torrent_parser_test)
 

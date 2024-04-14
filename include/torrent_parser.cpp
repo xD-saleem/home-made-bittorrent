@@ -1,25 +1,29 @@
 #include "torrent_parser.h"
 
 #include <bencode/BDictionary.h>
+#include <bencode/BItem.h>
+#include <bencode/Decoder.h>
+#include <bencode/bencoding.h>
 #include <fmt/core.h>
 
 #include <fstream>
-#include <iostream>
-#include <vector>
+#include <stdexcept>
 
-// initialize the root shared pointer with a BDictionary object
 torrent_parser::torrent_parser(const std::string& filePath) {
   fmt::print("Reading torrent file: {}\n", filePath);
-  std::ifstream file(filePath, std::ios::binary);
 
-  if (!file.is_open()) {
-    // Panic
+  std::ifstream fileStream(filePath, std::ifstream::binary);
+  if (!fileStream.is_open()) {
     throw std::runtime_error("Could not open file");
   }
 
-  std::vector<byte> buffer(std::istreambuf_iterator<char>(file), {});
+  std::shared_ptr<bencoding::BItem> decodedTorrentFile =
+      bencoding::decode(fileStream);
 
-  // root = std::make_shared<bencoding::BDictionary>(buffer);
+  std::shared_ptr<bencoding::BDictionary> rootDict =
+      std::dynamic_pointer_cast<bencoding::BDictionary>(decodedTorrentFile);
+
+  root = rootDict;
 }
 
 long torrent_parser::getFileSize() const { return 3; }

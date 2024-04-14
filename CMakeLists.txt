@@ -10,7 +10,7 @@ find_package(OpenSSL REQUIRED)
 include_directories(include)
 
 # Bencoding
-file(GLOB BENCODING_SRC "lib/bencode/*.cpp" "include/bencode/*.h")
+file(GLOB BENCODING_SRC "lib/bencode/*.cpp")
 add_library(bencoding STATIC ${BENCODING_SRC})
 
 # Set include directories

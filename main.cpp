@@ -5,7 +5,7 @@
 
 int main() {
   std::string torrentFilePath = "debian.torrent";
-  fmt::print("Reading torrent file: {}\n", torrentFilePath);
+  fmt::print("Reading torrent url: {}\n", torrentFilePath);
 
   torrent_parser parser(torrentFilePath);
 

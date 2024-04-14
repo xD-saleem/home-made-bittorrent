@@ -1,7 +1,7 @@
 #include "torrent_parser.h"
 
-// #include <fmt/core.h>
-// #include <lib/bencode/BDictionary.h>
+#include <bencode/BDictionary.h>
+#include <fmt/core.h>
 
 #include <fstream>
 #include <iostream>
@@ -9,16 +9,16 @@
 
 // initialize the root shared pointer with a BDictionary object
 torrent_parser::torrent_parser(const std::string& filePath) {
-  // fmt::print("Reading torrent file: {}\n", filePath);
-  // std::ifstream file(filePath, std::ios::binary);
-  //
-  // if (!file.is_open()) {
-  //   // Panic
-  //   throw std::runtime_error("Could not open file");
-  // }
-  //
-  // std::vector<byte> buffer(std::istreambuf_iterator<char>(file), {});
-  //
+  fmt::print("Reading torrent file: {}\n", filePath);
+  std::ifstream file(filePath, std::ios::binary);
+
+  if (!file.is_open()) {
+    // Panic
+    throw std::runtime_error("Could not open file");
+  }
+
+  std::vector<byte> buffer(std::istreambuf_iterator<char>(file), {});
+
   // root = std::make_shared<bencoding::BDictionary>(buffer);
 }
 

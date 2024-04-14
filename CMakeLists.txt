@@ -3,6 +3,7 @@ project(main)
 
 find_package(fmt CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 include_directories(lib)
@@ -14,7 +15,7 @@ add_library(bencoding STATIC ${BENCODING_SRC})
 
 add_executable(main main.cpp include/torrent_parser.cpp include/torrent_parser.h)
 
-target_link_libraries(main PRIVATE bencoding fmt::fmt)
+target_link_libraries(main PRIVATE bencoding fmt::fmt OpenSSL::SSL OpenSSL::Crypto)
 
 # Tests
 enable_testing()

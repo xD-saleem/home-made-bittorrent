@@ -2,13 +2,41 @@
 
 #include <gtest/gtest.h>
 
-// Test case for getFileSize method
+// GetFileSize test
 TEST(TorrentParserTest, GetFileSize) {
-  // Create a torrent_parser object
   torrent_parser parser("debian.torrent");
+  EXPECT_EQ(parser.getFileSize(), 659554304);
+}
 
-  // Assuming getFileSize returns 3
-  EXPECT_EQ(parser.getFileSize(), 3);
+// GetPieceLength test
+TEST(TorrentParserTest, GetPieceLength) {
+  torrent_parser parser("debian.torrent");
+  EXPECT_EQ(parser.getPieceLength(), 3);
+}
+
+// GetFileName test
+TEST(TorrentParserTest, GetFileName) {
+  torrent_parser parser("debian.torrent");
+  EXPECT_EQ(parser.getFileName(), "debian-12.5.0-amd64-netinst.iso");
+}
+
+// GetAnnounce test
+TEST(TorrentParserTest, GetAnnounce) {
+  torrent_parser parser("debian.torrent");
+  EXPECT_EQ(parser.getAnnounce(), "http://bttracker.debian.org:6969/announce");
+}
+
+// GetInfoHash test
+TEST(TorrentParserTest, GetInfoHash) {
+  torrent_parser parser("debian.torrent");
+  EXPECT_EQ(parser.getInfoHash(), "info hash");
+}
+
+// splitPieceHashes test
+TEST(TorrentParserTest, splitPieceHashes) {
+  torrent_parser parser("debian.torrent");
+  auto res = parser.splitPieceHashes();
+  EXPECT_EQ(res.value().size(), 2516);
 }
 
 int main(int argc, char **argv) {

@@ -11,9 +11,6 @@ TEST(TorrentParserTest, GetFileSize) {
   EXPECT_EQ(parser.getFileSize(), 3);
 }
 
-// Example of more test cases can be added
-// TEST(TorrentParserTest, AnotherTest) { ... }
-
 int main(int argc, char **argv) {
   // Initialize Google Test framework
   ::testing::InitGoogleTest(&argc, argv);

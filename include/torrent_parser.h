@@ -1,7 +1,7 @@
 #ifndef BITTORRENTCLIENT_TORRENT_PARSER_H
 #define BITTORRENTCLIENT_TORRENT_PARSER_H
 
-// #include <bencode/BDictionary.h>
+#include <bencode/BDictionary.h>
 
 #include <string>
 
@@ -9,7 +9,7 @@ using byte = unsigned char;
 
 class torrent_parser {
  private:
-  // std::shared_ptr<bencoding::BDictionary> root;
+  std::shared_ptr<bencoding::BDictionary> root;
 
   // dependencies
   // TODO: Add dependencies here

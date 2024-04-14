@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.19)
 project(main)
 
-# find_package(GTest CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
-find_package(OpenSSL REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 include_directories(lib)
@@ -15,11 +14,11 @@ add_library(bencoding STATIC ${BENCODING_SRC})
 
 add_executable(main main.cpp include/torrent_parser.cpp include/torrent_parser.h)
 
-target_link_libraries(main PRIVATE bencoding crypto OpenSSL::SSL OpenSSL::Crypto fmt::fmt)
+target_link_libraries(main PRIVATE bencoding fmt::fmt)
 
-## test
-# enable_testing()
-# add_executable(tests include/torrent_parser_test.cpp, include/torrent_parser.cpp)
-# add_test(NAME tests COMMAND torrent_parser_test)
+# Tests
+enable_testing()
+add_executable(tests ${TEST_SRC} include/torrent_parser_test.cpp include/torrent_parser.h include/torrent_parser.cpp)
+target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")

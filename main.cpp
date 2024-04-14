@@ -9,7 +9,8 @@ int main() {
 
   torrent_parser parser(torrentFilePath);
 
-  int a = parser.getFileSize();
-  fmt::print("File size: {}\n", a);
+  fmt::print("Torrent file parsed successfully\n");
+
+  return 0;
 };
 

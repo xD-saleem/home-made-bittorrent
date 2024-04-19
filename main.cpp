@@ -13,15 +13,11 @@ int main() {
 
   std::string announceUrl = parser.getAnnounce();
 
-  long fileSize = parser.getFileSize();
-
   const std::string infoHash = parser.getInfoHash();
 
   std::string filename = parser.getFileName();
-  std::string downloadDirectory = "downloads/";
+  std::string downloadDirectory = "./";
   std::string downloadPath = downloadDirectory + filename;
-
-  fmt::print("File size: {}\n", fileSize);
 
   return 0;
 };

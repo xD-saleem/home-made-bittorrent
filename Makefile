@@ -6,3 +6,6 @@ run:
 
 test:
 		make buildproj && ./build/tests
+
+buildrun:
+		make buildproj && ./build/main

@@ -27,6 +27,9 @@ include/Torrent_Parser.h
 include/Piece_Manager.cpp
 include/Piece_Manager.h)
 
+include/Piece.cpp
+include/Piece.h
+
 target_link_libraries(main PRIVATE bencoding fmt::fmt OpenSSL::SSL OpenSSL::Crypto)
 
 # Tests

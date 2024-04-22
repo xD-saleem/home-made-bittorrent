@@ -25,10 +25,14 @@ include/Torrent_Parser.cpp
 include/Torrent_Parser.h
 
 include/Piece_Manager.cpp
-include/Piece_Manager.h)
+include/Piece_Manager.h
 
-include/Piece.cpp
+include/Torrent_Client.cpp
+include/Torrent_Client.h
+
 include/Piece.h
+
+)
 
 target_link_libraries(main PRIVATE bencoding fmt::fmt OpenSSL::SSL OpenSSL::Crypto)
 
@@ -44,10 +48,17 @@ include/Torrent_Parser.cpp
 include/Piece_Manager.h
 include/Piece_Manager.cpp
 
+include/Torrent_Client.h
+include/Torrent_Client.cpp
+
+include/Piece.h
+
 # Tests
 include/Main_test.cpp
 include/Torrent_Parser_test.cpp
 include/Piece_Manager_test.cpp
+include/Torrent_Client_test.cpp
+
 )
 
 ## Link libraries

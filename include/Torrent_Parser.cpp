@@ -17,10 +17,7 @@
 
 const int HASH_LEN = 20;
 
-std::string calculateSHA256(const std::string& input) {
-  return std::string("info hash");
-}
-
+// Constructor
 Torrent_Parser::Torrent_Parser(const std::string& filePath) {
   fmt::print("Reading torrent file: {}\n", filePath);
 
@@ -36,6 +33,11 @@ Torrent_Parser::Torrent_Parser(const std::string& filePath) {
       std::dynamic_pointer_cast<bencoding::BDictionary>(decodedTorrentFile);
 
   root = rootDict;
+}
+
+// Calculate the SHA256 hash of the input string
+std::string calculateSHA256(const std::string& input) {
+  return std::string("info hash");
 }
 
 std::shared_ptr<bencoding::BItem> Torrent_Parser::get(std::string key) const {

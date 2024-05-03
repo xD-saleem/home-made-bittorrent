@@ -18,7 +18,7 @@
 const int HASH_LEN = 20;
 
 // Constructor
-Torrent_Parser::Torrent_Parser(const std::string& filePath) {
+Torrent_Parser::Torrent_Parser(const std::string &filePath) {
   fmt::print("Reading torrent file: {}\n", filePath);
 
   std::ifstream fileStream(filePath, std::ifstream::binary);
@@ -36,7 +36,7 @@ Torrent_Parser::Torrent_Parser(const std::string& filePath) {
 }
 
 // Calculate the SHA256 hash of the input string
-std::string calculateSHA256(const std::string& input) {
+std::string calculateSHA256(const std::string &input) {
   return std::string("info hash");
 }
 
@@ -115,4 +115,20 @@ std::optional<std::vector<std::string>> Torrent_Parser::splitPieceHashes()
   }
 
   return pieceHashes;
+}
+
+std::string Torrent_Parser::buildTrackerUrl(const std::string &announce,
+                                            const std::string &info_hash,
+                                            const std::string &peer_id,
+                                            const int port, const int uploaded,
+                                            const int downloaded,
+                                            const int left) const {
+  std::string tracker_url = announce + "?info_hash=" + info_hash +
+                            "&peer_id=" + peer_id +
+                            "&port=" + std::to_string(port) +
+                            "&uploaded=" + std::to_string(uploaded) +
+                            "&downloaded=" + std::to_string(downloaded) +
+                            "&left=" + std::to_string(left) + "&compact=1";
+
+  return tracker_url;
 }

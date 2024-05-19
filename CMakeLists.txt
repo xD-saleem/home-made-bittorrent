@@ -34,7 +34,7 @@ include/Torrent_Client.cpp
 include/Torrent_Client.h
 
 include/Piece.h
-
+include/Block.h
 )
 
 target_link_libraries(main PRIVATE bencoding fmt::fmt OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp)

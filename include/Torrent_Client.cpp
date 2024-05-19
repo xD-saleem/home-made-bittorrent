@@ -1,24 +1,24 @@
-
 #include "Torrent_Client.h"
 
 #include <cpr/cpr.h>
 #include <fmt/core.h>
 
-int Torrent_Client::download() const { return 0; }
+#include "Piece_Manager.h"
+#include "Torrent_Client.h"
+#include "Torrent_Parser.h"
 
-int Torrent_Client::requestPeers(std::string &peerID, int port) const {
-  std::string announceUrl = parser.getAnnounce();
-  const std::string infoHash = parser.getInfoHash();
+// Constructor definition
+Torrent_Client::Torrent_Client(const Torrent_Parser &parser,
+                               const std::string &downloadPath)
+    : parser(parser), downloadPath(downloadPath) {}
 
-  std::string url =
-      parser.buildTrackerUrl(announceUrl, infoHash, "peer_id", 6881, 0, 0, 0);
-
-  fmt::print("Requesting peers from {}\n", url);
-  // cpr::Response r = cpr::Get(
-  //     cpr::Url{"https://api.github.com/repos/whoshuu/cpr/contributors"});
-  //
-  // fmt::print("########### {}", r.status_code);  // 200
-  //
-  return 0;
+// Implement other member functions here...
+int Torrent_Client::download() const {
+  // Implementation of download
+  return 0;  // Example return
 }
 
+int Torrent_Client::requestPeers(std::string &peerID, int port) const {
+  // Implementation of requestPeers
+  return 0;  // Example return
+}

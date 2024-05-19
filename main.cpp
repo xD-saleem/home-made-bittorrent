@@ -17,9 +17,9 @@ int main() {
   std::string downloadPath = downloadDirectory + filename;
   std::string peerID = "peer_id";
 
-  Torrent_Client torrentClient(parser, ref(downloadPath));
+  // Torrent_Client torrentClient(parser, ref(downloadPath));
 
-  torrentClient.requestPeers(std::ref(peerID), 6881);
+  // torrentClient.requestPeers(std::ref(peerID), 6881);
 
   return 0;
 };

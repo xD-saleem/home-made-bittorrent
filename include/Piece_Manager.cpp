@@ -17,11 +17,12 @@ Piece_Manager::Piece_Manager(const Torrent_Parser& fileParser,
 }
 
 Piece_Manager::~Piece_Manager() {
-  // for (Piece* piece : missingPieces) delete piece;
+  // TODO - Fix this
+  //  for (Piece* piece : missingPieces) delete piece;
   //
-  // for (Piece* piece : ongoingPieces) delete piece;
+  //  for (Piece* piece : ongoingPieces) delete piece;
   //
-  // for (PendingRequest* pending : pendingRequests) delete pending;
+  //  for (PendingRequest* pending : pendingRequests) delete pending;
 
   downloadedFile.close();
 }

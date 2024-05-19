@@ -5,6 +5,7 @@
   "dependencies": [
     "gtest",
     "fmt",
-    "cpr"
+    "cpr",
+    "cryptopp"
   ]
 }

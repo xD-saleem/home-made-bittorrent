@@ -1,13 +1,26 @@
-#ifndef BITTORRENTCLIENT_PIECE
-#define BITTORRENTCLIENT_PIECE
+#ifndef BITTORRENTCLIENT_PIECE_H
+#define BITTORRENTCLIENT_PIECE_H
+
+#include <vector>
+
+#include "Block.h"
 
 class Piece {
  private:
- public:
-  explicit Piece();
+  const std::string hashValue;
 
-  // Constructor to destroy the object once it goes out of scope
-  ~Piece() = default;
+ public:
+  const int index;
+  std::vector<Block*> blocks;
+
+  explicit Piece(int index, std::vector<Block*> blocks, std::string hashValue);
+  ~Piece();
+  void reset();
+  std::string getData();
+  Block* nextRequest();
+  void blockReceived(int offset, std::string data);
+  bool isComplete();
+  bool isHashMatching();
 };
 
-#endif  // BITTORRENTCLIENT
+#endif  // BITTORRENTCLIENT_PIECE_H

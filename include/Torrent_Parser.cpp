@@ -5,6 +5,9 @@
 #include <bencode/BItem.h>
 #include <bencode/Decoder.h>
 #include <bencode/bencoding.h>
+#include <cryptopp/filters.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/sha.h>
 #include <fmt/core.h>
 #include <openssl/evp.h>
 #include <openssl/sha.h>
@@ -37,7 +40,18 @@ Torrent_Parser::Torrent_Parser(const std::string &filePath) {
 
 // Calculate the SHA256 hash of the input string
 std::string calculateSHA256(const std::string &input) {
-  return std::string("info hash");
+  // CryptoPP::SHA256 hash;
+  //
+  // // String to hold the hash output
+  // std::string output;
+  //
+  // CryptoPP::StringSource(
+  //     input, true,
+  //     new CryptoPP::HashFilter(
+  //         hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(output))));
+  //
+  std::string output;
+  return output;
 }
 
 std::shared_ptr<bencoding::BItem> Torrent_Parser::get(std::string key) const {

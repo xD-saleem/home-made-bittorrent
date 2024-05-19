@@ -6,9 +6,11 @@ find_package(fmt CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(cpr REQUIRED)
+find_package(cryptopp REQUIRED)
 
 ## Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 ## Include directories
 include_directories(lib)
@@ -35,7 +37,7 @@ include/Piece.h
 
 )
 
-target_link_libraries(main PRIVATE bencoding fmt::fmt OpenSSL::SSL OpenSSL::Crypto cpr::cpr)
+target_link_libraries(main PRIVATE bencoding fmt::fmt OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp)
 
 # Tests
 enable_testing()

@@ -10,9 +10,8 @@
 using byte = unsigned char;
 
 class Torrent_Parser {
-  // dependencies
-  // TODO: Add dependencies here for dependency injection.
-  //
+  std::string filePath;
+
  private:
   std::shared_ptr<bencoding::BDictionary> root;
   std::shared_ptr<bencoding::BItem> get(std::string key) const;

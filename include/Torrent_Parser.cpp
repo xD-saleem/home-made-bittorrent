@@ -13,24 +13,35 @@
 #include <openssl/sha.h>
 
 #include <cassert>
+#include <filesystem>
 #include <fstream>
 #include <memory>
 #include <optional>
 #include <stdexcept>
+
+// #include <fmt/core.h>
 
 const int HASH_LEN = 20;
 
 // Constructor
 Torrent_Parser::Torrent_Parser(const std::string &filePath) {
   fmt::print("Reading torrent file: {}\n", filePath);
+  std::filesystem::path current_path = std::filesystem::current_path();
 
-  std::ifstream fileStream(filePath, std::ifstream::binary);
+  auto filePathh = current_path.string() + "/" + filePath;
+
+  fmt::print("Current path: {}\n", filePathh);
+
+  std::ifstream fileStream(filePathh, std::ifstream::binary);
   if (!fileStream.is_open()) {
     throw std::runtime_error("Could not open file");
   }
+  fmt::print("File opened\n");
 
   std::shared_ptr<bencoding::BItem> decodedTorrentFile =
       bencoding::decode(fileStream);
+
+  fmt::print("File decoded\n");
 
   std::shared_ptr<bencoding::BDictionary> rootDict =
       std::dynamic_pointer_cast<bencoding::BDictionary>(decodedTorrentFile);
@@ -50,19 +61,17 @@ std::string calculateSHA256(const std::string &input) {
   //     new CryptoPP::HashFilter(
   //         hash, new CryptoPP::HexEncoder(new CryptoPP::StringSink(output))));
   //
-  std::string output;
-  return output;
+  return "info hash";
 }
 
 std::shared_ptr<bencoding::BItem> Torrent_Parser::get(std::string key) const {
   std::shared_ptr<bencoding::BItem> value = root->getValue(key);
   return value;
 }
+
 long Torrent_Parser::getFileSize() const {
   fmt::print("Getting file size\n");
-
   std::shared_ptr<bencoding::BItem> fileSizeItem = get("length");
-
   if (fileSizeItem == nullptr) {
     return -1;
   }

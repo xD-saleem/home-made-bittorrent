@@ -12,14 +12,15 @@ int main() {
 
   fmt::print("Torrent file parsed successfully\n");
 
-  std::string filename = parser.getFileName();
+  // std::string filename = parser.getFileName();
+  std::string filename = "debian.torrent";
   std::string downloadDirectory = "./";
   std::string downloadPath = downloadDirectory + filename;
   std::string peerID = "peer_id";
 
-  // Torrent_Client torrentClient(parser, ref(downloadPath));
+  Torrent_Client torrentClient(parser, ref(downloadPath));
 
-  // torrentClient.requestPeers(std::ref(peerID), 6881);
+  torrentClient.download();
 
   return 0;
 };

@@ -1,5 +1,6 @@
 #include "Torrent_Parser.h"
 
+#include <fmt/core.h>
 #include <gtest/gtest.h>
 
 // GetFileSize test

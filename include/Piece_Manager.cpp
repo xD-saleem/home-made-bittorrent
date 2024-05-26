@@ -22,20 +22,17 @@ Piece_Manager::Piece_Manager(const Torrent_Parser& fileParser,
 }
 
 Piece_Manager::~Piece_Manager() {
-  // TODO - Fix this
-  // for (Piece* piece : missingPieces) delete piece;
-  // for (Piece* piece : ongoingPieces) delete piece;
-  // for (PendingRequest* pending : pendingRequests) delete pending;
-  //
+  for (Piece* piece : missingPieces) delete piece;
+  for (Piece* piece : ongoingPieces) delete piece;
+  for (PendingRequest* pending : pendingRequests) delete pending;
   downloadedFile.close();
 }
 
 bool Piece_Manager::isComplete() {
   lock.lock();
-  // bool isComplete = havePieces.size() == totalPieces;
+  bool isComplete = havePieces.size() == totalPieces;
   lock.unlock();
-  // return isComplete;
-  return false;
+  return isComplete;
 }
 
 void Piece_Manager::addPeer(const std::string& peerId, std::string bitField) {
@@ -57,7 +54,7 @@ void Piece_Manager::removePeer(const std::string& peerId) {
 
 void Piece_Manager::updatePeer(const std::string& peerId, int index) {
   lock.lock();
-  // peers[peerId]
+  peers[peerId];
   lock.unlock();
 }
 

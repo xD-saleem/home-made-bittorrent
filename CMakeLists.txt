@@ -34,6 +34,8 @@ include/Torrent_Client.cpp
 include/Torrent_Client.h
 
 include/Piece.h
+include/Piece.cpp
+
 include/Block.h
 )
 
@@ -55,6 +57,9 @@ include/Torrent_Client.h
 include/Torrent_Client.cpp
 
 include/Piece.h
+include/Piece.cpp
+
+include/Block.h
 
 # Tests
 include/Main_test.cpp

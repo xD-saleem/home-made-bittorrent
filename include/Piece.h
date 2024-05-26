@@ -7,11 +7,10 @@
 
 class Piece {
  private:
-  const std::string hashValue;
-
  public:
   const int index;
   std::vector<Block*> blocks;
+  std::string hashValue;
 
   explicit Piece(int index, std::vector<Block*> blocks, std::string hashValue);
   ~Piece();

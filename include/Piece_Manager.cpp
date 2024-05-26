@@ -67,23 +67,22 @@ std::vector<Piece*> Piece_Manager::initiatePieces() {
 
   if (!pieceHashes.has_value()) {
     totalPieces = pieceHashes->size();
-    std::vector<std::string> pieceHashes;
+    auto pieceHashesValue = pieceHashes.value();
+
     std::vector<Piece*> torrentPieces;
     missingPieces.reserve(totalPieces);
 
     long totalLength = fileParser.getFileSize();
 
-    // number of blocks in a normal piece (i.e. pieces that are not the last
-    // one)
     int blockCount = ceil(pieceLength / BLOCK_SIZE);
     long remLength = pieceLength;
 
     for (int i = 0; i < totalPieces; i++) {
-      // The final piece is likely to have a smaller size.
       if (i == totalPieces - 1) {
         remLength = totalLength % pieceLength;
         blockCount = std::max((int)ceil(remLength / BLOCK_SIZE), 1);
       }
+
       std::vector<Block*> blocks;
       blocks.reserve(blockCount);
 
@@ -99,8 +98,10 @@ std::vector<Piece*> Piece_Manager::initiatePieces() {
           blocks.push_back(block);
         }
       }
-      auto piece = new Piece(i, blocks, pieceHashes[i]);
-      // torrentPieces.emplace_back(piece);
+      std::string d = pieceHashesValue[i];
+
+      Piece* piece = new Piece(i, blocks, d);
+      torrentPieces.emplace_back(piece);
     }
     return torrentPieces;
   }

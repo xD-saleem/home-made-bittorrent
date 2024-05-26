@@ -89,6 +89,7 @@ std::vector<Piece*> Piece_Manager::initiatePieces() {
         block->status = missing;
         block->offset = offset * BLOCK_SIZE;
         int blockSize = BLOCK_SIZE;
+
         if (i == totalPieces - 1 && offset == blockCount - 1) {
           blockSize = remLength % BLOCK_SIZE;
           block->length = blockSize;

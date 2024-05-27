@@ -16,7 +16,7 @@ Piece_Manager::Piece_Manager(const Torrent_Parser& fileParser,
     : pieceLength(fileParser.getPieceLength()),
       fileParser(fileParser),
       maximumConnections(maximumConnections) {
-  downloadedFile.open("./saleem.torrent", std::ios::binary | std::ios::out);
+  downloadedFile.open("./saleem", std::ios::binary | std::ios::out);
   downloadedFile.seekp(fileParser.getFileSize() - 1);
   downloadedFile.write("", 1);
 }
@@ -30,12 +30,14 @@ Piece_Manager::~Piece_Manager() {
 
 bool Piece_Manager::isComplete() {
   lock.lock();
+  fmt::print("size: {}, totalPieces \n", havePieces.size(), totalPieces);
   bool isComplete = havePieces.size() == totalPieces;
   lock.unlock();
   return isComplete;
 }
 
-void Piece_Manager::addPeer(const std::string& peerId, std::string bitField) {
+void Piece_Manager::addPeer(const std::string& peerId,
+                            const std::string bitField) {
   lock.lock();
   peers[peerId] = bitField;
   lock.unlock();
@@ -50,6 +52,13 @@ void Piece_Manager::removePeer(const std::string& peerId) {
   peers.erase(peerId);
   lock.unlock();
   fmt::print("Peer {} removed\n", peerId);
+}
+
+std::map<std::string, std::string> Piece_Manager::getPeers() {
+  lock.lock();
+  std::map<std::string, std::string> peerMap = peers;
+  lock.unlock();
+  return peerMap;
 }
 
 void Piece_Manager::updatePeer(const std::string& peerId, int index) {

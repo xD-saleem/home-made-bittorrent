@@ -54,6 +54,9 @@ class Piece_Manager {
   void addPeer(const std::string& peerId, std::string bitField);
   void removePeer(const std::string& peerId);
   void updatePeer(const std::string& peerId, int index);
+
+  std::map<std::string, std::string> getPeers();
+
   unsigned long bytesDownloaded();
   Block* nextRequest(std::string peerId);
 };

@@ -6,6 +6,7 @@
     "gtest",
     "fmt",
     "cpr",
-    "cryptopp"
+    "cryptopp",
+    "loguru"
   ]
 }

@@ -1,7 +1,11 @@
-#include <string>
+//
+// Created by siyuan on 24/05/2021.
+//
 
 #ifndef BITTORRENTCLIENT_BLOCK_H
 #define BITTORRENTCLIENT_BLOCK_H
+
+#include <string>
 
 enum BlockStatus { missing = 0, pending = 1, retrieved = 2 };
 

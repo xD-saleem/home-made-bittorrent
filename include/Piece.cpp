@@ -1,13 +1,10 @@
 
-
 #include "Piece.h"
 
 #include <openssl/sha.h>
 
 #include <algorithm>
 #include <cassert>
-#include <iomanip>
-#include <iostream>
 #include <loguru/loguru.hpp>
 #include <sstream>
 #include <string>

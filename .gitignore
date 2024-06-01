@@ -2,4 +2,4 @@
 build/
 vcpkg_installed/
 debian.torrent
-saleem.torrent
+debian-12.5.0-amd64-netinst.iso

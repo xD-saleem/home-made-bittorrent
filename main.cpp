@@ -9,7 +9,6 @@ int main() {
 
   fmt::print("Torrent file parsed successfully\n");
 
-  // std::string filename = parser.getFileName();
   std::string filename = "debian.torrent";
   std::string downloadDirectory = "./";
   std::string downloadPath = downloadDirectory + filename;

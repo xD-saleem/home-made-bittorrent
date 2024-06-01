@@ -25,23 +25,6 @@ add_library(bencoding STATIC ${BENCODING_SRC})
 add_executable(main main.cpp
 
 ## Classes
-# include/TorrentParser.cpp
-# include/TorrentParser.h
-#
-# include/PieceManager.cpp
-# include/PieceManager.h
-#
-# include/Torrent_Client.cpp
-# include/Torrent_Client.h
-#
-# include/Piece.h
-# include/Piece.cpp
-#
-# include/Block.h
-#
-# include/PeerRetriever.cpp
-# include/PeerRetriever.h
-
 include/BitTorrentMessage.cpp
 include/BitTorrentMessage.h
 include/Block.h
@@ -73,14 +56,14 @@ target_link_libraries(main PRIVATE bencoding fmt::fmt OpenSSL::SSL OpenSSL::Cryp
 # tests ${TEST_SRC}
 
 # Business logic
-# include/Torrent_Parser.h
-# include/Torrent_Parser.cpp
+# include/TorrentParser.h
+# include/TorrentParser.cpp
 #
-# include/Piece_Manager.h
-# include/Piece_Manager.cpp
+# include/PieceManager.h
+# include/PieceManager.cpp
 #
-# include/Torrent_Client.h
-# include/Torrent_Client.cpp
+# include/TorrentClient.h
+# include/TorrentClient.cpp
 #
 # include/Piece.h
 # include/Piece.cpp
@@ -92,10 +75,9 @@ target_link_libraries(main PRIVATE bencoding fmt::fmt OpenSSL::SSL OpenSSL::Cryp
 #
 # # Tests
 # include/Main_test.cpp
-# include/Torrent_Parser_test.cpp
-# include/Piece_Manager_test.cpp
-# include/Torrent_Client_test.cpp
-#
+# include/TorrentParser_test.cpp
+# include/PieceManager_test.cpp
+# include/TorrentClient_test.cpp
 # )
 
 ## Link libraries

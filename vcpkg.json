@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "dependencies": [
     "gtest",
-    "fmt",
     "cpr",
     "cryptopp",
     "loguru"

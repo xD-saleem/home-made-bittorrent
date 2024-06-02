@@ -1,13 +1,14 @@
 
-#include <fmt/core.h>
+
+#include <loguru/loguru.hpp>
 
 #include "TorrentClient.h"
 
-int main() {
+int main(int argc, char* argv[]) {
   std::string torrentFilePath = "debian.torrent";
-  fmt::print("Reading torrent url: {}\n", torrentFilePath);
+  loguru::init(argc, argv);
 
-  fmt::print("Torrent file parsed successfully\n");
+  LOG_F(INFO, "Starting torrent client");
 
   std::string filename = "debian.torrent";
   std::string downloadDirectory = "./";
@@ -15,9 +16,12 @@ int main() {
   std::string peerID = "peer_id";
 
   TorrentClient torrentClient(20, true, "./");
-  fmt::print("Downloading file: {}\n", downloadPath);
+
+  LOG_F(INFO, "Downloading torrent file");
+
   torrentClient.downloadFile(downloadPath, downloadDirectory);
 
+  LOG_F(INFO, "Downloaded torrent file successfully");
   return 0;
 };
 

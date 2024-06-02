@@ -10,7 +10,6 @@
 #include <chrono>
 #include <cstring>
 #include <limits>
-#include <loguru/loguru.hpp>
 #include <stdexcept>
 
 #include "utils.h"

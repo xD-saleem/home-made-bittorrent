@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.19)
 project(main)
 
 ## Dependencies
-find_package(fmt CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(cpr REQUIRED)
@@ -48,7 +47,7 @@ include/utils.h
 )
 
 
-target_link_libraries(main PRIVATE bencoding fmt::fmt OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp loguru)
+target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp loguru)
 
 # Tests
 # enable_testing()

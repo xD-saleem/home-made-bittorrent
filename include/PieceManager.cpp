@@ -22,9 +22,9 @@
 PieceManager::PieceManager(const TorrentFileParser& fileParser,
                            const std::string& downloadPath,
                            const int maximumConnections)
-    : fileParser(fileParser),
-      maximumConnections(maximumConnections),
-      pieceLength(fileParser.getPieceLength()) {
+    : pieceLength(fileParser.getPieceLength()),
+      fileParser(fileParser),
+      maximumConnections(maximumConnections) {
   missingPieces = initiatePieces();
   // Creates the destination file with the file size specified in the Torrent
   // file
@@ -100,6 +100,10 @@ std::vector<Piece*> PieceManager::initiatePieces() {
  */
 bool PieceManager::isComplete() {
   lock.lock();
+
+  LOG_F(INFO, "Have pieces: %d, total pieces: %d", havePieces.size(),
+        totalPieces);
+
   bool isComplete = havePieces.size() == totalPieces;
   lock.unlock();
   return isComplete;
@@ -116,7 +120,6 @@ void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
   std::stringstream info;
   info << "Number of connections: " << std::to_string(peers.size())
        << "/" + std::to_string(maximumConnections);
-  // std::cout << info.str() << std::endl;
   LOG_F(INFO, "%s", info.str().c_str());
 }
 
@@ -231,7 +234,6 @@ Block* PieceManager::nextOngoing(std::string peerId) {
     if (hasPiece(peers[peerId], piece->index)) {
       Block* block = piece->nextRequest();
       if (block) {
-        auto currentTime = std::time(nullptr);
         auto newPendingRequest = new PendingRequest;
         newPendingRequest->block = block;
         newPendingRequest->timestamp = std::time(nullptr);

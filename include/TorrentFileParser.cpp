@@ -49,8 +49,9 @@ std::vector<std::string> TorrentFileParser::splitPieceHashes() const {
   assert(pieces.size() % HASH_LEN == 0);
   int piecesCount = (int)pieces.size() / HASH_LEN;
   pieceHashes.reserve(piecesCount);
-  for (int i = 0; i < piecesCount; i++)
+  for (int i = 0; i < piecesCount; i++) {
     pieceHashes.push_back(pieces.substr(i * HASH_LEN, HASH_LEN));
+  }
   return pieceHashes;
 }
 

@@ -4,10 +4,7 @@
 #include <cstdint>
 #include <string>
 
-/**
- * Functions that handle network connection.
- */
-
+// Networks
 int createConnection(const std::string& ip, int port);
 void sendData(int sock, const std::string& data);
 std::string receiveData(int sock, uint32_t bufferSize = 0);

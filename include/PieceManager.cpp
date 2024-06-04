@@ -101,14 +101,15 @@ std::vector<Piece*> PieceManager::initiatePieces() {
 bool PieceManager::isComplete() {
   lock.lock();
 
-  LOG_F(INFO, "Have pieces: %d, total pieces: %d", havePieces.size(),
-        totalPieces);
+  std::cout << "havePieces.size(): " << havePieces.size() << std::endl;
+  std::cout << "totalPieces: " << totalPieces << std::endl;
 
+  // bool isComplete = havePieces.size() ==
+  // static_cast<std::size_t>(totalPieces);
   bool isComplete = havePieces.size() == totalPieces;
   lock.unlock();
   return isComplete;
 }
-
 /**
  * Adds a peer and the BitField representing the pieces the peer has.
  * Store the given information in the instance variable peers.
@@ -345,7 +346,6 @@ void PieceManager::blockReceived(std::string peerId, int pieceIndex,
       LOG_F(INFO, "Hash mismatch for Piece %d", targetPiece->index);
     }
   }
-  // lock.unlock();
 }
 
 /**
@@ -433,6 +433,8 @@ void PieceManager::displayProgressBar() {
   std::cout << info.str() << "\r";
   std::cout.flush();
   lock.unlock();
-  if (isComplete()) std::cout << std::endl;
+  if (isComplete()) {
+    std::cout << std::endl;
+  }
 }
 

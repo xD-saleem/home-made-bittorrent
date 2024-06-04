@@ -132,6 +132,7 @@ std::string receiveData(const int sock, uint32_t bufferSize) {
   // Keeps reading from the buffer until all expected bytes are received
   long bytesRead = 0;
   long bytesToRead = bufferSize;
+
   // If not all expected bytes are received within the period of time
   // specified by READ_TIMEOUT, the read process will stop.
   auto startTime = std::chrono::steady_clock::now();

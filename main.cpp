@@ -1,24 +1,27 @@
 
-#include <fmt/core.h>
 
-#include "Torrent_Parser.h"
+#include <loguru/loguru.hpp>
 
-int main() {
+#include "TorrentClient.h"
+
+int main(int argc, char* argv[]) {
   std::string torrentFilePath = "debian.torrent";
-  fmt::print("Reading torrent url: {}\n", torrentFilePath);
+  loguru::init(argc, argv);
 
-  Torrent_Parser parser(torrentFilePath);
+  LOG_F(INFO, "Starting torrent client");
 
-  fmt::print("Torrent file parsed successfully\n");
-
-  std::string announceUrl = parser.getAnnounce();
-
-  const std::string infoHash = parser.getInfoHash();
-
-  std::string filename = parser.getFileName();
+  std::string filename = "debian.torrent";
   std::string downloadDirectory = "./";
   std::string downloadPath = downloadDirectory + filename;
+  std::string peerID = "peer_id";
 
+  TorrentClient torrentClient(20, true, "./");
+
+  LOG_F(INFO, "Downloading torrent file");
+
+  torrentClient.downloadFile(downloadPath, downloadDirectory);
+
+  LOG_F(INFO, "Downloaded torrent file successfully");
   return 0;
 };
 

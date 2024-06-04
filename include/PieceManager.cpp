@@ -101,11 +101,12 @@ std::vector<Piece*> PieceManager::initiatePieces() {
 bool PieceManager::isComplete() {
   lock.lock();
 
-  std::cout << "havePieces.size(): " << havePieces.size() << std::endl;
-  std::cout << "totalPieces: " << totalPieces << std::endl;
+  // std::cout << "havePieces.size(): " << havePieces.size() << std::endl;
+  // std::cout << "totalPieces: " << totalPieces << std::endl;
 
-  // bool isComplete = havePieces.size() ==
-  // static_cast<std::size_t>(totalPieces);
+  // TODO - Fix this
+  //  bool isComplete = havePieces.size() ==
+  //  static_cast<std::size_t>(totalPieces);
   bool isComplete = havePieces.size() == totalPieces;
   lock.unlock();
   return isComplete;

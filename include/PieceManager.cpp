@@ -2,6 +2,7 @@
 #include "PieceManager.h"
 
 #include <bencode/bencoding.h>
+#include <fmt/core.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -10,6 +11,7 @@
 #include <iomanip>
 #include <iostream>
 #include <loguru/loguru.hpp>
+#include <sstream>
 
 #include "Block.h"
 #include "utils.h"
@@ -57,41 +59,52 @@ PieceManager::~PieceManager() {
  * @return a vector containing all the pieces in the file.
  */
 std::vector<Piece*> PieceManager::initiatePieces() {
-  std::vector<std::string> pieceHashes = fileParser.splitPieceHashes();
-  totalPieces = pieceHashes.size();
-  std::vector<Piece*> torrentPieces;
-  missingPieces.reserve(totalPieces);
+  std::optional<std::vector<std::string>> pieceHashes =
+      fileParser.splitPieceHashes();
 
-  long totalLength = fileParser.getFileSize();
+  if (pieceHashes.has_value()) {
+    auto pieceHashesValue = pieceHashes.value();
+    totalPieces = pieceHashesValue.size();
+    std::vector<Piece*> torrentPieces;
+    missingPieces.reserve(totalPieces);
 
-  // number of blocks in a normal piece (i.e. pieces that are not the last one)
-  int blockCount = ceil(pieceLength / BLOCK_SIZE);
-  long remLength = pieceLength;
+    long totalLength = fileParser.getFileSize();
 
-  for (int i = 0; i < totalPieces; i++) {
-    // The final piece is likely to have a smaller size.
-    if (i == totalPieces - 1) {
-      remLength = totalLength % pieceLength;
-      blockCount = std::max((int)ceil(remLength / BLOCK_SIZE), 1);
+    // number of blocks in a normal piece (i.e. pieces that are not the last
+    // one)
+    int blockCount = ceil(pieceLength / BLOCK_SIZE);
+    long remLength = pieceLength;
+
+    for (int i = 0; i < totalPieces; i++) {
+      // The final piece is likely to have a smaller size.
+      if (i == totalPieces - 1) {
+        remLength = totalLength % pieceLength;
+        blockCount = std::max((int)ceil(remLength / BLOCK_SIZE), 1);
+      }
+
+      std::vector<Block*> blocks;
+      blocks.reserve(blockCount);
+
+      for (int offset = 0; offset < blockCount; offset++) {
+        auto block = new Block;
+        block->piece = i;
+        block->status = missing;
+        block->offset = offset * BLOCK_SIZE;
+        int blockSize = BLOCK_SIZE;
+        if (i == totalPieces - 1 && offset == blockCount - 1)
+          blockSize = remLength % BLOCK_SIZE;
+        block->length = blockSize;
+        blocks.push_back(block);
+      }
+
+      auto piece = new Piece(i, blocks, pieceHashesValue[i]);
+      torrentPieces.emplace_back(piece);
     }
-    std::vector<Block*> blocks;
-    blocks.reserve(blockCount);
 
-    for (int offset = 0; offset < blockCount; offset++) {
-      auto block = new Block;
-      block->piece = i;
-      block->status = missing;
-      block->offset = offset * BLOCK_SIZE;
-      int blockSize = BLOCK_SIZE;
-      if (i == totalPieces - 1 && offset == blockCount - 1)
-        blockSize = remLength % BLOCK_SIZE;
-      block->length = blockSize;
-      blocks.push_back(block);
-    }
-    auto piece = new Piece(i, blocks, pieceHashes[i]);
-    torrentPieces.emplace_back(piece);
+    return torrentPieces;
   }
-  return torrentPieces;
+
+  return std::vector<Piece*>();
 }
 
 /**
@@ -104,9 +117,7 @@ bool PieceManager::isComplete() {
   // std::cout << "havePieces.size(): " << havePieces.size() << std::endl;
   // std::cout << "totalPieces: " << totalPieces << std::endl;
 
-  // TODO - Fix this
-  //  bool isComplete = havePieces.size() ==
-  //  static_cast<std::size_t>(totalPieces);
+  // TODO - Fix this. its something not completing
   bool isComplete = havePieces.size() == totalPieces;
   lock.unlock();
   return isComplete;
@@ -227,9 +238,9 @@ Block* PieceManager::expiredRequest(std::string peerId) {
 }
 
 /**
- * Iterates through the pieces that are currently being downloaded, and returns
- * the next Block to be requested or NULL if no Block is left to be requested
- * from the list of Pieces.
+ * Iterates through the pieces that are currently being downloaded, and
+ * returns the next Block to be requested or NULL if no Block is left to be
+ * requested from the list of Pieces.
  */
 Block* PieceManager::nextOngoing(std::string peerId) {
   for (Piece* piece : ongoingPieces) {
@@ -252,8 +263,8 @@ Block* PieceManager::nextOngoing(std::string peerId) {
  * which is owned by the fewest number of peers).
  */
 Piece* PieceManager::getRarestPiece(std::string peerId) {
-  // Custom comparator to make sure that the map is ordered by the index of the
-  // Piece.
+  // Custom comparator to make sure that the map is ordered by the index of
+  // the Piece.
   auto comp = [](const Piece* a, const Piece* b) {
     return a->index < b->index;
   };
@@ -286,8 +297,8 @@ Piece* PieceManager::getRarestPiece(std::string peerId) {
  * Once an entire Piece has been received, a SHA1 hash is computed on the data
  * of all the retrieved blocks in the Piece. The hash will be compared to
  * that from the Torrent meta-info. If a mismatch is detected, all the blocks
- * in the Piece will be reset to a missing state. If the hash matches, the data
- * in the Piece will be written to disk.
+ * in the Piece will be reset to a missing state. If the hash matches, the
+ * data in the Piece will be written to disk.
  */
 void PieceManager::blockReceived(std::string peerId, int pieceIndex,
                                  int blockOffset, std::string data) {
@@ -393,8 +404,8 @@ void PieceManager::displayProgressBar() {
   unsigned long downloadedPieces = havePieces.size();
   unsigned long downloadedLength = pieceLength * piecesDownloadedInInterval;
 
-  // Calculates the average download speed in the last PROGRESS_DISPLAY_INTERVAL
-  // in MB/s
+  // Calculates the average download speed in the last
+  // PROGRESS_DISPLAY_INTERVAL in MB/s
   double avgDownloadSpeed =
       (double)downloadedLength / (double)PROGRESS_DISPLAY_INTERVAL;
   double avgDownloadSpeedInMBS = avgDownloadSpeed / pow(10, 6);

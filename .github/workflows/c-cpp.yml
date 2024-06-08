@@ -1,12 +1,15 @@
-name: Home-made bitorrent
 
-on:
-  push:
-    branches: [ "fix-ci" ]
-  pull_request:
-    branches: [ "fix-ci" ]
+name: CI
+
+on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      run: ls
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Run a one-line script
+      run: echo ls 

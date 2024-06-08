@@ -5,10 +5,19 @@ on: pull_request
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
     - name: Run a one-line script
       run:  ls -la
+
+    - name: vcpkg build
+      uses: johnwason/vcpkg-action@v6
+      id: vcpkg
+      with:
+        pkgs: boost-date-time boost-system
+        triplet: x64-windows-release
+        token: ${{ github.token }}
+        github-binarycache: true
+      run: make test

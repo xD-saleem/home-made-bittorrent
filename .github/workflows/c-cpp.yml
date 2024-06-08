@@ -18,7 +18,7 @@ jobs:
       with:
         manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
         token: ${{ github.token }}
-        # github-binarycache: true
+        triplet: x64-linux-release
 
     - name: test
       run: make test

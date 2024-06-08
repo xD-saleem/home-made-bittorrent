@@ -16,7 +16,9 @@ jobs:
       uses: johnwason/vcpkg-action@v6
       id: vcpkg
       with:
-        vcpkg-args: "install --triplet x64-linux"
+        manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
+        token: ${{ github.token }}
+        github-binarycache: true
 
     - name: test
       run: make test

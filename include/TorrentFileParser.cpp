@@ -6,7 +6,6 @@
 #include <utils.h>
 
 #include <cassert>
-#include <expected>
 #include <fstream>
 #include <loguru/loguru.hpp>
 #include <optional>

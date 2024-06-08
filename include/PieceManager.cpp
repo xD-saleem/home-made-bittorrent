@@ -2,6 +2,7 @@
 #include "PieceManager.h"
 
 #include <bencode/bencoding.h>
+#include <fmt/core.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -10,6 +11,7 @@
 #include <iomanip>
 #include <iostream>
 #include <loguru/loguru.hpp>
+#include <sstream>
 
 #include "Block.h"
 #include "utils.h"
@@ -60,7 +62,7 @@ std::vector<Piece*> PieceManager::initiatePieces() {
   std::optional<std::vector<std::string>> pieceHashes =
       fileParser.splitPieceHashes();
 
-  if (!pieceHashes.has_value()) {
+  if (pieceHashes.has_value()) {
     auto pieceHashesValue = pieceHashes.value();
     totalPieces = pieceHashesValue.size();
     std::vector<Piece*> torrentPieces;
@@ -79,6 +81,7 @@ std::vector<Piece*> PieceManager::initiatePieces() {
         remLength = totalLength % pieceLength;
         blockCount = std::max((int)ceil(remLength / BLOCK_SIZE), 1);
       }
+
       std::vector<Block*> blocks;
       blocks.reserve(blockCount);
 
@@ -114,9 +117,7 @@ bool PieceManager::isComplete() {
   // std::cout << "havePieces.size(): " << havePieces.size() << std::endl;
   // std::cout << "totalPieces: " << totalPieces << std::endl;
 
-  // TODO - Fix this
-  //  bool isComplete = havePieces.size() ==
-  //  static_cast<std::size_t>(totalPieces);
+  // TODO - Fix this. its something not completing
   bool isComplete = havePieces.size() == totalPieces;
   lock.unlock();
   return isComplete;

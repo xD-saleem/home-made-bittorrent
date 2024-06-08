@@ -12,12 +12,12 @@ using byte = unsigned char;
 class PeerConnection {
  private:
   int sock{};
+  SharedQueue<Peer*>* queue;
   bool choked = true;
   bool terminated = false;
   bool requestPending = false;
   const std::string clientId;
   const std::string infoHash;
-  SharedQueue<Peer*>* queue;
   Peer* peer;
   std::string peerBitField;
   std::string peerId;

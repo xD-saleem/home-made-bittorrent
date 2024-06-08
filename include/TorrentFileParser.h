@@ -14,7 +14,9 @@ class TorrentFileParser {
   std::shared_ptr<bencoding::BDictionary> root;
 
  public:
+  // Torrent file
   explicit TorrentFileParser(const std::string& filePath);
+
   long getFileSize() const;
   long getPieceLength() const;
   std::string getFileName() const;

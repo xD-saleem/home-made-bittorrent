@@ -20,3 +20,6 @@ jobs:
         triplet: x64-windows-release
         token: ${{ github.token }}
         github-binarycache: true
+
+    - name: test
+      run: make test

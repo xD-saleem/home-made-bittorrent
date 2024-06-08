@@ -9,7 +9,7 @@ find_package(cryptopp REQUIRED)
 find_package(loguru CONFIG REQUIRED)
 
 ## Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 ## Include directories

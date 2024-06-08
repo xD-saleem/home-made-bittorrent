@@ -6,8 +6,10 @@
 #include <utils.h>
 
 #include <cassert>
+#include <expected>
 #include <fstream>
 #include <loguru/loguru.hpp>
+#include <optional>
 #include <stdexcept>
 
 #define HASH_LEN 20
@@ -36,22 +38,30 @@ std::string TorrentFileParser::getInfoHash() const {
   return sha1Hash;
 }
 
-std::vector<std::string> TorrentFileParser::splitPieceHashes() const {
+std::optional<std::vector<std::string>> TorrentFileParser::splitPieceHashes()
+    const {
   std::shared_ptr<bencoding::BItem> piecesValue = get("pieces");
-  if (!piecesValue)
-    throw std::runtime_error(
-        "Torrent file is malformed. [File does not contain key 'pieces']");
+
+  if (!piecesValue) {
+    LOG_F(ERROR,
+          "Torrent file is malformed. [File does not contain key "
+          "'pieces']");
+    return std::nullopt;
+  }
   std::string pieces =
       std::dynamic_pointer_cast<bencoding::BString>(piecesValue)->value();
 
   std::vector<std::string> pieceHashes;
 
   assert(pieces.size() % HASH_LEN == 0);
+
   int piecesCount = (int)pieces.size() / HASH_LEN;
   pieceHashes.reserve(piecesCount);
+
   for (int i = 0; i < piecesCount; i++) {
     pieceHashes.push_back(pieces.substr(i * HASH_LEN, HASH_LEN));
   }
+
   return pieceHashes;
 }
 

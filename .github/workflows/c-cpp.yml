@@ -1,23 +1,30 @@
-name: C/C++ CI
+name: CI
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: pull_request
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Run a one-line script
+      run:  ls -lla
+
+    - name: vcpkg build
+      uses: johnwason/vcpkg-action@v6
+      id: vcpkg
+      with:
+        manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
+        token: ${{ github.token }}
+        triplet: x64-linux-release
+
+    # - name: build
+    #   run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cd build && make && cd - && echo "successfully built"
+    #
+    - name: build
+      run: make ci-build
+
+    - name: test
+      run: make ci-tests

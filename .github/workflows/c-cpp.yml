@@ -21,4 +21,4 @@ jobs:
         triplet: x64-linux-release
 
     - name: test
-      run: make ci2
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1

@@ -10,8 +10,9 @@ test:
 buildrun:
 		make buildproj && ./build/main
 
-ci:
+ci-build:
 	 cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
-ci2:
-	ls -lla
+ci-tests:
+	echo "running tests..." && ./build/tests
+

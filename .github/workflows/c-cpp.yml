@@ -10,7 +10,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Run a one-line script
-      run:  ls -la
+      run:  ls -lla
 
     - name: vcpkg build
       uses: johnwason/vcpkg-action@v6

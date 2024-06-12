@@ -21,4 +21,4 @@ jobs:
         triplet: x64-linux-release
 
     - name: test
-      run: make ci
+      run: make ci2

@@ -62,9 +62,13 @@ include/utils.h
 include/TorrentFileParser.h
 include/TorrentFileParser.cpp
 
+include/BitTorrentMessage.h
+include/BitTorrentMessage.cpp
+
 # Tests
 include/Main_test.cpp
 include/TorrentFileParser_test.cpp
+include/BitTorrentMessage_test.cpp
 )
 
 # Link libraries

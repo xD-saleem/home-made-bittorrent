@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.19)
 project(main)
 
+## Set C++ standard
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 ## Dependencies
 find_package(GTest CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -9,9 +13,6 @@ find_package(cryptopp REQUIRED)
 find_package(loguru CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 
-## Set C++ standard
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 ## Include directories
 include_directories(lib)
@@ -56,15 +57,18 @@ add_executable(
 tests ${TEST_SRC}
 
 # Business logic
+include/Main_test.cpp
+
 include/utils.cpp
 include/utils.h
 
 include/TorrentFileParser.h
 include/TorrentFileParser.cpp
-
-# Tests
-include/Main_test.cpp
 include/TorrentFileParser_test.cpp
+
+include/BitTorrentMessage.h
+include/BitTorrentMessage_test.cpp
+include/BitTorrentMessage.cpp
 )
 
 # Link libraries

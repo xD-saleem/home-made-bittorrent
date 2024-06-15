@@ -1,6 +1,10 @@
 name: CI
 
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -8,9 +12,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-
-    - name: Run a one-line script
-      run:  ls -lla
 
     - name: vcpkg build
       uses: johnwason/vcpkg-action@v6

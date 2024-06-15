@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+// use std::bit_cast instead of casting
 BitTorrentMessage::BitTorrentMessage(const uint8_t id,
                                      const std::string& payload)
     : messageLength(payload.length() + 1), id(id), payload(payload) {}

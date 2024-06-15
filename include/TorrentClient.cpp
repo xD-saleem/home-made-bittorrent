@@ -1,6 +1,7 @@
 #include "TorrentClient.h"
 
 #include <bencode/bencoding.h>
+#include <fmt/core.h>
 
 #include <iostream>
 #include <loguru/loguru.hpp>
@@ -64,7 +65,7 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
   auto lastPeerQuery = (time_t)(-1);
 
-  std::cout << "Download initiated..." << std::endl;
+  fmt::print("Downloading file to {}\n", downloadPath);
 
   while (true) {
     if (pieceManager.isComplete()) break;

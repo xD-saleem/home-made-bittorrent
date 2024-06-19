@@ -1,8 +1,6 @@
-
-
-// #include <expected>
 #include <iostream>
 #include <loguru/loguru.hpp>
+#include <tl/expected.hpp>
 
 #include "TorrentClient.h"
 
@@ -10,13 +8,13 @@ struct Error {
   std::string message;
 };
 
-// // Define a function that returns an expected<int, Error>
-// std::expected<int, Error> divide(int a, int b) {
-//   if (b == 0) {
-//     return std::unexpected(Error{"Division by zero"});
-//   }
-//   return a / b;
-// }
+// Define a function that returns an tl::expected<int, Error>
+tl::expected<int, Error> divide(int a, int b) {
+  if (b == 0) {
+    return tl::unexpected(Error{"Division by zero"});
+  }
+  return a / b;
+}
 
 int main(int argc, char* argv[]) {
   if (__cplusplus == 202101L)
@@ -34,15 +32,6 @@ int main(int argc, char* argv[]) {
   else
     std::cout << "pre-standard C++." << __cplusplus;
   std::cout << "\n";
-
-  // auto result = divide(10, 2);
-
-  // if (result) {
-  //   std::cout << "Result: " << *result << std::endl;  // Access the value
-  // } else {
-  //   std::cout << "Error: " << result.error().message
-  //             << std::endl;  // Access the error
-  // }
 
   std::string torrentFilePath = "debian.torrent";
   loguru::init(argc, argv);

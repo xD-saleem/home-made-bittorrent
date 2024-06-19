@@ -11,7 +11,7 @@ buildrun:
 		make buildproj && ./build/main
 
 ci-build:
-	 cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cd build && make && cd - && echo "successfully built"
+	 cmake -B build -S . -DCMAKE_C_COMPILER=/usr/bin/gcc-12 -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cd build && make && cd - && echo "successfully built"
 
 ci-tests:
 	echo "running tests" &&  ./build/tests

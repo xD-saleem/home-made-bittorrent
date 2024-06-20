@@ -29,11 +29,11 @@ TEST(PieceManagerTest, getInfoHash) {
 
 TEST(PieceManagerTest, splitPieceHashes) {
   TorrentFileParser tfp = TorrentFileParser("debian.torrent");
-  std::optional<std::vector<std::string>> o = tfp.splitPieceHashes();
-  std::vector<std::string> output = o.value();
+  auto output = tfp.splitPieceHashes();
 
   int result = 2516;
 
-  EXPECT_EQ(output.size(), result);
+  EXPECT_EQ(output.has_value(), true);
+  EXPECT_EQ(output.value().size(), result);
 }
 

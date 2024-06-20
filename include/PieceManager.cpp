@@ -59,8 +59,7 @@ PieceManager::~PieceManager() {
  * @return a vector containing all the pieces in the file.
  */
 std::vector<Piece*> PieceManager::initiatePieces() {
-  std::optional<std::vector<std::string>> pieceHashes =
-      fileParser.splitPieceHashes();
+  auto pieceHashes = fileParser.splitPieceHashes();
 
   if (pieceHashes.has_value()) {
     auto pieceHashesValue = pieceHashes.value();
@@ -91,8 +90,11 @@ std::vector<Piece*> PieceManager::initiatePieces() {
         block->status = missing;
         block->offset = offset * BLOCK_SIZE;
         int blockSize = BLOCK_SIZE;
-        if (i == totalPieces - 1 && offset == blockCount - 1)
+
+        if (i == totalPieces - 1 && offset == blockCount - 1) {
           blockSize = remLength % BLOCK_SIZE;
+        }
+
         block->length = blockSize;
         blocks.push_back(block);
       }

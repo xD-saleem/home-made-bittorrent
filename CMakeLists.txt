@@ -4,7 +4,6 @@ project(main)
 ## Set C++ standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## Dependencies
 find_package(GTest CONFIG REQUIRED)

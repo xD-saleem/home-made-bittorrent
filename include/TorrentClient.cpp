@@ -53,6 +53,7 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
   std::string filename = torrentFileParser.getFileName();
   std::string downloadPath = downloadDirectory + filename;
+
   PieceManager pieceManager(torrentFileParser, downloadPath, threadNum);
 
   // Adds threads to the thread pool

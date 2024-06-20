@@ -4,18 +4,6 @@
 
 #include "TorrentClient.h"
 
-struct Error {
-  std::string message;
-};
-
-// Define a function that returns an tl::expected<int, Error>
-tl::expected<int, Error> divide(int a, int b) {
-  if (b == 0) {
-    return tl::unexpected(Error{"Division by zero"});
-  }
-  return a / b;
-}
-
 int main(int argc, char* argv[]) {
   if (__cplusplus == 202101L)
     std::cout << "C++23";

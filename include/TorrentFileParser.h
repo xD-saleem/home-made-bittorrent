@@ -1,11 +1,16 @@
 
 #ifndef BITTORRENTCLIENT_TORRENTFILEPARSER_H
 #define BITTORRENTCLIENT_TORRENTFILEPARSER_H
+
 #include <bencode/BDictionary.h>
 
-#include <optional>
 #include <string>
+#include <tl/expected.hpp>
 #include <vector>
+
+struct TorrentFilParserError {
+  std::string message;
+};
 
 using byte = unsigned char;
 
@@ -23,7 +28,8 @@ class TorrentFileParser {
   std::string getAnnounce() const;
   std::shared_ptr<bencoding::BItem> get(std::string key) const;
   std::string getInfoHash() const;
-  std::optional<std::vector<std::string>> splitPieceHashes() const;
+  tl::expected<std::vector<std::string>, TorrentFilParserError>
+  splitPieceHashes() const;
 };
 
 #endif  // BITTORRENTCLIENT_TORRENTFILEPARSER_H

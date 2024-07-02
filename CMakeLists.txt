@@ -74,9 +74,9 @@ include/BitTorrentMessage.h
 include/BitTorrentMessage_test.cpp
 include/BitTorrentMessage.cpp
 
-include/PieceManager.h
-include/PieceManager.cpp
-include/PieceManager_test.cpp
+# include/PieceManager.h
+# include/PieceManager.cpp
+# include/PieceManager_test.cpp
 )
 
 # Link libraries

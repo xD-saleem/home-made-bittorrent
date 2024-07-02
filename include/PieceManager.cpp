@@ -12,6 +12,8 @@
 #include <iostream>
 #include <loguru/loguru.hpp>
 #include <sstream>
+#include <thread>
+#include <tl/expected.hpp>
 
 #include "Block.h"
 #include "utils.h"
@@ -19,19 +21,24 @@
 #define BLOCK_SIZE 16384    // 2 ^ 14
 #define MAX_PENDING_TIME 5  // 5 sec
 #define PROGRESS_BAR_WIDTH 40
+
 #define PROGRESS_DISPLAY_INTERVAL 1  // 0.5 sec
 
 PieceManager::PieceManager(const TorrentFileParser& fileParser,
                            const std::string& downloadPath,
                            const int maximumConnections)
-    : pieceLength(fileParser.getPieceLength()),
+
+    : pieceLength(fileParser.getPieceLength().value()),
       fileParser(fileParser),
       maximumConnections(maximumConnections) {
   missingPieces = initiatePieces();
   // Creates the destination file with the file size specified in the Torrent
   // file
   downloadedFile.open(downloadPath, std::ios::binary | std::ios::out);
-  downloadedFile.seekp(fileParser.getFileSize() - 1);
+
+  long fileSize = fileParser.getFileSize().value();
+  // TODO check if it has value
+  downloadedFile.seekp(fileSize - 1);
   downloadedFile.write("", 1);
 
   // Starts a thread to track progress of the download
@@ -59,7 +66,8 @@ PieceManager::~PieceManager() {
  * @return a vector containing all the pieces in the file.
  */
 std::vector<Piece*> PieceManager::initiatePieces() {
-  auto pieceHashes = fileParser.splitPieceHashes();
+  tl::expected<std::vector<std::string>, TorrentFileParserError> pieceHashes =
+      fileParser.splitPieceHashes();
 
   if (pieceHashes.has_value()) {
     auto pieceHashesValue = pieceHashes.value();
@@ -67,7 +75,14 @@ std::vector<Piece*> PieceManager::initiatePieces() {
     std::vector<Piece*> torrentPieces;
     missingPieces.reserve(totalPieces);
 
-    long totalLength = fileParser.getFileSize();
+    auto totalLengthResult = fileParser.getFileSize();
+
+    if (!totalLengthResult.has_value()) {
+      LOG_F(ERROR, "Failed to get file size");
+      return std::vector<Piece*>();
+    }
+    // Check
+    long totalLength = totalLengthResult.value();
 
     // number of blocks in a normal piece (i.e. pieces that are not the last
     // one)
@@ -142,16 +157,19 @@ void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
  * Updates the information about which pieces a peer has (i.e. reflects
  * a Have message).
  */
-void PieceManager::updatePeer(const std::string& peerId, int index) {
+tl::expected<void, TorrentFileParserError> PieceManager::updatePeer(
+    const std::string& peerId, int index) {
   lock.lock();
   if (peers.find(peerId) != peers.end()) {
     setPiece(peers[peerId], index);
     lock.unlock();
   } else {
     lock.unlock();
-    throw std::runtime_error("Connection has not been established with peer " +
-                             peerId);
+    return tl::unexpected(TorrentFileParserError{
+        "Attempting to update a peer " + peerId +
+        " with whom a connection has not been established."});
   }
+  return {};
 }
 
 /**
@@ -366,7 +384,7 @@ void PieceManager::blockReceived(std::string peerId, int pieceIndex,
  * Writes the given Piece to disk.
  */
 void PieceManager::write(Piece* piece) {
-  long position = piece->index * fileParser.getPieceLength();
+  long position = piece->index * fileParser.getPieceLength().value();
   downloadedFile.seekp(position);
   downloadedFile << piece->getData();
 }

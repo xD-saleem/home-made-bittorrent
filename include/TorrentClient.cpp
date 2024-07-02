@@ -46,12 +46,12 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
   // Parse Torrent file
   std::cout << "Parsing Torrent file " + torrentFilePath + "..." << std::endl;
   TorrentFileParser torrentFileParser(torrentFilePath);
-  std::string announceUrl = torrentFileParser.getAnnounce();
+  std::string announceUrl = torrentFileParser.getAnnounce().value();
 
-  long fileSize = torrentFileParser.getFileSize();
+  long fileSize = torrentFileParser.getFileSize().value();
   const std::string infoHash = torrentFileParser.getInfoHash();
 
-  std::string filename = torrentFileParser.getFileName();
+  std::string filename = torrentFileParser.getFileName().value();
   std::string downloadPath = downloadDirectory + filename;
 
   PieceManager pieceManager(torrentFileParser, downloadPath, threadNum);
@@ -69,7 +69,9 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
   fmt::print("Downloading file to {}\n", downloadPath);
 
   while (true) {
-    if (pieceManager.isComplete()) break;
+    if (pieceManager.isComplete()) {
+      break;
+    }
 
     time_t currentTime = std::time(nullptr);
     auto diff = std::difftime(currentTime, lastPeerQuery);

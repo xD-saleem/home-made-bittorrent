@@ -6,7 +6,6 @@
 #include <fstream>
 #include <map>
 #include <mutex>
-#include <thread>
 #include <vector>
 
 #include "Piece.h"
@@ -15,6 +14,10 @@
 struct PendingRequest {
   Block* block;
   time_t timestamp;
+};
+
+struct PieceManagerError {
+  std::string message;
 };
 
 /**
@@ -60,7 +63,13 @@ class PieceManager {
                      std::string data);
   void addPeer(const std::string& peerId, std::string bitField);
   void removePeer(const std::string& peerId);
-  void updatePeer(const std::string& peerId, int index);
+
+  // tl::expected<void, TorrentFilParserError> updatePeer(const std::string&
+  // peerId, std::string bitField);
+
+  tl::expected<void, TorrentFileParserError> updatePeer(
+      const std::string& peerId, int index);
+
   unsigned long bytesDownloaded();
   Block* nextRequest(std::string peerId);
 };

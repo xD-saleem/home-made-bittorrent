@@ -4,6 +4,10 @@
 #include <cstdint>
 #include <string>
 
+struct ConnectError {
+  std::string message;
+};
+
 // Networks
 int createConnection(const std::string& ip, int port);
 void sendData(int sock, const std::string& data);

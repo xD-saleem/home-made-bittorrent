@@ -5,6 +5,9 @@
 
 #include <vector>
 
+struct PeerError {
+  std::string message;
+};
 /**
  * An representation of peers which the reponse retrieved from the tracker.
  * Contains a string that denotes the IP of the peer as well as a port number.

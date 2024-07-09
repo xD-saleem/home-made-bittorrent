@@ -16,6 +16,7 @@
 #include <tl/expected.hpp>
 
 #include "Block.h"
+#include "TorrentFileParser.h"
 #include "utils.h"
 
 #define BLOCK_SIZE 16384    // 2 ^ 14
@@ -157,7 +158,7 @@ void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
  * Updates the information about which pieces a peer has (i.e. reflects
  * a Have message).
  */
-tl::expected<void, TorrentFileParserError> PieceManager::updatePeer(
+tl::expected<void, PieceManagerError> PieceManager::updatePeer(
     const std::string& peerId, int index) {
   lock.lock();
   if (peers.find(peerId) != peers.end()) {
@@ -165,9 +166,9 @@ tl::expected<void, TorrentFileParserError> PieceManager::updatePeer(
     lock.unlock();
   } else {
     lock.unlock();
-    return tl::unexpected(TorrentFileParserError{
-        "Attempting to update a peer " + peerId +
-        " with whom a connection has not been established."});
+    return tl::unexpected(
+        PieceManagerError{"Attempting to update a peer " + peerId +
+                          " with whom a connection has not been established."});
   }
   return {};
 }
@@ -176,8 +177,11 @@ tl::expected<void, TorrentFileParserError> PieceManager::updatePeer(
  * Removes a previously added peer in case of a lost connection.
  * @param peerId: Id of the peer to be removed.
  */
-void PieceManager::removePeer(const std::string& peerId) {
-  if (isComplete()) return;
+tl::expected<void, PieceManagerError> PieceManager::removePeer(
+    const std::string& peerId) {
+  if (isComplete()) {
+    return {};
+  }
   lock.lock();
   auto iter = peers.find(peerId);
   if (iter != peers.end()) {
@@ -189,10 +193,11 @@ void PieceManager::removePeer(const std::string& peerId) {
     LOG_F(INFO, "%s", info.str().c_str());
   } else {
     lock.unlock();
-    throw std::runtime_error(
-        "Attempting to remove a peer " + peerId +
-        " with whom a connection has not been established.");
+    return tl::unexpected(
+        PieceManagerError{"Attempting to remove a peer " + peerId +
+                          " with whom a connection has not been established."});
   }
+  return {};
 }
 
 /**

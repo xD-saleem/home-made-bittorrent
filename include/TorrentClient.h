@@ -8,6 +8,10 @@
 #include "PeerRetriever.h"
 #include "SharedQueue.h"
 
+struct TorrentClientError {
+  std::string message;
+};
+
 class TorrentClient {
  private:
   const int threadNum;

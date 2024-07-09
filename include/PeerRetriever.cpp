@@ -7,6 +7,7 @@
 #include <loguru/loguru.hpp>
 #include <stdexcept>
 #include <string>
+#include <tl/expected.hpp>
 #include <utility>
 
 #include "utils.h"
@@ -75,12 +76,18 @@ std::vector<Peer*> PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
   // If response successfully retrieved
   if (res.status_code == 200) {
     LOG_F(INFO, "Retrieve response from tracker: SUCCESS");
-    //        std::shared_ptr<bencoding::BItem> decodedResponse =
-    //        bencoding::decode(res.text); std::string formattedResponse =
-    //        bencoding::getPrettyRepr(decodedResponse); std::cout <<
-    //        formattedResponse << std::endl;
-    std::vector<Peer*> peers = decodeResponse(res.text);
-    return peers;
+    std::shared_ptr<bencoding::BItem> decodedResponse =
+        bencoding::decode(res.text);
+
+    auto peers = decodeResponse(res.text);
+
+    if (!peers.has_value()) {
+      LOG_F(ERROR, "Decoding tracker response: FAILED [ %s ]",
+            peers.error().message.c_str());
+      return std::vector<Peer*>();
+    }
+
+    return peers.value();
   } else {
     LOG_F(ERROR, "Retrieving response from tracker: FAILED [ %d: %s ]",
           res.status_code, res.text.c_str());
@@ -97,7 +104,9 @@ std::vector<Peer*> PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
  * the response of the kali-linux tracker, whereas the latter can be found in
  * the tracker response of the other two files.
  */
-std::vector<Peer*> PeerRetriever::decodeResponse(std::string response) {
+
+tl::expected<std::vector<Peer*>, PeerRetrieverError>
+PeerRetriever::decodeResponse(std::string response) {
   LOG_F(INFO, "Decoding tracker response...");
   std::shared_ptr<bencoding::BItem> decodedResponse =
       bencoding::decode(response);
@@ -106,10 +115,11 @@ std::vector<Peer*> PeerRetriever::decodeResponse(std::string response) {
       std::dynamic_pointer_cast<bencoding::BDictionary>(decodedResponse);
   std::shared_ptr<bencoding::BItem> peersValue =
       responseDict->getValue("peers");
-  if (!peersValue)
+  if (!peersValue) {
     throw std::runtime_error(
         "Response returned by the tracker is not in the correct format. "
         "['peers' not found]");
+  }
 
   std::vector<Peer*> peers;
 

@@ -325,8 +325,8 @@ Piece* PieceManager::getRarestPiece(std::string peerId) {
  * in the Piece will be reset to a missing state. If the hash matches, the
  * data in the Piece will be written to disk.
  */
-void PieceManager::blockReceived(std::string peerId, int pieceIndex,
-                                 int blockOffset, std::string data) {
+tl::expected<void, PieceManagerError> PieceManager::blockReceived(
+    std::string peerId, int pieceIndex, int blockOffset, std::string data) {
   LOG_F(INFO, "Received block %d for piece %d from peer %s", blockOffset,
         pieceIndex, peerId.c_str());
   // Removes the received block from pending requests
@@ -353,9 +353,10 @@ void PieceManager::blockReceived(std::string peerId, int pieceIndex,
     }
   }
   lock.unlock();
-  if (!targetPiece)
-    throw std::runtime_error(
-        "Received Block does not belong to any ongoing Piece.");
+  if (!targetPiece) {
+    return tl::unexpected(PieceManagerError{
+        "Received block for a piece that is not being downloaded."});
+  }
 
   targetPiece->blockReceived(blockOffset, std::move(data));
   if (targetPiece->isComplete()) {
@@ -373,7 +374,9 @@ void PieceManager::blockReceived(std::string peerId, int pieceIndex,
       lock.unlock();
 
       std::stringstream info;
-      info << "(" << std::fixed << std::setprecision(2)
+      info << "(" << std::fixed
+           << std::setprecision(2)
+           // TODO check this
            << (((float)havePieces.size()) / (float)totalPieces * 100) << "%) ";
       info << std::to_string(havePieces.size()) + " / " +
                   std::to_string(totalPieces) + " Pieces downloaded...";
@@ -383,6 +386,7 @@ void PieceManager::blockReceived(std::string peerId, int pieceIndex,
       LOG_F(INFO, "Hash mismatch for Piece %d", targetPiece->index);
     }
   }
+  return {};
 }
 
 /**

@@ -59,14 +59,12 @@ class PieceManager {
                         int maximumConnections);
   ~PieceManager();
   bool isComplete();
-  void blockReceived(std::string peerId, int pieceIndex, int blockOffset,
-                     std::string data);
+  tl::expected<void, PieceManagerError> blockReceived(std::string peerId,
+                                                      int pieceIndex,
+                                                      int blockOffset,
+                                                      std::string data);
   void addPeer(const std::string& peerId, std::string bitField);
   tl::expected<void, PieceManagerError> removePeer(const std::string& peerId);
-
-  // tl::expected<void, TorrentFilParserError> updatePeer(const std::string&
-  // peerId, std::string bitField);
-
   tl::expected<void, PieceManagerError> updatePeer(const std::string& peerId,
                                                    int index);
 

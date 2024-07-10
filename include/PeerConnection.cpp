@@ -112,7 +112,8 @@ void PeerConnection::stop() { terminated = true; }
 tl::expected<void, PeerConnectionError> PeerConnection::performHandshake() {
   // Connects to the peer
   try {
-    sock = createConnection(peer->ip, peer->port);
+    auto sockOption = createConnection(peer->ip, peer->port);
+    sock = sockOption.value();
   } catch (std::runtime_error& e) {
     return tl::make_unexpected(PeerConnectionError{e.what()});
   }
@@ -122,7 +123,9 @@ tl::expected<void, PeerConnectionError> PeerConnection::performHandshake() {
   sendData(sock, handshakeMessage);
 
   // Receive the reply from the peer
-  std::string reply = receiveData(sock, handshakeMessage.length());
+  auto replyOption = receiveData(sock, handshakeMessage.length());
+  auto reply = replyOption.value();
+
   if (reply.empty()) {
     return tl::make_unexpected(PeerConnectionError{
         "Receive handshake from peer: FAILED [No response from peer]"});
@@ -156,6 +159,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::receiveBitField() {
 
   // Informs the PieceManager of the BitField received
   pieceManager->addPeer(peerId, peerBitField);
+  return {};
 }
 
 /**
@@ -208,6 +212,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::receiveUnchoke() {
         "Receive Unchoke from peer: FAILED [Wrong message ID]"});
   }
   choked = false;
+  return {};
 }
 
 /**
@@ -275,8 +280,12 @@ std::string PeerConnection::createHandshakeMessage() {
  * and payload can be accessed more easily.
  */
 BitTorrentMessage PeerConnection::receiveMessage(int bufferSize) const {
-  std::string reply = receiveData(sock, 0);
-  if (reply.empty()) return BitTorrentMessage(keepAlive);
+  auto replyOption = receiveData(sock, 0);
+  std::string reply = replyOption.value();
+  if (reply.empty()) {
+    return BitTorrentMessage(keepAlive);
+  }
+
   auto messageId = (uint8_t)reply[0];
   std::string payload = reply.substr(1);
   return BitTorrentMessage(messageId, payload);

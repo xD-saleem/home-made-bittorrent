@@ -3,14 +3,17 @@
 #define BITTORRENTCLIENT_CONNECT_H
 #include <cstdint>
 #include <string>
+#include <tl/expected.hpp>
 
 struct ConnectError {
   std::string message;
 };
 
 // Networks
-int createConnection(const std::string& ip, int port);
+tl::expected<int, ConnectError> createConnection(const std::string& ip,
+                                                 int port);
 void sendData(int sock, const std::string& data);
-std::string receiveData(int sock, uint32_t bufferSize = 0);
+tl::expected<std::string, ConnectError> receiveData(int sock,
+                                                    uint32_t bufferSize = 0);
 
 #endif  // BITTORRENTCLIENT_CONNECT_H

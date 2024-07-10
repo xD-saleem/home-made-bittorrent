@@ -145,12 +145,13 @@ tl::expected<void, PeerConnectionError> PeerConnection::performHandshake() {
 /**
  * Receives and reads the message which contains BitField from the peer.
  */
-void PeerConnection::receiveBitField() {
+tl::expected<void, PeerConnectionError> PeerConnection::receiveBitField() {
   // Receive BitField from the peer
   BitTorrentMessage message = receiveMessage();
-  if (message.getMessageId() != bitField)
-    throw std::runtime_error(
-        "Receive BitField from peer: FAILED [Wrong message ID]");
+  if (message.getMessageId() != bitField) {
+    return tl::make_unexpected(PeerConnectionError{
+        "Receive BitField from peer: FAILED [Wrong message ID]"});
+  }
   peerBitField = message.getPayload();
 
   // Informs the PieceManager of the BitField received
@@ -200,12 +201,12 @@ void PeerConnection::sendInterested() {
  * Receives and reads the Unchoke message from the peer.
  * If the received message does not match the expected Unchoke, raise an error.
  */
-void PeerConnection::receiveUnchoke() {
+tl::expected<void, PeerConnectionError> PeerConnection::receiveUnchoke() {
   BitTorrentMessage message = receiveMessage();
-  if (message.getMessageId() != unchoke)
-    throw std::runtime_error(
-        "Receive Unchoke message from peer: FAILED [Wrong message ID: " +
-        std::to_string(message.getMessageId()) + "]");
+  if (message.getMessageId() != unchoke) {
+    return tl::make_unexpected(PeerConnectionError{
+        "Receive Unchoke from peer: FAILED [Wrong message ID]"});
+  }
   choked = false;
 }
 
@@ -228,6 +229,7 @@ void PeerConnection::receiveUnchoke() {
  */
 bool PeerConnection::establishNewConnection() {
   try {
+    // TODO return error instead of throwing
     performHandshake();
     receiveBitField();
     sendInterested();

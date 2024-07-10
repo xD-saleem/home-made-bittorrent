@@ -29,9 +29,9 @@ class PeerConnection {
 
   std::string createHandshakeMessage();
   tl::expected<void, PeerConnectionError> performHandshake();
-  void receiveBitField();
+  tl::expected<void, PeerConnectionError> receiveBitField();
   void sendInterested();
-  void receiveUnchoke();
+  tl::expected<void, PeerConnectionError> receiveUnchoke();
   void requestPiece();
   void closeSock();
   bool establishNewConnection();

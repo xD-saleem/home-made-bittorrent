@@ -37,12 +37,15 @@ PeerConnection::PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
  */
 PeerConnection::~PeerConnection() { closeSock(); }
 
-void PeerConnection::start() {
+tl::expected<void, PeerConnectionError> PeerConnection::start() {
   while (!(terminated || pieceManager->isComplete())) {
     peer = queue->pop_front();
     // Terminates the thread if it has received a dummy Peer
-    if (peer->ip == DUMMY_PEER_IP) return;
+    if (peer->ip == DUMMY_PEER_IP) {
+      return {};
+    }
 
+    // TODO remove try catch block
     try {
       // Establishes connection with the peer, and lets it know
       // that we are interested.
@@ -50,8 +53,9 @@ void PeerConnection::start() {
         while (!pieceManager->isComplete()) {
           BitTorrentMessage message = receiveMessage();
           if (message.getMessageId() > 10)
-            throw std::runtime_error("Received invalid message Id from peer " +
-                                     peerId);
+            return tl::make_unexpected(PeerConnectionError{
+                "Received invalid message Id from peer " + peerId});
+
           switch (message.getMessageId()) {
             case choke:
               choked = true;
@@ -91,6 +95,7 @@ void PeerConnection::start() {
       closeSock();
     }
   }
+  return {};
 }
 
 /**
@@ -104,12 +109,12 @@ void PeerConnection::stop() { terminated = true; }
  * in its response message with the info hash we calculated from the Torrent
  * file. If they do not match, close the connection.
  */
-void PeerConnection::performHandshake() {
+tl::expected<void, PeerConnectionError> PeerConnection::performHandshake() {
   // Connects to the peer
   try {
     sock = createConnection(peer->ip, peer->port);
   } catch (std::runtime_error& e) {
-    throw std::runtime_error("Cannot connect to peer [" + peer->ip + "]");
+    return tl::make_unexpected(PeerConnectionError{e.what()});
   }
 
   // Send the handshake message to the peer
@@ -118,18 +123,23 @@ void PeerConnection::performHandshake() {
 
   // Receive the reply from the peer
   std::string reply = receiveData(sock, handshakeMessage.length());
-  if (reply.empty())
-    throw std::runtime_error(
-        "Receive handshake from peer: FAILED [No response from peer]");
+  if (reply.empty()) {
+    return tl::make_unexpected(PeerConnectionError{
+        "Receive handshake from peer: FAILED [No response from peer]"});
+  }
   peerId = reply.substr(PEER_ID_STARTING_POS, HASH_LEN);
 
   // Compare the info hash from the peer's reply message with the info hash we
   // sent. If the two values are not the same, close the connection and raise an
   // exception.
   std::string receivedInfoHash = reply.substr(INFO_HASH_STARTING_POS, HASH_LEN);
-  if ((receivedInfoHash == infoHash) != 0)
-    throw std::runtime_error("Perform handshake with peer " + peer->ip +
-                             ": FAILED [Received mismatching info hash]");
+  if ((receivedInfoHash == infoHash) != 0) {
+    return tl::make_unexpected(
+        PeerConnectionError{"Perform handshake with peer " + peer->ip +
+                            ": FAILED [Received mismatching info hash]"});
+  }
+
+  return {};
 }
 
 /**

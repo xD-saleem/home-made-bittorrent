@@ -116,9 +116,9 @@ PeerRetriever::decodeResponse(std::string response) {
   std::shared_ptr<bencoding::BItem> peersValue =
       responseDict->getValue("peers");
   if (!peersValue) {
-    throw std::runtime_error(
+    return tl::unexpected(PeerRetrieverError{
         "Response returned by the tracker is not in the correct format. "
-        "['peers' not found]");
+        "['peers' not found]"});
   }
 
   std::vector<Peer*> peers;
@@ -135,10 +135,11 @@ PeerRetriever::decodeResponse(std::string response) {
     std::string peersString =
         std::dynamic_pointer_cast<bencoding::BString>(peersValue)->value();
 
-    if (peersString.length() % peerInfoSize != 0)
-      throw std::runtime_error(
+    if (peersString.length() % peerInfoSize != 0) {
+      return tl::unexpected(PeerRetrieverError{
           "Received malformed 'peers' from tracker. ['peers' length needs to "
-          "be divisible by 6]");
+          "be divisible by 6]"});
+    }
 
     const int peerNum = peersString.length() / peerInfoSize;
     for (int i = 0; i < peerNum; i++) {
@@ -168,19 +169,20 @@ PeerRetriever::decodeResponse(std::string response) {
       std::shared_ptr<bencoding::BItem> tempPeerIp = peerDict->getValue("ip");
 
       if (!tempPeerIp)
-        throw std::runtime_error(
+        return tl::unexpected(PeerRetrieverError{
             "Received malformed 'peers' from tracker. [Item does not contain "
-            "key 'ip']");
+            "key 'ip']"});
 
       std::string peerIp =
           std::dynamic_pointer_cast<bencoding::BString>(tempPeerIp)->value();
       // Gets peer port from the dictionary
       std::shared_ptr<bencoding::BItem> tempPeerPort =
           peerDict->getValue("port");
-      if (!tempPeerPort)
-        throw std::runtime_error(
+      if (!tempPeerPort) {
+        return tl::unexpected(PeerRetrieverError{
             "Received malformed 'peers' from tracker. [Item does not contain "
-            "key 'port']");
+            "key 'port']"});
+      }
       int peerPort =
           (int)std::dynamic_pointer_cast<bencoding::BInteger>(tempPeerPort)
               ->value();
@@ -188,9 +190,8 @@ PeerRetriever::decodeResponse(std::string response) {
       peers.push_back(newPeer);
     }
   } else {
-    throw std::runtime_error(
-        "Response returned by the tracker is not in the correct format. "
-        "['peers' has the wrong type]");
+    return tl::unexpected(PeerRetrieverError{
+        "Received malformed 'peers' from tracker. [Unknown type]"});
   }
   LOG_F(INFO, "Decode tracker response: SUCCESS");
   LOG_F(INFO, "Number of peers discovered: %zu", peers.size());

@@ -83,16 +83,19 @@ tl::expected<int, ConnectError> createConnection(const std::string& ip,
       ConnectError{"Connect to " + ip + ": FAILED [Connection timeout]"});
 }
 
-void sendData(const int sock, const std::string& data) {
+tl::expected<void, ConnectError> sendData(const int sock,
+                                          const std::string& data) {
   int n = data.length();
   char buffer[n];
   for (int i = 0; i < n; i++) buffer[i] = data[i];
 
   int res = send(sock, buffer, n, 0);
   if (res < 0) {
-    throw std::runtime_error("Failed to write data to socket " +
-                             std::to_string(sock));
+    return tl::unexpected<ConnectError>(
+        ConnectError{"Failed to send data to socket " + std::to_string(sock)});
   }
+
+  return {};
 }
 
 tl::expected<std::string, ConnectError> receiveData(const int sock,

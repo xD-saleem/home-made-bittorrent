@@ -12,7 +12,7 @@ struct ConnectError {
 // Networks
 tl::expected<int, ConnectError> createConnection(const std::string& ip,
                                                  int port);
-void sendData(int sock, const std::string& data);
+tl::expected<void, ConnectError> sendData(int sock, const std::string& data);
 tl::expected<std::string, ConnectError> receiveData(int sock,
                                                     uint32_t bufferSize = 0);
 

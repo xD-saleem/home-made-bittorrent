@@ -2,6 +2,7 @@
 #define BITTORRENTCLIENT_PIECE_H
 
 #include <string>
+#include <tl/expected.hpp>
 #include <vector>
 
 #include "Block.h"
@@ -19,6 +20,10 @@
  * following repository:
  * https://github.com/eliasson/pieces/
  */
+struct PieceError {
+  std::string message;
+};
+
 class Piece {
  private:
   const std::string hashValue;
@@ -32,7 +37,7 @@ class Piece {
   void reset();
   std::string getData();
   Block* nextRequest();
-  void blockReceived(int offset, std::string data);
+  tl::expected<void, PieceError> blockReceived(int offset, std::string data);
   bool isComplete();
   bool isHashMatching();
 };

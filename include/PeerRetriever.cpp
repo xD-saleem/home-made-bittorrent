@@ -7,6 +7,7 @@
 #include <loguru/loguru.hpp>
 #include <stdexcept>
 #include <string>
+#include <tl/expected.hpp>
 #include <utility>
 
 #include "utils.h"
@@ -75,12 +76,18 @@ std::vector<Peer*> PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
   // If response successfully retrieved
   if (res.status_code == 200) {
     LOG_F(INFO, "Retrieve response from tracker: SUCCESS");
-    //        std::shared_ptr<bencoding::BItem> decodedResponse =
-    //        bencoding::decode(res.text); std::string formattedResponse =
-    //        bencoding::getPrettyRepr(decodedResponse); std::cout <<
-    //        formattedResponse << std::endl;
-    std::vector<Peer*> peers = decodeResponse(res.text);
-    return peers;
+    std::shared_ptr<bencoding::BItem> decodedResponse =
+        bencoding::decode(res.text);
+
+    auto peers = decodeResponse(res.text);
+
+    if (!peers.has_value()) {
+      LOG_F(ERROR, "Decoding tracker response: FAILED [ %s ]",
+            peers.error().message.c_str());
+      return std::vector<Peer*>();
+    }
+
+    return peers.value();
   } else {
     LOG_F(ERROR, "Retrieving response from tracker: FAILED [ %d: %s ]",
           res.status_code, res.text.c_str());
@@ -97,7 +104,9 @@ std::vector<Peer*> PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
  * the response of the kali-linux tracker, whereas the latter can be found in
  * the tracker response of the other two files.
  */
-std::vector<Peer*> PeerRetriever::decodeResponse(std::string response) {
+
+tl::expected<std::vector<Peer*>, PeerRetrieverError>
+PeerRetriever::decodeResponse(std::string response) {
   LOG_F(INFO, "Decoding tracker response...");
   std::shared_ptr<bencoding::BItem> decodedResponse =
       bencoding::decode(response);
@@ -106,10 +115,11 @@ std::vector<Peer*> PeerRetriever::decodeResponse(std::string response) {
       std::dynamic_pointer_cast<bencoding::BDictionary>(decodedResponse);
   std::shared_ptr<bencoding::BItem> peersValue =
       responseDict->getValue("peers");
-  if (!peersValue)
-    throw std::runtime_error(
+  if (!peersValue) {
+    return tl::unexpected(PeerRetrieverError{
         "Response returned by the tracker is not in the correct format. "
-        "['peers' not found]");
+        "['peers' not found]"});
+  }
 
   std::vector<Peer*> peers;
 
@@ -125,10 +135,11 @@ std::vector<Peer*> PeerRetriever::decodeResponse(std::string response) {
     std::string peersString =
         std::dynamic_pointer_cast<bencoding::BString>(peersValue)->value();
 
-    if (peersString.length() % peerInfoSize != 0)
-      throw std::runtime_error(
+    if (peersString.length() % peerInfoSize != 0) {
+      return tl::unexpected(PeerRetrieverError{
           "Received malformed 'peers' from tracker. ['peers' length needs to "
-          "be divisible by 6]");
+          "be divisible by 6]"});
+    }
 
     const int peerNum = peersString.length() / peerInfoSize;
     for (int i = 0; i < peerNum; i++) {
@@ -158,19 +169,20 @@ std::vector<Peer*> PeerRetriever::decodeResponse(std::string response) {
       std::shared_ptr<bencoding::BItem> tempPeerIp = peerDict->getValue("ip");
 
       if (!tempPeerIp)
-        throw std::runtime_error(
+        return tl::unexpected(PeerRetrieverError{
             "Received malformed 'peers' from tracker. [Item does not contain "
-            "key 'ip']");
+            "key 'ip']"});
 
       std::string peerIp =
           std::dynamic_pointer_cast<bencoding::BString>(tempPeerIp)->value();
       // Gets peer port from the dictionary
       std::shared_ptr<bencoding::BItem> tempPeerPort =
           peerDict->getValue("port");
-      if (!tempPeerPort)
-        throw std::runtime_error(
+      if (!tempPeerPort) {
+        return tl::unexpected(PeerRetrieverError{
             "Received malformed 'peers' from tracker. [Item does not contain "
-            "key 'port']");
+            "key 'port']"});
+      }
       int peerPort =
           (int)std::dynamic_pointer_cast<bencoding::BInteger>(tempPeerPort)
               ->value();
@@ -178,9 +190,8 @@ std::vector<Peer*> PeerRetriever::decodeResponse(std::string response) {
       peers.push_back(newPeer);
     }
   } else {
-    throw std::runtime_error(
-        "Response returned by the tracker is not in the correct format. "
-        "['peers' has the wrong type]");
+    return tl::unexpected(PeerRetrieverError{
+        "Received malformed 'peers' from tracker. [Unknown type]"});
   }
   LOG_F(INFO, "Decode tracker response: SUCCESS");
   LOG_F(INFO, "Number of peers discovered: %zu", peers.size());

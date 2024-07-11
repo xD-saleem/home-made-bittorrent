@@ -3,8 +3,12 @@
 
 #include <cpr/cpr.h>
 
+#include <tl/expected.hpp>
 #include <vector>
 
+struct PeerRetrieverError {
+  std::string message;
+};
 /**
  * An representation of peers which the reponse retrieved from the tracker.
  * Contains a string that denotes the IP of the peer as well as a port number.
@@ -24,7 +28,9 @@ class PeerRetriever {
   std::string peerId;
   int port;
   const unsigned long fileSize;
-  std::vector<Peer*> decodeResponse(std::string response);
+
+  tl::expected<std::vector<Peer*>, PeerRetrieverError> decodeResponse(
+      std::string response);
 
  public:
   explicit PeerRetriever(std::string peerId, std::string announceUrL,

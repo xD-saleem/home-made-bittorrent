@@ -12,26 +12,34 @@
 #include <iostream>
 #include <loguru/loguru.hpp>
 #include <sstream>
+#include <thread>
+#include <tl/expected.hpp>
 
 #include "Block.h"
+#include "TorrentFileParser.h"
 #include "utils.h"
 
 #define BLOCK_SIZE 16384    // 2 ^ 14
 #define MAX_PENDING_TIME 5  // 5 sec
 #define PROGRESS_BAR_WIDTH 40
+
 #define PROGRESS_DISPLAY_INTERVAL 1  // 0.5 sec
 
 PieceManager::PieceManager(const TorrentFileParser& fileParser,
                            const std::string& downloadPath,
                            const int maximumConnections)
-    : pieceLength(fileParser.getPieceLength()),
+
+    : pieceLength(fileParser.getPieceLength().value()),
       fileParser(fileParser),
       maximumConnections(maximumConnections) {
   missingPieces = initiatePieces();
   // Creates the destination file with the file size specified in the Torrent
   // file
   downloadedFile.open(downloadPath, std::ios::binary | std::ios::out);
-  downloadedFile.seekp(fileParser.getFileSize() - 1);
+
+  long fileSize = fileParser.getFileSize().value();
+  // TODO check if it has value
+  downloadedFile.seekp(fileSize - 1);
   downloadedFile.write("", 1);
 
   // Starts a thread to track progress of the download
@@ -59,7 +67,7 @@ PieceManager::~PieceManager() {
  * @return a vector containing all the pieces in the file.
  */
 std::vector<Piece*> PieceManager::initiatePieces() {
-  std::optional<std::vector<std::string>> pieceHashes =
+  tl::expected<std::vector<std::string>, TorrentFileParserError> pieceHashes =
       fileParser.splitPieceHashes();
 
   if (pieceHashes.has_value()) {
@@ -68,7 +76,14 @@ std::vector<Piece*> PieceManager::initiatePieces() {
     std::vector<Piece*> torrentPieces;
     missingPieces.reserve(totalPieces);
 
-    long totalLength = fileParser.getFileSize();
+    auto totalLengthResult = fileParser.getFileSize();
+
+    if (!totalLengthResult.has_value()) {
+      LOG_F(ERROR, "Failed to get file size");
+      return std::vector<Piece*>();
+    }
+    // Check
+    long totalLength = totalLengthResult.value();
 
     // number of blocks in a normal piece (i.e. pieces that are not the last
     // one)
@@ -91,8 +106,11 @@ std::vector<Piece*> PieceManager::initiatePieces() {
         block->status = missing;
         block->offset = offset * BLOCK_SIZE;
         int blockSize = BLOCK_SIZE;
-        if (i == totalPieces - 1 && offset == blockCount - 1)
+
+        if (i == totalPieces - 1 && offset == blockCount - 1) {
           blockSize = remLength % BLOCK_SIZE;
+        }
+
         block->length = blockSize;
         blocks.push_back(block);
       }
@@ -140,24 +158,30 @@ void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
  * Updates the information about which pieces a peer has (i.e. reflects
  * a Have message).
  */
-void PieceManager::updatePeer(const std::string& peerId, int index) {
+tl::expected<void, PieceManagerError> PieceManager::updatePeer(
+    const std::string& peerId, int index) {
   lock.lock();
   if (peers.find(peerId) != peers.end()) {
     setPiece(peers[peerId], index);
     lock.unlock();
   } else {
     lock.unlock();
-    throw std::runtime_error("Connection has not been established with peer " +
-                             peerId);
+    return tl::unexpected(
+        PieceManagerError{"Attempting to update a peer " + peerId +
+                          " with whom a connection has not been established."});
   }
+  return {};
 }
 
 /**
  * Removes a previously added peer in case of a lost connection.
  * @param peerId: Id of the peer to be removed.
  */
-void PieceManager::removePeer(const std::string& peerId) {
-  if (isComplete()) return;
+tl::expected<void, PieceManagerError> PieceManager::removePeer(
+    const std::string& peerId) {
+  if (isComplete()) {
+    return {};
+  }
   lock.lock();
   auto iter = peers.find(peerId);
   if (iter != peers.end()) {
@@ -169,10 +193,11 @@ void PieceManager::removePeer(const std::string& peerId) {
     LOG_F(INFO, "%s", info.str().c_str());
   } else {
     lock.unlock();
-    throw std::runtime_error(
-        "Attempting to remove a peer " + peerId +
-        " with whom a connection has not been established.");
+    return tl::unexpected(
+        PieceManagerError{"Attempting to remove a peer " + peerId +
+                          " with whom a connection has not been established."});
   }
+  return {};
 }
 
 /**
@@ -300,8 +325,8 @@ Piece* PieceManager::getRarestPiece(std::string peerId) {
  * in the Piece will be reset to a missing state. If the hash matches, the
  * data in the Piece will be written to disk.
  */
-void PieceManager::blockReceived(std::string peerId, int pieceIndex,
-                                 int blockOffset, std::string data) {
+tl::expected<void, PieceManagerError> PieceManager::blockReceived(
+    std::string peerId, int pieceIndex, int blockOffset, std::string data) {
   LOG_F(INFO, "Received block %d for piece %d from peer %s", blockOffset,
         pieceIndex, peerId.c_str());
   // Removes the received block from pending requests
@@ -328,9 +353,10 @@ void PieceManager::blockReceived(std::string peerId, int pieceIndex,
     }
   }
   lock.unlock();
-  if (!targetPiece)
-    throw std::runtime_error(
-        "Received Block does not belong to any ongoing Piece.");
+  if (!targetPiece) {
+    return tl::unexpected(PieceManagerError{
+        "Received block for a piece that is not being downloaded."});
+  }
 
   targetPiece->blockReceived(blockOffset, std::move(data));
   if (targetPiece->isComplete()) {
@@ -348,7 +374,9 @@ void PieceManager::blockReceived(std::string peerId, int pieceIndex,
       lock.unlock();
 
       std::stringstream info;
-      info << "(" << std::fixed << std::setprecision(2)
+      info << "(" << std::fixed
+           << std::setprecision(2)
+           // TODO check this
            << (((float)havePieces.size()) / (float)totalPieces * 100) << "%) ";
       info << std::to_string(havePieces.size()) + " / " +
                   std::to_string(totalPieces) + " Pieces downloaded...";
@@ -358,13 +386,14 @@ void PieceManager::blockReceived(std::string peerId, int pieceIndex,
       LOG_F(INFO, "Hash mismatch for Piece %d", targetPiece->index);
     }
   }
+  return {};
 }
 
 /**
  * Writes the given Piece to disk.
  */
 void PieceManager::write(Piece* piece) {
-  long position = piece->index * fileParser.getPieceLength();
+  long position = piece->index * fileParser.getPieceLength().value();
   downloadedFile.seekp(position);
   downloadedFile << piece->getData();
 }

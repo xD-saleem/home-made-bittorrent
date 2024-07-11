@@ -26,11 +26,14 @@ bool setSocketBlocking(int sock, bool blocking) {
   return (fcntl(sock, F_SETFL, flags) == 0);
 }
 
-int createConnection(const std::string& ip, const int port) {
+tl::expected<int, ConnectError> createConnection(const std::string& ip,
+                                                 const int port) {
   int sock = 0;
   struct sockaddr_in address;
-  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    throw std::runtime_error("Socket creation error: " + std::to_string(sock));
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    return tl::unexpected<ConnectError>(
+        ConnectError{"Socket creation error: " + std::to_string(sock)});
+  }
 
   address.sin_family = AF_INET;
   address.sin_port = htons(port);
@@ -40,12 +43,15 @@ int createConnection(const std::string& ip, const int port) {
 
   // Converts IP address from string to struct in_addr
   if (inet_pton(AF_INET, tempIp, &address.sin_addr) <= 0)
-    throw std::runtime_error("Invalid IP address: " + ip);
+    return tl::unexpected<ConnectError>(
+        ConnectError{"Invalid address/ Address not supported: " + ip});
 
   // Sets socket to non-block mode
-  if (!setSocketBlocking(sock, false))
-    throw std::runtime_error("An error occurred when setting socket " +
-                             std::to_string(sock) + "to NONBLOCK");
+  if (!setSocketBlocking(sock, false)) {
+    return tl::unexpected<ConnectError>(
+        ConnectError{"An error occurred when setting socket " +
+                     std::to_string(sock) + "to NONBLOCK"});
+  }
 
   connect(sock, (struct sockaddr*)&address, sizeof(address));
 
@@ -64,29 +70,36 @@ int createConnection(const std::string& ip, const int port) {
 
     if (so_error == 0) {
       // Sets socket to blocking mode
-      if (!setSocketBlocking(sock, true))
-        throw std::runtime_error("An error occurred when setting socket " +
-                                 std::to_string(sock) + "to BLOCK");
+      if (!setSocketBlocking(sock, true)) {
+        return tl::unexpected<ConnectError>(
+            ConnectError{"An error occurred when setting socket " +
+                         std::to_string(sock) + "to BLOCK"});
+      }
       return sock;
     }
   }
   close(sock);
-  throw std::runtime_error("Connect to " + ip +
-                           ": FAILED [Connection timeout]");
+  return tl::unexpected<ConnectError>(
+      ConnectError{"Connect to " + ip + ": FAILED [Connection timeout]"});
 }
 
-void sendData(const int sock, const std::string& data) {
+tl::expected<void, ConnectError> sendData(const int sock,
+                                          const std::string& data) {
   int n = data.length();
   char buffer[n];
   for (int i = 0; i < n; i++) buffer[i] = data[i];
 
   int res = send(sock, buffer, n, 0);
-  if (res < 0)
-    throw std::runtime_error("Failed to write data to socket " +
-                             std::to_string(sock));
+  if (res < 0) {
+    return tl::unexpected<ConnectError>(
+        ConnectError{"Failed to send data to socket " + std::to_string(sock)});
+  }
+
+  return {};
 }
 
-std::string receiveData(const int sock, uint32_t bufferSize) {
+tl::expected<std::string, ConnectError> receiveData(const int sock,
+                                                    uint32_t bufferSize) {
   std::string reply;
 
   // If buffer size is not specified, read the first 4 bytes of the message
@@ -103,28 +116,32 @@ std::string receiveData(const int sock, uint32_t bufferSize) {
     char buffer[lengthIndicatorSize];
     switch (ret) {
       case -1:
-        throw std::runtime_error("Read failed from socket " +
-                                 std::to_string(sock));
+        return tl::unexpected<ConnectError>(ConnectError{
+            "An error occurred when polling socket " + std::to_string(sock)});
       case 0:
-        throw std::runtime_error("Read timeout from socket " +
-                                 std::to_string(sock));
+        return tl::unexpected<ConnectError>(
+            ConnectError{"Read timeout from socket " + std::to_string(sock)});
       default:
         bytesRead = recv(sock, buffer, sizeof(buffer), 0);
     }
-    if (bytesRead != lengthIndicatorSize) return reply;
+    if (bytesRead != lengthIndicatorSize) {
+      return reply;
+    }
 
     std::string messageLengthStr;
-    for (char i : buffer) messageLengthStr += i;
+    for (char i : buffer) {
+      messageLengthStr += i;
+    }
     uint32_t messageLength = bytesToInt(messageLengthStr);
     bufferSize = messageLength;
   }
 
   // If the buffer size is greater than uint16_t max, a segfault will
   // occur when initializing the buffer
-  if (bufferSize > std::numeric_limits<uint16_t>::max())
-    throw std::runtime_error(
-        "Received corrupted data [Received buffer size greater than 2 ^ 16 - "
-        "1]");
+  if (bufferSize > std::numeric_limits<uint16_t>::max()) {
+    return tl::unexpected<ConnectError>(ConnectError{
+        "Buffer size is too large: " + std::to_string(bufferSize)});
+  }
 
   char buffer[bufferSize];
 
@@ -140,14 +157,16 @@ std::string receiveData(const int sock, uint32_t bufferSize) {
     auto diff = std::chrono::steady_clock::now() - startTime;
     if (std::chrono::duration<double, std::milli>(diff).count() >
         READ_TIMEOUT) {
-      throw std::runtime_error("Read timeout from socket " +
-                               std::to_string(sock));
+      return tl::unexpected<ConnectError>(
+          ConnectError{"Read timeout from socket " + std::to_string(sock)});
     }
     bytesRead = recv(sock, buffer, bufferSize, 0);
 
-    if (bytesRead <= 0)
-      throw std::runtime_error("Failed to receive data from socket " +
-                               std::to_string(sock));
+    if (bytesRead <= 0) {
+      return tl::unexpected<ConnectError>(ConnectError{
+          "Failed to read data from socket " + std::to_string(sock)});
+    }
+
     bytesToRead -= bytesRead;
     for (int i = 0; i < bytesRead; i++) reply.push_back(buffer[i]);
   } while (bytesToRead > 0);

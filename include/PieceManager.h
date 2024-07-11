@@ -6,7 +6,6 @@
 #include <fstream>
 #include <map>
 #include <mutex>
-#include <thread>
 #include <vector>
 
 #include "Piece.h"
@@ -15,6 +14,10 @@
 struct PendingRequest {
   Block* block;
   time_t timestamp;
+};
+
+struct PieceManagerError {
+  std::string message;
 };
 
 /**
@@ -56,11 +59,15 @@ class PieceManager {
                         int maximumConnections);
   ~PieceManager();
   bool isComplete();
-  void blockReceived(std::string peerId, int pieceIndex, int blockOffset,
-                     std::string data);
+  tl::expected<void, PieceManagerError> blockReceived(std::string peerId,
+                                                      int pieceIndex,
+                                                      int blockOffset,
+                                                      std::string data);
   void addPeer(const std::string& peerId, std::string bitField);
-  void removePeer(const std::string& peerId);
-  void updatePeer(const std::string& peerId, int index);
+  tl::expected<void, PieceManagerError> removePeer(const std::string& peerId);
+  tl::expected<void, PieceManagerError> updatePeer(const std::string& peerId,
+                                                   int index);
+
   unsigned long bytesDownloaded();
   Block* nextRequest(std::string peerId);
 };

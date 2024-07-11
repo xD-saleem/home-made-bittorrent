@@ -9,6 +9,10 @@
 
 using byte = unsigned char;
 
+struct PeerConnectionError {
+  std::string message;
+};
+
 class PeerConnection {
  private:
   int sock{};
@@ -24,10 +28,10 @@ class PeerConnection {
   PieceManager* pieceManager;
 
   std::string createHandshakeMessage();
-  void performHandshake();
-  void receiveBitField();
+  tl::expected<void, PeerConnectionError> performHandshake();
+  tl::expected<void, PeerConnectionError> receiveBitField();
   void sendInterested();
-  void receiveUnchoke();
+  tl::expected<void, PeerConnectionError> receiveUnchoke();
   void requestPiece();
   void closeSock();
   bool establishNewConnection();
@@ -39,7 +43,7 @@ class PeerConnection {
   explicit PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
                           std::string infoHash, PieceManager* pieceManager);
   ~PeerConnection();
-  void start();
+  tl::expected<void, PeerConnectionError> start();
   void stop();
 };
 

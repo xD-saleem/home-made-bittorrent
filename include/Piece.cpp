@@ -54,17 +54,16 @@ Block* Piece::nextRequest() {
  * @param offset: the offset of the Block within  the Piece.
  * @param data: the data contained in the Block.
  */
-void Piece::blockReceived(int offset, std::string data) {
+tl::expected<void, PieceError> Piece::blockReceived(int offset,
+                                                    std::string data) {
   for (Block* block : blocks) {
     if (block->offset == offset) {
       block->status = retrieved;
       block->data = data;
-      return;
+      return {};
     }
   }
-  throw std::runtime_error("Trying to complete a non-existing block " +
-                           std::to_string(offset) + " in piece " +
-                           std::to_string(index));
+  return tl::make_unexpected(PieceError{"Block not found"});
 }
 
 /**

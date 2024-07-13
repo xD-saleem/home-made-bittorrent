@@ -21,12 +21,14 @@ int main(int argc, char* argv[]) {
     std::cout << "pre-standard C++." << __cplusplus;
   std::cout << "\n";
 
-  std::string torrentFilePath = "debian.torrent";
+  // TODO magnetic
+
+  std::string torrentFilePath = "generateTorrent.torrent";
   loguru::init(argc, argv);
 
   LOG_F(INFO, "Starting torrent client");
 
-  std::string filename = "debian.torrent";
+  std::string filename = "generateTorrent.torrent";
   std::string downloadDirectory = "./";
   std::string downloadPath = downloadDirectory + filename;
   std::string peerID = "peer_id";

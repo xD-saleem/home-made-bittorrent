@@ -46,6 +46,11 @@ include/TorrentClient.h
 include/TorrentFileParser.cpp
 include/TorrentFileParser.h
 
+include/TorrentHandler.h
+include/TorrentHandler.cpp
+
+
+
 include/utils.cpp
 include/utils.h
 )
@@ -62,16 +67,20 @@ tests ${TEST_SRC}
 # Business logic
 include/Main_test.cpp
 
-include/utils.cpp
-include/utils.h
+# include/utils.cpp
+# include/utils.h
+#
+# include/TorrentFileParser.h
+# include/TorrentFileParser.cpp
+# include/TorrentFileParser_test.cpp
+#
+# include/BitTorrentMessage.h
+# include/BitTorrentMessage_test.cpp
+# include/BitTorrentMessage.cpp
 
-include/TorrentFileParser.h
-include/TorrentFileParser.cpp
-include/TorrentFileParser_test.cpp
-
-include/BitTorrentMessage.h
-include/BitTorrentMessage_test.cpp
-include/BitTorrentMessage.cpp
+include/TorrentHandler.h
+include/TorrentHandler.cpp
+include/TorrentHandler_test.cpp
 
 # include/PieceManager.h
 # include/PieceManager.cpp

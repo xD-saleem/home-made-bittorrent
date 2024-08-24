@@ -53,9 +53,7 @@ PieceManager::PieceManager(const TorrentFileParser& fileParser,
  */
 PieceManager::~PieceManager() {
   for (Piece* piece : missingPieces) delete piece;
-
   for (Piece* piece : ongoingPieces) delete piece;
-
   for (PendingRequest* pending : pendingRequests) delete pending;
 
   downloadedFile.close();

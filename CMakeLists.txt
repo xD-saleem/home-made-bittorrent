@@ -13,6 +13,7 @@ find_package(cryptopp REQUIRED)
 find_package(loguru CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(tl-expected CONFIG REQUIRED)
+find_package(LibtorrentRasterbar CONFIG REQUIRED)
 
 ## Include directories
 include_directories(lib)
@@ -49,14 +50,13 @@ include/TorrentFileParser.h
 include/TorrentHandler.h
 include/TorrentHandler.cpp
 
-
-
 include/utils.cpp
 include/utils.h
 )
 
 
-target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp loguru fmt::fmt tl::expected)
+target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp loguru fmt::fmt tl::expected LibtorrentRasterbar::torrent-rasterbar)
+
 
 
 # Tests

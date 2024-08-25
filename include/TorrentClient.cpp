@@ -3,6 +3,7 @@
 #include <bencode/bencoding.h>
 #include <fmt/core.h>
 
+#include <filesystem>
 #include <iostream>
 #include <loguru/loguru.hpp>
 #include <random>
@@ -44,7 +45,8 @@ TorrentClient::~TorrentClient() = default;
 void TorrentClient::downloadFile(const std::string& torrentFilePath,
                                  const std::string& downloadDirectory) {
   // Parse Torrent file
-  std::cout << "Parsing Torrent file " + torrentFilePath + "..." << std::endl;
+  fmt::print("Parsing torrent file {}\n", torrentFilePath);
+
   TorrentFileParser torrentFileParser(torrentFilePath);
   std::string announceUrl = torrentFileParser.getAnnounce().value();
 
@@ -68,6 +70,8 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
   fmt::print("Downloading file to {}\n", downloadPath);
 
+  std::string path = "isPaused.txt";
+
   while (true) {
     if (pieceManager.isComplete()) {
       break;
@@ -75,17 +79,20 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
     time_t currentTime = std::time(nullptr);
     auto diff = std::difftime(currentTime, lastPeerQuery);
-    // Retrieve peers from the tracker after a certain time interval or whenever
-    // the queue is empty
+    // Retrieve peers from the tracker after a certain time interval or
+    // whenever the queue is empty
     if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
       PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
                                   fileSize);
       std::vector<Peer*> peers =
           peerRetriever.retrievePeers(pieceManager.bytesDownloaded());
       lastPeerQuery = currentTime;
+
       if (!peers.empty()) {
         queue.clear();
-        for (auto peer : peers) queue.push_back(peer);
+        for (auto peer : peers) {
+          queue.push_back(peer);
+        }
       }
     }
   }

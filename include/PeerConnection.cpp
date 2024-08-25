@@ -1,5 +1,6 @@
 #include "PeerConnection.h"
 
+#include <fmt/core.h>
 #include <netinet/in.h>
 #include <unistd.h>
 
@@ -38,6 +39,9 @@ PeerConnection::PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
 PeerConnection::~PeerConnection() { closeSock(); }
 
 tl::expected<void, PeerConnectionError> PeerConnection::start() {
+  // TODO put this in a control class
+  std::string path = "isPaused.txt";
+
   while (!(terminated || pieceManager->isComplete())) {
     peer = queue->pop_front();
     // Terminates the thread if it has received a dummy Peer
@@ -51,6 +55,10 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
       // that we are interested.
       if (establishNewConnection()) {
         while (!pieceManager->isComplete()) {
+          bool isPaused = std::filesystem::exists(path);
+          if (isPaused) {
+            fmt::print("Peer connection is paused\n");
+          }
           BitTorrentMessage message = receiveMessage();
           if (message.getMessageId() > 10)
             return tl::make_unexpected(PeerConnectionError{

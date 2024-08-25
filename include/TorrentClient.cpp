@@ -48,11 +48,15 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
   TorrentFileParser torrentFileParser(torrentFilePath);
   std::string announceUrl = torrentFileParser.getAnnounce().value();
 
+  // TODO handle errors
   long fileSize = torrentFileParser.getFileSize().value();
   const std::string infoHash = torrentFileParser.getInfoHash();
 
   std::string filename = torrentFileParser.getFileName().value();
+
   std::string downloadPath = downloadDirectory + filename;
+
+  // std::string id = torrentFileParser.getInfoHash();
 
   PieceManager pieceManager(torrentFileParser, downloadPath, threadNum);
 
@@ -68,10 +72,13 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
   fmt::print("Downloading file to {}\n", downloadPath);
 
-  while (true) {
-    if (pieceManager.isComplete()) {
-      break;
-    }
+  // check if id already been download
+  //  otherwise carry on seed.
+
+  bool isDownloadCompleted = false;
+
+  while (!isDownloadCompleted) {
+    isDownloadCompleted = pieceManager.isComplete();
 
     time_t currentTime = std::time(nullptr);
     auto diff = std::difftime(currentTime, lastPeerQuery);
@@ -85,14 +92,16 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
       lastPeerQuery = currentTime;
       if (!peers.empty()) {
         queue.clear();
-        for (auto peer : peers) queue.push_back(peer);
+        for (auto peer : peers) {
+          queue.push_back(peer);
+        }
       }
     }
   }
 
   terminate();
 
-  if (pieceManager.isComplete()) {
+  if (isDownloadCompleted) {
     std::cout << "Download completed!" << std::endl;
     std::cout << "File downloaded to " << downloadPath << std::endl;
   }

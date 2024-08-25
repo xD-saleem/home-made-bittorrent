@@ -40,7 +40,7 @@ class PieceManager {
   const int maximumConnections;
   int piecesDownloadedInInterval = 0;
   time_t startingTime;
-  int totalPieces{};
+  size_t totalPieces{};
 
   // Uses a lock to prevent race condition
   std::mutex lock;

@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
   std::string downloadPath = downloadDirectory + filename;
   std::string peerID = "peer_id";
 
+  // Inject torrentState
   TorrentClient torrentClient(20, true, "./");
 
   LOG_F(INFO, "Downloading torrent file");

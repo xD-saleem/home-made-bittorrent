@@ -29,27 +29,38 @@ add_executable(main main.cpp
 ## Classes
 include/BitTorrentMessage.cpp
 include/BitTorrentMessage.h
+
 include/Block.h
+
 include/connect.cpp
 include/connect.h
+
 include/PeerConnection.cpp
 include/PeerConnection.h
+
 include/PeerRetriever.cpp
 include/PeerRetriever.h
+
 include/Piece.cpp
 include/Piece.h
+
 include/PieceManager.cpp
 include/PieceManager.h
+
 include/SharedQueue.h
+
 include/TorrentClient.cpp
 include/TorrentClient.h
+
 include/TorrentFileParser.cpp
 include/TorrentFileParser.h
+
+include/TorrentState.cpp
+include/TorrentState.h
 
 include/utils.cpp
 include/utils.h
 )
-
 
 target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp loguru fmt::fmt tl::expected)
 
@@ -72,6 +83,10 @@ include/TorrentFileParser_test.cpp
 include/BitTorrentMessage.h
 include/BitTorrentMessage_test.cpp
 include/BitTorrentMessage.cpp
+
+include/TorrentState.h
+include/TorrentState.cpp
+include/TorrentState_test.cpp
 
 # include/PieceManager.h
 # include/PieceManager.cpp

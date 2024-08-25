@@ -14,6 +14,9 @@ struct TorrentClientError {
 
 class TorrentClient {
  private:
+  // deps
+  // TorrentState torrentState;
+
   const int threadNum;
   std::string peerId;
   SharedQueue<Peer*> queue;

@@ -70,8 +70,6 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
   fmt::print("Downloading file to {}\n", downloadPath);
 
-  std::string path = "isPaused.txt";
-
   while (true) {
     if (pieceManager.isComplete()) {
       break;

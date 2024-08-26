@@ -3,6 +3,7 @@
 #include <tl/expected.hpp>
 
 #include "TorrentClient.h"
+#include "TorrentState.h"
 
 int main(int argc, char* argv[]) {
   if (__cplusplus == 202101L)
@@ -30,9 +31,17 @@ int main(int argc, char* argv[]) {
   std::string downloadDirectory = "./";
   std::string downloadPath = downloadDirectory + filename;
   std::string peerID = "peer_id";
+  int workerThreadNum = 20;
+  int isLoggingEnabled = true;
 
   // Inject torrentState
-  TorrentClient torrentClient(20, true, "./");
+  TorrentState torrentState;
+  TorrentClient torrentClient(
+      // Deps.
+      &torrentState,
+
+      // variables
+      workerThreadNum, isLoggingEnabled, downloadDirectory);
 
   LOG_F(INFO, "Downloading torrent file");
 

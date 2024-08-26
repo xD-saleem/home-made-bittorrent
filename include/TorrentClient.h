@@ -7,6 +7,7 @@
 #include "PeerConnection.h"
 #include "PeerRetriever.h"
 #include "SharedQueue.h"
+#include "TorrentState.h"
 
 struct TorrentClientError {
   std::string message;
@@ -15,8 +16,9 @@ struct TorrentClientError {
 class TorrentClient {
  private:
   // deps
-  // TorrentState torrentState;
+  TorrentState* torrentState;
 
+  // variables
   const int threadNum;
   std::string peerId;
   SharedQueue<Peer*> queue;
@@ -24,7 +26,8 @@ class TorrentClient {
   std::vector<PeerConnection*> connections;
 
  public:
-  explicit TorrentClient(int threadNum = 5, bool enableLogging = true,
+  explicit TorrentClient(TorrentState* torrentState, int threadNum = 5,
+                         bool enableLogging = true,
                          std::string logFilePath = "logs/client.log");
   ~TorrentClient();
   void terminate();

@@ -16,15 +16,24 @@
 #define PORT 8080
 #define PEER_QUERY_INTERVAL 60  // 1 minute
 
-TorrentClient::TorrentClient(const int threadNum, bool enableLogging,
-                             std::string logFilePath)
+TorrentClient::TorrentClient(
+    // Deps.
+    TorrentState* torrentState,
+
+    // variables
+    const int threadNum, bool enableLogging, std::string logFilePath)
     : threadNum(threadNum) {
   peerId = "-UT2021-";
 
   std::random_device rd;
+
   std::mt19937 gen(rd());
+
   std::uniform_int_distribution<> distrib(1, 9);
-  for (int i = 0; i < 12; i++) peerId += std::to_string(distrib(gen));
+
+  for (int i = 0; i < 12; i++) {
+    peerId += std::to_string(distrib(gen));
+  }
 
   if (enableLogging) {
     loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
@@ -69,6 +78,8 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
   }
 
   auto lastPeerQuery = (time_t)(-1);
+
+  torrentState->storeState();
 
   fmt::print("Downloading file to {}\n", downloadPath);
 

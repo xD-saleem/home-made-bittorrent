@@ -1,5 +1,3 @@
-
-
 #include "TorrentState.h"
 
 #include <fmt/core.h>
@@ -10,9 +8,5 @@ TorrentState::TorrentState() { LOG_F(INFO, "launching state"); }
 
 TorrentState::~TorrentState() = default;
 
-std::string TorrentState::storeState() {
-  fmt::println("OMG I AM A STATE: @@@@@@@@@@@@@@@");
-
-  return "omg";
-}
+std::string TorrentState::storeState() { return "omg"; }
 

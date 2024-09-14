@@ -13,6 +13,8 @@ find_package(cryptopp REQUIRED)
 find_package(loguru CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(tl-expected CONFIG REQUIRED)
+find_package(SQLite3 REQUIRED)
+find_package(SQLiteCpp REQUIRED)
 
 ## Include directories
 include_directories(lib)
@@ -58,12 +60,14 @@ include/TorrentFileParser.h
 include/TorrentState.cpp
 include/TorrentState.h
 
-include/utils.cpp
+include/DatabaseService.h
+include/DatabaseService.cpp
+
 include/utils.h
+include/utils.cpp
 )
 
-target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp loguru fmt::fmt tl::expected)
-
+target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp loguru fmt::fmt tl::expected SQLiteCpp)
 
 # Tests
 enable_testing()
@@ -88,13 +92,17 @@ include/TorrentState.h
 include/TorrentState.cpp
 include/TorrentState_test.cpp
 
+include/DatabaseService.h
+include/DatabaseService.cpp
+include/DatabaseService_test.cpp
+
 # include/PieceManager.h
 # include/PieceManager.cpp
 # include/PieceManager_test.cpp
 )
 
 # Link libraries
-target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main loguru OpenSSL::SSL)
+target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main loguru OpenSSL::SSL SQLiteCpp)
 
 ## Flags for using clang
 # set(CMAKE_C_COMPILER /usr/bin/clang)

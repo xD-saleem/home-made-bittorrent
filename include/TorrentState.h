@@ -4,6 +4,8 @@
 
 #include <string>
 
+#include "loguru.hpp"
+
 struct TorrentStateError {
   std::string message;
 };
@@ -12,6 +14,7 @@ class TorrentState {
  private:
  public:
   explicit TorrentState();
+
   std::string storeState();
 
   // deconsutrctor

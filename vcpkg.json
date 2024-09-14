@@ -8,6 +8,8 @@
     "cryptopp",
     "loguru",
     "fmt",
-    "tl-expected"
+    "tl-expected",
+    "sqlite3",
+    "sqlitecpp"
   ]
 }

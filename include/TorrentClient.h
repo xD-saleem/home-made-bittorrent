@@ -26,13 +26,17 @@ class TorrentClient {
   std::vector<PeerConnection*> connections;
 
  public:
-  explicit TorrentClient(TorrentState* torrentState, int threadNum = 5,
-                         bool enableLogging = true,
+  explicit TorrentClient(TorrentState* torrentState,
+
+                         int threadNum = 5, bool enableLogging = true,
                          std::string logFilePath = "logs/client.log");
   ~TorrentClient();
   void terminate();
   void downloadFile(const std::string& torrentFilePath,
                     const std::string& downloadDirectory);
+
+  void download(const std::string& torrentFilePath,
+                const std::string& downloadDirectory);
 };
 
 #endif  // BITTORRENTCLIENT_TORRENTCLIENT_H

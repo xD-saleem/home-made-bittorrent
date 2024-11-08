@@ -1,9 +1,12 @@
 #include <fmt/core.h>
 
+#include <functional>
 #include <loguru/loguru.hpp>
 #include <tl/expected.hpp>
 
 #include "DatabaseService.h"
+#include "TorrentClient.h"
+#include "TorrentState.h"
 
 int main(int argc, char* argv[]) {
   loguru::init(argc, argv);
@@ -20,28 +23,27 @@ int main(int argc, char* argv[]) {
   int workerThreadNum = 20;
   int isLoggingEnabled = true;
 
-  // std::unique_ptr<sqlite3, SQLiteDeleter> db = initDB("test.db");
+  std::shared_ptr<SQLite::Database> db = initDB("torrent_state.db3");
 
-  DatabaseService d = DatabaseService();
+  // Database Service
 
-  // auto err = d.insertOne("id", "torrentname");
+  std::shared_ptr<DatabaseService> databaseSvc =
+      std::make_shared<DatabaseService>(db);
 
-  d.getTorrent("id");
+  // Torrent State
+  TorrentState torrentState = TorrentState(databaseSvc);
 
-  // TorrentState torrentState;
-  //
-  // TorrentClient torrentClient(
-  //     // Deps.
-  //     &torrentState,
-  //
-  //     // variables
-  //     workerThreadNum, isLoggingEnabled, downloadDirectory);
-  //
-  // LOG_F(INFO, "Downloading torrent file");
-  //
-  // torrentClient.downloadFile(downloadPath, downloadDirectory);
-  //
-  // LOG_F(INFO, "Downloaded torrent file successfully");
+  TorrentClient torrentClient(
+      // Deps.
+      &torrentState,
+      // variables
+      workerThreadNum, isLoggingEnabled, downloadDirectory);
+
+  LOG_F(INFO, "Downloading torrent file");
+
+  torrentClient.download(downloadPath, downloadDirectory);
+
+  LOG_F(INFO, "Downloaded torrent file successfully");
   return 0;
 };
 

@@ -50,10 +50,33 @@ TorrentClient::TorrentClient(
  */
 TorrentClient::~TorrentClient() = default;
 
+void TorrentClient::download(const std::string& torrentFilePath,
+                             const std::string& downloadDirectory) {
+  std::cout << "Parsing Torrent file " + torrentFilePath + "..." << std::endl;
+
+  TorrentFileParser torrentFileParser(torrentFilePath);
+
+  const std::string infoHash = torrentFileParser.getInfoHash();
+  // TODO fix this bug
+  const std::string filename = torrentFileParser.getFileName().value();
+
+  auto e = torrentState->getState(infoHash);
+
+  if (!e) {
+    fmt::print("No state found for this infoHash.\n");
+    return;
+  }
+  if (e->id == infoHash) {
+    fmt::print("Torrent already downloaded\n");
+    return;
+  }
+
+  downloadFile(torrentFilePath, downloadDirectory);
+  torrentState->storeState(infoHash, filename);
+}
+
 void TorrentClient::downloadFile(const std::string& torrentFilePath,
                                  const std::string& downloadDirectory) {
-  // Parse Torrent file
-  std::cout << "Parsing Torrent file " + torrentFilePath + "..." << std::endl;
   TorrentFileParser torrentFileParser(torrentFilePath);
   std::string announceUrl = torrentFileParser.getAnnounce().value();
 
@@ -79,7 +102,7 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
   auto lastPeerQuery = (time_t)(-1);
 
-  torrentState->storeState();
+  // torrentState->storeState();
 
   fmt::print("Downloading file to {}\n", downloadPath);
 

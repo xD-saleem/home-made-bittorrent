@@ -20,7 +20,6 @@ tl::expected<void, TorrentStateError> TorrentState::storeState(
 tl::expected<TorrentRecord, TorrentStateError> TorrentState::getState(
     std::string hashinfo) {
   auto val = databaseSvc->getTorrent(hashinfo);
-
   return val.value();
 }
 

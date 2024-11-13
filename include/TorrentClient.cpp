@@ -16,25 +16,20 @@
 #define PORT 8080
 #define PEER_QUERY_INTERVAL 60  // 1 minute
 
-TorrentClient::TorrentClient(
-    // Deps.
-    TorrentState* torrentState,
-
-    // variables
-    const int threadNum, bool enableLogging, std::string logFilePath)
-    : threadNum(threadNum) {
+TorrentClient::TorrentClient(std::shared_ptr<TorrentState> torrentState,
+                             int threadNum, bool enableLogging,
+                             std::string logFilePath)
+    : torrentState(std::move(torrentState)), threadNum(threadNum) {
   peerId = "-UT2021-";
-
   std::random_device rd;
-
   std::mt19937 gen(rd());
-
   std::uniform_int_distribution<> distrib(1, 9);
 
-  for (int i = 0; i < 12; i++) {
+  for (int i = 0; i < 12; ++i) {
     peerId += std::to_string(distrib(gen));
   }
 
+  // Enable logging if required
   if (enableLogging) {
     loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
     loguru::g_flush_interval_ms = 100;
@@ -57,21 +52,19 @@ void TorrentClient::download(const std::string& torrentFilePath,
   TorrentFileParser torrentFileParser(torrentFilePath);
 
   const std::string infoHash = torrentFileParser.getInfoHash();
-  // TODO fix this bug
   const std::string filename = torrentFileParser.getFileName().value();
 
   auto e = torrentState->getState(infoHash);
-
   if (!e) {
     fmt::print("No state found for this infoHash.\n");
     return;
   }
+
   if (e->id == infoHash) {
     fmt::print("Torrent already downloaded\n");
     return;
   }
 
-  downloadFile(torrentFilePath, downloadDirectory);
   torrentState->storeState(infoHash, filename);
 }
 
@@ -80,15 +73,12 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
   TorrentFileParser torrentFileParser(torrentFilePath);
   std::string announceUrl = torrentFileParser.getAnnounce().value();
 
-  // TODO handle errors
   long fileSize = torrentFileParser.getFileSize().value();
   const std::string infoHash = torrentFileParser.getInfoHash();
 
   std::string filename = torrentFileParser.getFileName().value();
 
   std::string downloadPath = downloadDirectory + filename;
-
-  // std::string id = torrentFileParser.getInfoHash();
 
   PieceManager pieceManager(torrentFileParser, downloadPath, threadNum);
 
@@ -102,12 +92,7 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
   auto lastPeerQuery = (time_t)(-1);
 
-  // torrentState->storeState();
-
   fmt::print("Downloading file to {}\n", downloadPath);
-
-  // check if id already been download
-  //  otherwise carry on seed.
 
   bool isDownloadCompleted = false;
 

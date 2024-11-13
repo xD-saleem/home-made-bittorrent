@@ -1,6 +1,7 @@
 #include <fmt/core.h>
 
 #include <functional>
+#include <iostream>
 #include <loguru/loguru.hpp>
 #include <tl/expected.hpp>
 
@@ -31,11 +32,12 @@ int main(int argc, char* argv[]) {
       std::make_shared<DatabaseService>(db);
 
   // Torrent State
-  TorrentState torrentState = TorrentState(databaseSvc);
+  std::shared_ptr<TorrentState> torrentState =
+      std::make_shared<TorrentState>(databaseSvc);
 
   TorrentClient torrentClient(
       // Deps.
-      &torrentState,
+      torrentState,
       // variables
       workerThreadNum, isLoggingEnabled, downloadDirectory);
 

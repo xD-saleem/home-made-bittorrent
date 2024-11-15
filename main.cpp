@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 
   LOG_F(INFO, "Starting torrent client");
 
-  std::string filename = "debian.torrent";
+  std::string filename = "torrent.torrent";
   std::string downloadDirectory = "./";
   std::string downloadPath = downloadDirectory + filename;
   std::string peerID = "peer_id";
@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<SQLite::Database> db = initDB("torrent_state.db3");
 
   // Database Service
-
   std::shared_ptr<DatabaseService> databaseSvc =
       std::make_shared<DatabaseService>(db);
 

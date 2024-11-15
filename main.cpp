@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 
   LOG_F(INFO, "Starting torrent client");
 
-  std::string filename = "torrent.torrent";
+  std::string filename = "debian.torrent";
   std::string downloadDirectory = "./";
   std::string downloadPath = downloadDirectory + filename;
   std::string peerID = "peer_id";

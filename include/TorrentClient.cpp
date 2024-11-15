@@ -65,6 +65,9 @@ void TorrentClient::download(const std::string& torrentFilePath,
     return;
   }
 
+  // todo handle error
+  downloadFile(torrentFilePath, downloadDirectory);
+
   torrentState->storeState(infoHash, filename);
 }
 

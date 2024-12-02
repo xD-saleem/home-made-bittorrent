@@ -3,6 +3,7 @@
 #include <bencode/bencoding.h>
 #include <fmt/core.h>
 
+#include <filesystem>
 #include <iostream>
 #include <loguru/loguru.hpp>
 #include <random>
@@ -128,6 +129,7 @@ void TorrentClient::seedFile(const std::string& torrentFilePath,
 
 void TorrentClient::downloadFile(const std::string& torrentFilePath,
                                  const std::string& downloadDirectory) {
+  fmt::print("Parsing torrent file {}\n", torrentFilePath);
   TorrentFileParser torrentFileParser(torrentFilePath);
   std::string announceUrl = torrentFileParser.getAnnounce().value();
 
@@ -167,6 +169,7 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
       std::vector<Peer*> peers =
           peerRetriever.retrievePeers(pieceManager.bytesDownloaded());
       lastPeerQuery = currentTime;
+
       if (!peers.empty()) {
         queue.clear();
         for (auto peer : peers) {

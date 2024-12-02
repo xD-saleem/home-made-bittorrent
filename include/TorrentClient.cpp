@@ -17,16 +17,20 @@
 #define PORT 8080
 #define PEER_QUERY_INTERVAL 60  // 1 minute
 
-TorrentClient::TorrentClient(const int threadNum, bool enableLogging,
+TorrentClient::TorrentClient(std::shared_ptr<TorrentState> torrentState,
+                             int threadNum, bool enableLogging,
                              std::string logFilePath)
-    : threadNum(threadNum) {
+    : torrentState(std::move(torrentState)), threadNum(threadNum) {
   peerId = "-UT2021-";
-
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> distrib(1, 9);
-  for (int i = 0; i < 12; i++) peerId += std::to_string(distrib(gen));
 
+  for (int i = 0; i < 12; ++i) {
+    peerId += std::to_string(distrib(gen));
+  }
+
+  // Enable logging if required
   if (enableLogging) {
     loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
     loguru::g_flush_interval_ms = 100;
@@ -42,11 +46,90 @@ TorrentClient::TorrentClient(const int threadNum, bool enableLogging,
  */
 TorrentClient::~TorrentClient() = default;
 
+void TorrentClient::download(const std::string& torrentFilePath,
+                             const std::string& downloadDirectory) {
+  std::cout << "Parsing Torrent file " + torrentFilePath + "..." << std::endl;
+
+  TorrentFileParser torrentFileParser(torrentFilePath);
+
+  const std::string infoHash = torrentFileParser.getInfoHash();
+  const std::string filename = torrentFileParser.getFileName().value();
+
+  auto e = torrentState->getState(infoHash);
+  if (!e) {
+    fmt::print("No state found for this infoHash.\n");
+    return;
+  }
+
+  if (e->id == infoHash) {
+    fmt::print("Torrent already downloaded\n");
+    // TODO handle error
+    seedFile(torrentFilePath, downloadDirectory);
+    return;
+  }
+
+  // TODO handle error
+  downloadFile(torrentFilePath, downloadDirectory);
+
+  torrentState->storeState(infoHash, filename);
+}
+
+void TorrentClient::seedFile(const std::string& torrentFilePath,
+                             const std::string& downloadDirectory) {
+  TorrentFileParser torrentFileParser(torrentFilePath);
+
+  std::string filename = torrentFileParser.getFileName().value();
+
+  const std::string infoHash = torrentFileParser.getInfoHash();
+
+  std::string downloadPath = downloadDirectory + filename;
+
+  PieceManager pieceManager(torrentFileParser, downloadPath, threadNum);
+
+  // Adds threads to the thread pool
+  for (int i = 0; i < threadNum; i++) {
+    PeerConnection connection(&queue, peerId, infoHash, &pieceManager);
+    connections.push_back(&connection);
+    std::thread thread(&PeerConnection::start, connection);
+    threadPool.push_back(std::move(thread));
+  }
+
+  long fileSize = torrentFileParser.getFileSize().value();
+  std::string announceUrl = torrentFileParser.getAnnounce().value();
+  auto lastPeerQuery = (time_t)(-1);
+  while (true) {
+    time_t currentTime = std::time(nullptr);
+    auto diff = std::difftime(currentTime, lastPeerQuery);
+    // Retrieve peers from the tracker after a certain time interval or
+    // whenever the queue is empty
+    if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
+      PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
+                                  fileSize);
+      std::vector<Peer*> peers =
+          peerRetriever.retrievePeers(pieceManager.bytesDownloaded());
+
+      fmt::print("Talready downloaded {}{}\n", peers.size(),
+                 pieceManager.isComplete());
+
+      // boost::asio::ip::tcp::endpoint peerEndpoint(
+      //     boost::asio::ip::address::from_string(peerIp), peerPort);
+      //
+      // boost::asio::ip::tcp::socket socket(ioContext);
+      // socket.connect(peerEndpoint);
+      //
+      // lastPeerQuery = currentTime;
+      // if (!peers.empty()) {
+      //   queue.clear();
+      //   for (auto peer : peers) {
+      //     queue.push_back(peer);
+      //   }
+    }
+  }
+}
+
 void TorrentClient::downloadFile(const std::string& torrentFilePath,
                                  const std::string& downloadDirectory) {
-  // Parse Torrent file
   fmt::print("Parsing torrent file {}\n", torrentFilePath);
-
   TorrentFileParser torrentFileParser(torrentFilePath);
   std::string announceUrl = torrentFileParser.getAnnounce().value();
 
@@ -54,6 +137,7 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
   const std::string infoHash = torrentFileParser.getInfoHash();
 
   std::string filename = torrentFileParser.getFileName().value();
+
   std::string downloadPath = downloadDirectory + filename;
 
   PieceManager pieceManager(torrentFileParser, downloadPath, threadNum);
@@ -70,10 +154,10 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
   fmt::print("Downloading file to {}\n", downloadPath);
 
-  while (true) {
-    if (pieceManager.isComplete()) {
-      break;
-    }
+  bool isDownloadCompleted = false;
+
+  while (!isDownloadCompleted) {
+    isDownloadCompleted = pieceManager.isComplete();
 
     time_t currentTime = std::time(nullptr);
     auto diff = std::difftime(currentTime, lastPeerQuery);
@@ -97,7 +181,7 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
   terminate();
 
-  if (pieceManager.isComplete()) {
+  if (isDownloadCompleted) {
     std::cout << "Download completed!" << std::endl;
     std::cout << "File downloaded to " << downloadPath << std::endl;
   }
@@ -116,7 +200,9 @@ void TorrentClient::terminate() {
   for (auto connection : connections) connection->stop();
 
   for (std::thread& thread : threadPool) {
-    if (thread.joinable()) thread.join();
+    if (thread.joinable()) {
+      thread.join();
+    }
   }
 
   threadPool.clear();

@@ -131,12 +131,7 @@ std::vector<Piece*> PieceManager::initiatePieces() {
  */
 bool PieceManager::isComplete() {
   lock.lock();
-
-  // std::cout << "havePieces.size(): " << havePieces.size() << std::endl;
-  // std::cout << "totalPieces: " << totalPieces << std::endl;
-
-  // TODO - Fix this. its something not completing
-  bool isComplete = havePieces.size() == totalPieces;
+  bool isComplete = havePieces.size() == (totalPieces - 1);
   lock.unlock();
   return isComplete;
 }

@@ -8,7 +8,6 @@
 #include <cassert>
 #include <fstream>
 #include <loguru/loguru.hpp>
-#include <stdexcept>
 #include <tl/expected.hpp>
 
 #define HASH_LEN 20

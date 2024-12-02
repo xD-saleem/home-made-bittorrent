@@ -62,14 +62,68 @@ void TorrentClient::download(const std::string& torrentFilePath,
 
   if (e->id == infoHash) {
     fmt::print("Torrent already downloaded\n");
-    // seed
-    // return;
+    // TODO handle error
+    seedFile(torrentFilePath, downloadDirectory);
+    return;
   }
 
   // TODO handle error
   downloadFile(torrentFilePath, downloadDirectory);
 
   torrentState->storeState(infoHash, filename);
+}
+
+void TorrentClient::seedFile(const std::string& torrentFilePath,
+                             const std::string& downloadDirectory) {
+  TorrentFileParser torrentFileParser(torrentFilePath);
+
+  std::string filename = torrentFileParser.getFileName().value();
+
+  const std::string infoHash = torrentFileParser.getInfoHash();
+
+  std::string downloadPath = downloadDirectory + filename;
+
+  PieceManager pieceManager(torrentFileParser, downloadPath, threadNum);
+
+  // Adds threads to the thread pool
+  for (int i = 0; i < threadNum; i++) {
+    PeerConnection connection(&queue, peerId, infoHash, &pieceManager);
+    connections.push_back(&connection);
+    std::thread thread(&PeerConnection::start, connection);
+    threadPool.push_back(std::move(thread));
+  }
+
+  long fileSize = torrentFileParser.getFileSize().value();
+  std::string announceUrl = torrentFileParser.getAnnounce().value();
+  auto lastPeerQuery = (time_t)(-1);
+  while (true) {
+    time_t currentTime = std::time(nullptr);
+    auto diff = std::difftime(currentTime, lastPeerQuery);
+    // Retrieve peers from the tracker after a certain time interval or
+    // whenever the queue is empty
+    if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
+      PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
+                                  fileSize);
+      std::vector<Peer*> peers =
+          peerRetriever.retrievePeers(pieceManager.bytesDownloaded());
+
+      fmt::print("Talready downloaded {}{}\n", peers.size(),
+                 pieceManager.isComplete());
+
+      // boost::asio::ip::tcp::endpoint peerEndpoint(
+      //     boost::asio::ip::address::from_string(peerIp), peerPort);
+      //
+      // boost::asio::ip::tcp::socket socket(ioContext);
+      // socket.connect(peerEndpoint);
+      //
+      // lastPeerQuery = currentTime;
+      // if (!peers.empty()) {
+      //   queue.clear();
+      //   for (auto peer : peers) {
+      //     queue.push_back(peer);
+      //   }
+    }
+  }
 }
 
 void TorrentClient::downloadFile(const std::string& torrentFilePath,
@@ -105,8 +159,8 @@ void TorrentClient::downloadFile(const std::string& torrentFilePath,
 
     time_t currentTime = std::time(nullptr);
     auto diff = std::difftime(currentTime, lastPeerQuery);
-    // Retrieve peers from the tracker after a certain time interval or whenever
-    // the queue is empty
+    // Retrieve peers from the tracker after a certain time interval or
+    // whenever the queue is empty
     if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
       PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
                                   fileSize);
@@ -143,7 +197,9 @@ void TorrentClient::terminate() {
   for (auto connection : connections) connection->stop();
 
   for (std::thread& thread : threadPool) {
-    if (thread.joinable()) thread.join();
+    if (thread.joinable()) {
+      thread.join();
+    }
   }
 
   threadPool.clear();

@@ -43,6 +43,9 @@ class TorrentClient {
   // Main download method
   void download(const std::string& torrentFilePath,
                 const std::string& downloadDirectory);
+
+  void seedFile(const std::string& torrentFilePath,
+                const std::string& downloadDirectory);
 };
 
 #endif  // BITTORRENTCLIENT_TORRENTCLIENT_H

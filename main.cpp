@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 
   LOG_F(INFO, "Downloading torrent file");
 
-  torrentClient.download(downloadPath, downloadDirectory);
+  torrentClient.start(downloadPath, downloadDirectory);
 
   LOG_F(INFO, "Downloaded torrent file successfully");
   return 0;

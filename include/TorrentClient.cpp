@@ -46,8 +46,8 @@ TorrentClient::TorrentClient(std::shared_ptr<TorrentState> torrentState,
  */
 TorrentClient::~TorrentClient() = default;
 
-void TorrentClient::download(const std::string& torrentFilePath,
-                             const std::string& downloadDirectory) {
+void TorrentClient::start(const std::string& torrentFilePath,
+                          const std::string& downloadDirectory) {
   std::cout << "Parsing Torrent file " + torrentFilePath + "..." << std::endl;
 
   TorrentFileParser torrentFileParser(torrentFilePath);

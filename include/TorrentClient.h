@@ -36,14 +36,15 @@ class TorrentClient {
   // Method to terminate the client (assumed to stop all threads/connections)
   void terminate();
 
+  // Main download method
+  void start(const std::string& torrentFilePath,
+             const std::string& downloadDirectory);
+
   // Method to download file from torrent
   void downloadFile(const std::string& torrentFilePath,
                     const std::string& downloadDirectory);
 
-  // Main download method
-  void download(const std::string& torrentFilePath,
-                const std::string& downloadDirectory);
-
+  // Method to seed file
   void seedFile(const std::string& torrentFilePath,
                 const std::string& downloadDirectory);
 };

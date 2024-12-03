@@ -64,8 +64,8 @@ void TorrentClient::download(const std::string& torrentFilePath,
   if (e->id == infoHash) {
     fmt::print("Torrent already downloaded\n");
     // TODO handle error
-    seedFile(torrentFilePath, downloadDirectory);
-    return;
+    // seedFile(torrentFilePath, downloadDirectory);
+    // return;
   }
 
   // TODO handle error

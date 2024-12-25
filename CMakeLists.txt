@@ -17,8 +17,8 @@ find_package(SQLiteCpp REQUIRED)
 find_package(loguru CONFIG REQUIRED)
 
 ## Include directories
-include_directories(include)
 include_directories(lib)
+include_directories(include)
 
 # Bencoding
 file(GLOB BENCODING_SRC "lib/bencode/*.cpp" "include/bencode/*.h")

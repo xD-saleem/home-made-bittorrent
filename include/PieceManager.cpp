@@ -38,7 +38,6 @@ PieceManager::PieceManager(const TorrentFileParser& fileParser,
   downloadedFile.open(downloadPath, std::ios::binary | std::ios::out);
 
   long fileSize = fileParser.getFileSize().value();
-  // TODO check if it has value
   downloadedFile.seekp(fileSize - 1);
   downloadedFile.write("", 1);
 

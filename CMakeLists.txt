@@ -83,10 +83,10 @@ include/utils.h
 include/TorrentFileParser.h
 include/TorrentFileParser.cpp
 include/TorrentFileParser_test.cpp
-#
+
 include/BitTorrentMessage.h
-include/BitTorrentMessage_test.cpp
 include/BitTorrentMessage.cpp
+include/BitTorrentMessage_test.cpp
 
 include/TorrentState.h
 include/TorrentState.cpp
@@ -94,12 +94,12 @@ include/TorrentState_test.cpp
 
 include/DatabaseService.h
 include/DatabaseService.cpp
-include/DatabaseService_test.cpp
 include/DatabaseService_mock.h
+include/DatabaseService_test.cpp
 
-# include/PieceManager.h
-# include/PieceManager.cpp
-# include/PieceManager_test.cpp
+include/PieceManager.h
+include/PieceManager.cpp
+include/PieceManager_test.cpp
 )
 
 # Link libraries

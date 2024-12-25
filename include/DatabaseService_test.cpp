@@ -6,19 +6,6 @@
 
 #include <cstdlib>
 
-std::string randomCharacters(int length) {
-  std::string alphabets = "abcdefghijklmnopqrstuvwxyz";
-
-  std::string randomString = "";
-
-  for (int i = 0; i < length; i++) {
-    int randomNumber = rand() % alphabets.size();
-    randomString += alphabets[randomNumber];
-  }
-
-  return randomString;
-}
-
 TEST(DatabaseService, InsertOneAndGetOne) {
   std::string memoryDb = ":memory:";
   auto db = initDB(memoryDb);

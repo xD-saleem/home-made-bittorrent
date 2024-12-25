@@ -12,6 +12,7 @@ class MockDatabaseService : public DatabaseService {
 
   MOCK_METHOD((tl::expected<void, DatabaseServiceError>), insertOne,
               (std::string, std::string), (override));
+
   MOCK_METHOD((tl::expected<TorrentRecord, DatabaseServiceError>), getTorrent,
               (std::string), (override));
 };

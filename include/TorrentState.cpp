@@ -11,7 +11,7 @@ tl::expected<void, TorrentStateError> TorrentState::storeState(
     std::string hashinfo, std::string name) {
   auto val = databaseSvc->insertOne(hashinfo, name);
   if (!val) {
-    return tl::unexpected(TorrentStateError{"return failed to save hashinfo"});
+    return tl::unexpected(TorrentStateError{"failed to save hashinfo"});
   }
 
   return {};

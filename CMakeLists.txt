@@ -10,11 +10,11 @@ find_package(GTest CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(cpr REQUIRED)
 find_package(cryptopp REQUIRED)
-find_package(loguru CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(tl-expected CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(SQLiteCpp REQUIRED)
+find_package(loguru CONFIG REQUIRED)
 
 ## Include directories
 include_directories(include)

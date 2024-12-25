@@ -3,11 +3,10 @@
 #define BITTORRENTCLIENT_TORRENTSTATE_H
 
 #include <cstdlib>
+#include <loguru/loguru.hpp>
 #include <string>
 
 #include "DatabaseService.h"
-#include "loguru.hpp"
-
 struct TorrentStateError {
   std::string message;
 };

@@ -2,8 +2,6 @@
 
 #include <netinet/in.h>
 
-#include <sstream>
-
 BitTorrentMessage::BitTorrentMessage(const uint8_t id,
                                      const std::string& payload)
     : messageLength(payload.length() + 1), id(id), payload(payload) {}

@@ -24,7 +24,6 @@ include_directories(lib)
 file(GLOB BENCODING_SRC "lib/bencode/*.cpp" "include/bencode/*.h")
 add_library(bencoding STATIC ${BENCODING_SRC})
 
-
 # Main
 add_executable(main main.cpp
 

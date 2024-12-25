@@ -17,8 +17,8 @@ find_package(SQLite3 REQUIRED)
 find_package(SQLiteCpp REQUIRED)
 
 ## Include directories
-include_directories(lib)
 include_directories(include)
+include_directories(lib)
 
 # Bencoding
 file(GLOB BENCODING_SRC "lib/bencode/*.cpp" "include/bencode/*.h")
@@ -97,9 +97,9 @@ include/DatabaseService.cpp
 include/DatabaseService_mock.h
 include/DatabaseService_test.cpp
 
-include/PieceManager.h
-include/PieceManager.cpp
-include/PieceManager_test.cpp
+# include/PieceManager.h
+# include/PieceManager.cpp
+# include/PieceManager_test.cpp
 )
 
 # Link libraries

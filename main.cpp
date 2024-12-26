@@ -1,5 +1,6 @@
 #include <fmt/core.h>
 
+#include <loguru/loguru.hpp>
 #include <tl/expected.hpp>
 
 #include "DatabaseService.h"

@@ -20,7 +20,6 @@ jobs:
         manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
         token: ${{ github.token }}
         triplet: x64-linux-release
-
       # debugging
     - name: Setup upterm session
       uses: lhotari/action-upterm@v1

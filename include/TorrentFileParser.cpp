@@ -7,21 +7,21 @@
 
 #include <cassert>
 #include <fstream>
-#include <loguru/loguru.hpp>
+// #include <loguru/loguru.hpp>
 #include <tl/expected.hpp>
 
 #define HASH_LEN 20
 
 TorrentFileParser::TorrentFileParser(const std::string& filePath) {
   // TODO have verification.
-  LOG_F(INFO, "Parsing Torrent file %s...", filePath.c_str());
+  // LOG_F(INFO, "Parsing Torrent file %s...", filePath.c_str());
   std::ifstream fileStream(filePath, std::ifstream::binary);
   std::shared_ptr<bencoding::BItem> decodedTorrentFile =
       bencoding::decode(fileStream);
   std::shared_ptr<bencoding::BDictionary> rootDict =
       std::dynamic_pointer_cast<bencoding::BDictionary>(decodedTorrentFile);
   root = rootDict;
-  LOG_F(INFO, "Parse Torrent file: SUCCESS");
+  // LOG_F(INFO, "Parse Torrent file: SUCCESS");
 }
 
 std::shared_ptr<bencoding::BItem> TorrentFileParser::get(
@@ -42,9 +42,9 @@ TorrentFileParser::splitPieceHashes() const {
   std::shared_ptr<bencoding::BItem> piecesValue = get("pieces");
 
   if (!piecesValue) {
-    LOG_F(ERROR,
-          "Torrent file is malformed. [File does not contain key "
-          "'pieces']");
+    // LOG_F(ERROR,
+    // "Torrent file is malformed. [File does not contain key "
+    // "'pieces']");
     return tl::unexpected(
         TorrentFileParserError{"Torrent file is malformed. [File does not "
                                "contain key 'pieces']"});

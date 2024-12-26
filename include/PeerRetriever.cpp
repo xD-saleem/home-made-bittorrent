@@ -4,7 +4,7 @@
 #include <cpr/cpr.h>
 
 #include <iostream>
-#include <loguru/loguru.hpp>
+// #include <loguru/loguru.hpp>
 #include <string>
 #include <tl/expected.hpp>
 #include <utility>
@@ -59,7 +59,7 @@ std::vector<Peer*> PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
   info << "left: " << std::to_string(fileSize - bytesDownloaded) << std::endl;
   info << "compact: " << std::to_string(1);
 
-  LOG_F(INFO, "%s", info.str().c_str());
+  // LOG_F(INFO, "%s", info.str().c_str());
 
   cpr::Response res = cpr::Get(
       cpr::Url{announceUrl},
@@ -74,22 +74,22 @@ std::vector<Peer*> PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
 
   // If response successfully retrieved
   if (res.status_code == 200) {
-    LOG_F(INFO, "Retrieve response from tracker: SUCCESS");
+    // LOG_F(INFO, "Retrieve response from tracker: SUCCESS");
     std::shared_ptr<bencoding::BItem> decodedResponse =
         bencoding::decode(res.text);
 
     auto peers = decodeResponse(res.text);
 
     if (!peers.has_value()) {
-      LOG_F(ERROR, "Decoding tracker response: FAILED [ %s ]",
-            peers.error().message.c_str());
+      // LOG_F(ERROR, "Decoding tracker response: FAILED [ %s ]",
+      //  peers.error().message.c_str());
       return std::vector<Peer*>();
     }
 
     return peers.value();
   } else {
-    LOG_F(ERROR, "Retrieving response from tracker: FAILED [ %d: %s ]",
-          res.status_code, res.text.c_str());
+    // LOG_F(ERROR, "Retrieving response from tracker: FAILED [ %d: %s ]",
+    //  res.status_code, res.text.c_str());
   }
   return std::vector<Peer*>();
 }
@@ -106,7 +106,7 @@ std::vector<Peer*> PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
 
 tl::expected<std::vector<Peer*>, PeerRetrieverError>
 PeerRetriever::decodeResponse(std::string response) {
-  LOG_F(INFO, "Decoding tracker response...");
+  // LOG_F(INFO, "Decoding tracker response...");
   std::shared_ptr<bencoding::BItem> decodedResponse =
       bencoding::decode(response);
 
@@ -192,8 +192,8 @@ PeerRetriever::decodeResponse(std::string response) {
     return tl::unexpected(PeerRetrieverError{
         "Received malformed 'peers' from tracker. [Unknown type]"});
   }
-  LOG_F(INFO, "Decode tracker response: SUCCESS");
-  LOG_F(INFO, "Number of peers discovered: %zu", peers.size());
+  // LOG_F(INFO, "Decode tracker response: SUCCESS");
+  // LOG_F(INFO, "Number of peers discovered: %zu", peers.size());
   return peers;
 }
 

@@ -3,9 +3,8 @@
 #include <bencode/bencoding.h>
 #include <fmt/core.h>
 
-#include <filesystem>
 #include <iostream>
-#include <loguru/loguru.hpp>
+// #include <loguru/loguru.hpp>
 #include <random>
 #include <thread>
 
@@ -32,12 +31,12 @@ TorrentClient::TorrentClient(std::shared_ptr<TorrentState> torrentState,
 
   // Enable logging if required
   if (enableLogging) {
-    loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
-    loguru::g_flush_interval_ms = 100;
-    loguru::add_file(logFilePath.c_str(), loguru::Truncate,
-                     loguru::Verbosity_MAX);
+    // loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
+    // loguru::g_flush_interval_ms = 100;
+    // loguru::add_file(logFilePath.c_str(), loguru::Truncate,
+    // loguru::Verbosity_MAX);
   } else {
-    loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
+    // loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
   }
 }
 

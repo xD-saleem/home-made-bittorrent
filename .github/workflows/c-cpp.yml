@@ -22,12 +22,11 @@ jobs:
         triplet: x64-linux-release
 
       #debugging  
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
-
+      # - name: Setup upterm session
+      # uses: lhotari/action-upterm@v1
 
     - name: build
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cd build && make && cd - && echo "successfully built"
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=/usr/local/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 && cd build && make && cd - && echo "successfully built"
 
     - name: test
       run: make ci-tests

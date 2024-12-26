@@ -49,6 +49,7 @@ TorrentFileParser::splitPieceHashes() const {
         TorrentFileParserError{"Torrent file is malformed. [File does not "
                                "contain key 'pieces']"});
   }
+
   std::string pieces =
       std::dynamic_pointer_cast<bencoding::BString>(piecesValue)->value();
 

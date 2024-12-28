@@ -3,7 +3,7 @@
 #define BITTORRENTCLIENT_TORRENTSTATE_H
 
 #include <cstdlib>
-// #include <loguru/loguru.hpp>
+#include <loguru/loguru.hpp>
 #include <string>
 
 #include "DatabaseService.h"
@@ -18,7 +18,7 @@ class TorrentState {
  public:
   explicit TorrentState(std::shared_ptr<DatabaseService> dbSvc)
       : databaseSvc(dbSvc) {
-    // LOG_F(INFO, "launching state");
+    LOG_F(INFO, "launching state");
     if (!databaseSvc) {  // Check if databaseSvc is null
       std::exit(1);
     }

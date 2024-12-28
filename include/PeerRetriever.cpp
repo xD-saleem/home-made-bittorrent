@@ -4,7 +4,6 @@
 #include <cpr/cpr.h>
 
 #include <iostream>
-// #include <loguru/loguru.hpp>
 #include <string>
 #include <tl/expected.hpp>
 #include <utility>

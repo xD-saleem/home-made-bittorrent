@@ -2,11 +2,6 @@
 
 #include <gtest/gtest.h>
 
-// TEST(PieceManagerTest, init) {
-//   TorrentFileParser tfp = TorrentFileParser("");
-//   EXPECT_EQ(tfp.getFileName(), "debian-12.5.0-amd64-netinst.iso");
-// }
-
 TEST(PieceManagerTest, getFileName) {
   TorrentFileParser tfp = TorrentFileParser("debian.torrent");
   EXPECT_EQ(tfp.getFileName(), "debian-12.5.0-amd64-netinst.iso");

@@ -10,11 +10,11 @@ find_package(GTest CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(cpr REQUIRED)
 find_package(cryptopp REQUIRED)
-find_package(loguru CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(tl-expected CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(SQLiteCpp REQUIRED)
+find_package(loguru CONFIG REQUIRED)
 
 ## Include directories
 include_directories(lib)
@@ -23,7 +23,6 @@ include_directories(include)
 # Bencoding
 file(GLOB BENCODING_SRC "lib/bencode/*.cpp" "include/bencode/*.h")
 add_library(bencoding STATIC ${BENCODING_SRC})
-
 
 # Main
 add_executable(main main.cpp
@@ -83,10 +82,10 @@ include/utils.h
 include/TorrentFileParser.h
 include/TorrentFileParser.cpp
 include/TorrentFileParser_test.cpp
-#
+
 include/BitTorrentMessage.h
-include/BitTorrentMessage_test.cpp
 include/BitTorrentMessage.cpp
+include/BitTorrentMessage_test.cpp
 
 include/TorrentState.h
 include/TorrentState.cpp
@@ -94,8 +93,8 @@ include/TorrentState_test.cpp
 
 include/DatabaseService.h
 include/DatabaseService.cpp
-include/DatabaseService_test.cpp
 include/DatabaseService_mock.h
+include/DatabaseService_test.cpp
 
 # include/PieceManager.h
 # include/PieceManager.cpp

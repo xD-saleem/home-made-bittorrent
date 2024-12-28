@@ -3,9 +3,8 @@
 #include <bencode/bencoding.h>
 #include <fmt/core.h>
 
-#include <filesystem>
 #include <iostream>
-#include <loguru/loguru.hpp>
+// #include <loguru/loguru.hpp>
 #include <random>
 #include <thread>
 
@@ -32,12 +31,12 @@ TorrentClient::TorrentClient(std::shared_ptr<TorrentState> torrentState,
 
   // Enable logging if required
   if (enableLogging) {
-    loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
-    loguru::g_flush_interval_ms = 100;
-    loguru::add_file(logFilePath.c_str(), loguru::Truncate,
-                     loguru::Verbosity_MAX);
+    // loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
+    // loguru::g_flush_interval_ms = 100;
+    // loguru::add_file(logFilePath.c_str(), loguru::Truncate,
+    // loguru::Verbosity_MAX);
   } else {
-    loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
+    // loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
   }
 }
 
@@ -46,8 +45,8 @@ TorrentClient::TorrentClient(std::shared_ptr<TorrentState> torrentState,
  */
 TorrentClient::~TorrentClient() = default;
 
-void TorrentClient::download(const std::string& torrentFilePath,
-                             const std::string& downloadDirectory) {
+void TorrentClient::start(const std::string& torrentFilePath,
+                          const std::string& downloadDirectory) {
   std::cout << "Parsing Torrent file " + torrentFilePath + "..." << std::endl;
 
   TorrentFileParser torrentFileParser(torrentFilePath);
@@ -64,8 +63,8 @@ void TorrentClient::download(const std::string& torrentFilePath,
   if (e->id == infoHash) {
     fmt::print("Torrent already downloaded\n");
     // TODO handle error
-    seedFile(torrentFilePath, downloadDirectory);
-    return;
+    // seedFile(torrentFilePath, downloadDirectory);
+    // return;
   }
 
   // TODO handle error

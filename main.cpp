@@ -1,8 +1,6 @@
 #include <fmt/core.h>
 
-#include <functional>
-#include <iostream>
-#include <loguru/loguru.hpp>
+// #include <loguru/loguru.hpp>
 #include <tl/expected.hpp>
 
 #include "DatabaseService.h"
@@ -10,11 +8,11 @@
 #include "TorrentState.h"
 
 int main(int argc, char* argv[]) {
-  loguru::init(argc, argv);
+  // loguru::init(argc, argv);
 
   std::string torrentFilePath = "debian.torrent";
 
-  LOG_F(INFO, "Starting torrent client");
+  // LOG_F(INFO, "Starting torrent client");
 
   std::string filename = "debian.torrent";
   std::string downloadDirectory = "./";
@@ -40,11 +38,11 @@ int main(int argc, char* argv[]) {
       // variables
       workerThreadNum, isLoggingEnabled, downloadDirectory);
 
-  LOG_F(INFO, "Downloading torrent file");
+  // LOG_F(INFO, "Downloading torrent file");
 
-  torrentClient.download(downloadPath, downloadDirectory);
+  torrentClient.start(downloadPath, downloadDirectory);
 
-  LOG_F(INFO, "Downloaded torrent file successfully");
+  // LOG_F(INFO, "Downloaded torrent file successfully");
   return 0;
 };
 

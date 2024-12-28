@@ -8,8 +8,6 @@
 #include <string>
 #include <tl/expected.hpp>
 
-#include "loguru.hpp"
-
 enum class DatabaseServiceError {
   OpenError,
   InsertError,

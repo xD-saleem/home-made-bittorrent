@@ -10,7 +10,7 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
-#include <loguru/loguru.hpp>
+// #include <loguru/loguru.hpp>
 #include <sstream>
 #include <thread>
 #include <tl/expected.hpp>
@@ -38,7 +38,6 @@ PieceManager::PieceManager(const TorrentFileParser& fileParser,
   downloadedFile.open(downloadPath, std::ios::binary | std::ios::out);
 
   long fileSize = fileParser.getFileSize().value();
-  // TODO check if it has value
   downloadedFile.seekp(fileSize - 1);
   downloadedFile.write("", 1);
 
@@ -79,7 +78,7 @@ std::vector<Piece*> PieceManager::initiatePieces() {
     auto totalLengthResult = fileParser.getFileSize();
 
     if (!totalLengthResult.has_value()) {
-      LOG_F(ERROR, "Failed to get file size");
+      // LOG_F(ERROR, "Failed to get file size");
       return std::vector<Piece*>();
     }
     // Check
@@ -146,7 +145,7 @@ void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
   std::stringstream info;
   info << "Number of connections: " << std::to_string(peers.size())
        << "/" + std::to_string(maximumConnections);
-  LOG_F(INFO, "%s", info.str().c_str());
+  // LOG_F(INFO, "%s", info.str().c_str());
 }
 
 /**
@@ -185,7 +184,7 @@ tl::expected<void, PieceManagerError> PieceManager::removePeer(
     std::stringstream info;
     info << "Number of connections: " << std::to_string(peers.size())
          << "/" + std::to_string(maximumConnections);
-    LOG_F(INFO, "%s", info.str().c_str());
+    // LOG_F(INFO, "%s", info.str().c_str());
   } else {
     lock.unlock();
     return tl::unexpected(
@@ -248,8 +247,8 @@ Block* PieceManager::expiredRequest(std::string peerId) {
       if (diff >= MAX_PENDING_TIME) {
         // Resets the timer for that request
         pending->timestamp = currentTime;
-        LOG_F(INFO, "Block %d from piece %d has expired",
-              pending->block->offset, pending->block->piece);
+        // LOG_F(INFO, "Block %d from piece %d has expired",
+        // pending->block->offset, pending->block->piece);
         return pending->block;
       }
     }
@@ -322,8 +321,8 @@ Piece* PieceManager::getRarestPiece(std::string peerId) {
  */
 tl::expected<void, PieceManagerError> PieceManager::blockReceived(
     std::string peerId, int pieceIndex, int blockOffset, std::string data) {
-  LOG_F(INFO, "Received block %d for piece %d from peer %s", blockOffset,
-        pieceIndex, peerId.c_str());
+  // LOG_F(INFO, "Received block %d for piece %d from peer %s", blockOffset,
+  // pieceIndex, peerId.c_str());
   // Removes the received block from pending requests
   PendingRequest* requestToRemove = nullptr;
   lock.lock();
@@ -375,10 +374,10 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
            << (((float)havePieces.size()) / (float)totalPieces * 100) << "%) ";
       info << std::to_string(havePieces.size()) + " / " +
                   std::to_string(totalPieces) + " Pieces downloaded...";
-      LOG_F(INFO, "%s", info.str().c_str());
+      // LOG_F(INFO, "%s", info.str().c_str());
     } else {
       targetPiece->reset();
-      LOG_F(INFO, "Hash mismatch for Piece %d", targetPiece->index);
+      // LOG_F(INFO, "Hash mismatch for Piece %d", targetPiece->index);
     }
   }
   return {};

@@ -10,7 +10,6 @@
 #include <chrono>
 #include <cstring>
 #include <limits>
-#include <stdexcept>
 
 #include "utils.h"
 

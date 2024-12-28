@@ -1,24 +1,26 @@
 #include "BitTorrentMessage.h"
 
-#include <sstream>
+#include <netinet/in.h>
 
-// use std::bit_cast instead of casting
 BitTorrentMessage::BitTorrentMessage(const uint8_t id,
                                      const std::string& payload)
     : messageLength(payload.length() + 1), id(id), payload(payload) {}
 
 std::string BitTorrentMessage::toString() {
-  std::stringstream buffer;
-  char* messageLengthAddr = (char*)&messageLength;
-  std::string messageLengthStr;
-  // Bytes are pushed in reverse order, assuming the data
-  // is stored in little-endian order locally.
-  for (int i = 0; i < 4; i++)
-    messageLengthStr.push_back((char)messageLengthAddr[3 - i]);
-  buffer << messageLengthStr;
-  buffer << (char)id;
-  buffer << payload;
-  return buffer.str();
+  // Convert messageLength to big-endian
+  uint32_t bigEndianLength = htonl(messageLength);
+  const char* lengthBytes = reinterpret_cast<const char*>(&bigEndianLength);
+
+  // Preallocate memory for efficiency
+  std::string encodedMessage;
+  encodedMessage.reserve(5 + payload.size());
+
+  // Append length, id, and payload
+  encodedMessage.append(lengthBytes, 4);            // Length (4 bytes)
+  encodedMessage.push_back(static_cast<char>(id));  // ID (1 byte)
+  encodedMessage.append(payload);                   // Payload
+
+  return encodedMessage;
 }
 
 uint8_t BitTorrentMessage::getMessageId() const { return id; }

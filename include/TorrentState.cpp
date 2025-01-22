@@ -2,7 +2,6 @@
 
 #include <fmt/core.h>
 
-// #include <loguru/loguru.hpp>
 #include <string>
 
 TorrentState::~TorrentState() = default;

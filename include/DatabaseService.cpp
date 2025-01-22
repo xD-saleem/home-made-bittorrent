@@ -3,7 +3,7 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <fmt/core.h>
 
-// #include <loguru/loguru.hpp>
+#include <loguru/loguru.hpp>
 #include <memory>
 #include <string>
 #include <tl/expected.hpp>
@@ -25,7 +25,7 @@ std::shared_ptr<SQLite::Database> initDB(const std::string& dbName) {
   auto dbConn = std::make_shared<SQLite::Database>(
       dbName, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 
-  // LOG_F(INFO, "Opened database successfully");
+  LOG_F(INFO, "Opened database successfully");
   return dbConn;  // Return the shared_ptr
 }
 
@@ -33,9 +33,9 @@ std::shared_ptr<SQLite::Database> initDB(const std::string& dbName) {
 DatabaseService::DatabaseService(std::shared_ptr<SQLite::Database> dbState) {
   db = dbState;
   if (!db) {
-    // LOG_F(ERROR, "Failed to initialize the database");
+    LOG_F(ERROR, "Failed to initialize the database");
   } else {
-    // LOG_F(INFO, "Database initialized successfully");
+    LOG_F(INFO, "Database initialized successfully");
   }
 }
 

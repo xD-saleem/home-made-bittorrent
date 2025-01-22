@@ -2,6 +2,7 @@
 
 #include <bencode/bencoding.h>
 #include <fmt/core.h>
+#include <unistd.h>
 
 #include <iostream>
 #include <loguru/loguru.hpp>
@@ -64,13 +65,13 @@ void TorrentClient::start(const std::string& torrentFilePath,
     fmt::print("Torrent already downloaded\n");
     // TODO handle error
     // seedFile(torrentFilePath, downloadDirectory);
-    // return;
+    return;
   }
 
   // TODO handle error
   downloadFile(torrentFilePath, downloadDirectory);
 
-  torrentState->storeState(infoHash, filename);
+  // torrentState->storeState(infoHash, filename);
 }
 
 void TorrentClient::seedFile(const std::string& torrentFilePath,
@@ -85,46 +86,43 @@ void TorrentClient::seedFile(const std::string& torrentFilePath,
 
   PieceManager pieceManager(torrentFileParser, downloadPath, threadNum);
 
-  // Adds threads to the thread pool
-  for (int i = 0; i < threadNum; i++) {
-    PeerConnection connection(&queue, peerId, infoHash, &pieceManager);
-    connections.push_back(&connection);
-    std::thread thread(&PeerConnection::start, connection);
-    threadPool.push_back(std::move(thread));
-  }
+  fmt::print("Starting seeding...\n");
 
-  long fileSize = torrentFileParser.getFileSize().value();
-  std::string announceUrl = torrentFileParser.getAnnounce().value();
-  auto lastPeerQuery = (time_t)(-1);
   while (true) {
-    time_t currentTime = std::time(nullptr);
-    auto diff = std::difftime(currentTime, lastPeerQuery);
-    // Retrieve peers from the tracker after a certain time interval or
-    // whenever the queue is empty
-    if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
-      PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
-                                  fileSize);
-      std::vector<Peer*> peers =
-          peerRetriever.retrievePeers(pieceManager.bytesDownloaded());
+    // Check for requests from peers
+    // sleep(2);
 
-      fmt::print("Talready downloaded {}{}\n", peers.size(),
-                 pieceManager.isComplete());
+    fmt::print(" connection size {}", connections.size());
 
-      // boost::asio::ip::tcp::endpoint peerEndpoint(
-      //     boost::asio::ip::address::from_string(peerIp), peerPort);
-      //
-      // boost::asio::ip::tcp::socket socket(ioContext);
-      // socket.connect(peerEndpoint);
-      //
-      // lastPeerQuery = currentTime;
-      // if (!peers.empty()) {
-      //   queue.clear();
-      //   for (auto peer : peers) {
-      //     queue.push_back(peer);
-      //   }
+    for (auto& connection : connections) {
+      // connection
+      // ->handleRequests();  // Assume this method handles incoming requests
     }
+
+    // Check if the user wants to stop seeding
+    // if (userRequestedStop()) {  // Implement user control logic
+    //   fmt::print("Seeding stopped by user.\n");
+    //   break;
+    // }
   }
+
+  terminate();
 }
+
+// void PeerConnection::handleRequests() {
+//   while (isConnected()) {
+//     Message request = receiveMessage();
+//     if (request.type == REQUEST) {
+//       int pieceIndex = request.pieceIndex;
+//       int offset = request.offset;
+//       int length = request.length;
+//
+//       std::vector<char> pieceData =
+//           pieceManager->getPieceData(pieceIndex, offset, length);
+//       sendPiece(pieceIndex, offset, pieceData);
+//     }
+//   }
+// }
 
 void TorrentClient::downloadFile(const std::string& torrentFilePath,
                                  const std::string& downloadDirectory) {

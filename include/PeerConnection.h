@@ -14,37 +14,47 @@ struct PeerConnectionError {
 };
 
 class PeerConnection {
- private:
+private:
   int sock{};
-  SharedQueue<Peer*>* queue;
+  SharedQueue<Peer *> *queue;
   bool choked = true;
   bool terminated = false;
   bool requestPending = false;
   const std::string clientId;
   const std::string infoHash;
-  Peer* peer;
+  Peer *peer;
   std::string peerBitField;
   std::string peerId;
-  PieceManager* pieceManager;
+  PieceManager *pieceManager;
 
   std::string createHandshakeMessage();
   tl::expected<void, PeerConnectionError> performHandshake();
   tl::expected<void, PeerConnectionError> receiveBitField();
+  tl::expected<void, PeerConnectionError> sendBitField();
   void sendInterested();
   tl::expected<void, PeerConnectionError> receiveUnchoke();
   void requestPiece();
   void closeSock();
   bool establishNewConnection();
+  bool establishSeedNewConnection();
   BitTorrentMessage receiveMessage(int bufferSize = 0) const;
+  BitTorrentMessage sendMessage(int bufferSize = 0) const;
 
- public:
-  const std::string& getPeerId() const;
+  // seed
+  void sendSeed();
+  void sendPiece();
 
-  explicit PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
-                          std::string infoHash, PieceManager* pieceManager);
+public:
+  const std::string &getPeerId() const;
+
+  explicit PeerConnection(SharedQueue<Peer *> *queue, std::string clientId,
+                          std::string infoHash, PieceManager *pieceManager);
   ~PeerConnection();
   tl::expected<void, PeerConnectionError> start();
+
+  std::string XXX();
+  tl::expected<void, PeerConnectionError> seed();
   void stop();
 };
 
-#endif  // BITTORRENTCLIENT_PEERCONNECTION_H
+#endif // BITTORRENTCLIENT_PEERCONNECTION_H

@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.31)
 project(main)
 
 ## Set C++ standard
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 ## Dependencies
 find_package(GTest CONFIG REQUIRED)
@@ -14,7 +14,6 @@ find_package(fmt CONFIG REQUIRED)
 find_package(tl-expected CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(SQLiteCpp REQUIRED)
-find_package(loguru CONFIG REQUIRED)
 
 ## Include directories
 include_directories(lib)
@@ -66,7 +65,7 @@ include/utils.h
 include/utils.cpp
 )
 
-target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp loguru fmt::fmt tl::expected SQLiteCpp)
+target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp fmt::fmt tl::expected SQLiteCpp)
 
 # Tests
 enable_testing()
@@ -102,11 +101,13 @@ include/DatabaseService_test.cpp
 )
 
 # Link libraries
-target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main loguru OpenSSL::SSL SQLiteCpp)
+target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main OpenSSL::SSL SQLiteCpp)
 
-## Flags for using clang
+# Flags for using clang
 # set(CMAKE_C_COMPILER /usr/bin/clang)
 # set(CMAKE_CXX_COMPILER /usr/bin/clang++)
 
 ## Flags for using gcc
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
+set(CMAKE_C_COMPILER "gcc")
+set(CMAKE_CXX_COMPILER "g++")

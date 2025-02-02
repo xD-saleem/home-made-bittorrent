@@ -3,7 +3,6 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <fmt/core.h>
 
-// #include <loguru/loguru.hpp>
 #include <memory>
 #include <string>
 #include <tl/expected.hpp>
@@ -20,13 +19,13 @@ const std::string DB_STATE = std::string("torrent_state.db");
 DatabaseService::~DatabaseService() = default;
 
 // Function to initialize the SQLite database
-std::shared_ptr<SQLite::Database> initDB(const std::string& dbName) {
+std::shared_ptr<SQLite::Database> initDB(const std::string &dbName) {
   // Create a shared pointer to manage the SQLite::Database instance
   auto dbConn = std::make_shared<SQLite::Database>(
       dbName, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 
   // LOG_F(INFO, "Opened database successfully");
-  return dbConn;  // Return the shared_ptr
+  return dbConn; // Return the shared_ptr
 }
 
 // Constructor implementation
@@ -51,8 +50,8 @@ tl::expected<void, DatabaseServiceError> DatabaseService::up() {
   return {};
 }
 
-tl::expected<void, DatabaseServiceError> DatabaseService::insertOne(
-    std::string hashinfo, std::string name) {
+tl::expected<void, DatabaseServiceError>
+DatabaseService::insertOne(std::string hashinfo, std::string name) {
   SQLite::Statement query{
       *this->db, "INSERT INTO Torrents (name, hashinfo) VALUES (?, ?)"};
 
@@ -65,8 +64,8 @@ tl::expected<void, DatabaseServiceError> DatabaseService::insertOne(
   return {};
 }
 
-tl::expected<TorrentRecord, DatabaseServiceError> DatabaseService::getTorrent(
-    std::string hashinfo) {
+tl::expected<TorrentRecord, DatabaseServiceError>
+DatabaseService::getTorrent(std::string hashinfo) {
   SQLite::Statement query{*this->db,
                           "SELECT * FROM Torrents WHERE hashinfo = ?"};
 

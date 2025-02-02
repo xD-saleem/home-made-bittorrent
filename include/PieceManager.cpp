@@ -10,7 +10,6 @@
 #include <ctime>
 #include <iomanip>
 #include <iostream>
-// #include <loguru/loguru.hpp>
 #include <sstream>
 #include <thread>
 #include <tl/expected.hpp>
@@ -19,18 +18,17 @@
 #include "TorrentFileParser.h"
 #include "utils.h"
 
-#define BLOCK_SIZE 16384    // 2 ^ 14
-#define MAX_PENDING_TIME 5  // 5 sec
+#define BLOCK_SIZE 16384   // 2 ^ 14
+#define MAX_PENDING_TIME 5 // 5 sec
 #define PROGRESS_BAR_WIDTH 40
 
-#define PROGRESS_DISPLAY_INTERVAL 1  // 0.5 sec
+#define PROGRESS_DISPLAY_INTERVAL 1 // 0.5 sec
 
-PieceManager::PieceManager(const TorrentFileParser& fileParser,
-                           const std::string& downloadPath,
+PieceManager::PieceManager(const TorrentFileParser &fileParser,
+                           const std::string &downloadPath,
                            const int maximumConnections)
 
-    : pieceLength(fileParser.getPieceLength().value()),
-      fileParser(fileParser),
+    : pieceLength(fileParser.getPieceLength().value()), fileParser(fileParser),
       maximumConnections(maximumConnections) {
   missingPieces = initiatePieces();
   // Creates the destination file with the file size specified in the Torrent
@@ -51,11 +49,14 @@ PieceManager::PieceManager(const TorrentFileParser& fileParser,
  * Destructor of the PieceManager class. Frees all resources allocated.
  */
 PieceManager::~PieceManager() {
-  for (Piece* piece : missingPieces) delete piece;
+  for (Piece *piece : missingPieces)
+    delete piece;
 
-  for (Piece* piece : ongoingPieces) delete piece;
+  for (Piece *piece : ongoingPieces)
+    delete piece;
 
-  for (PendingRequest* pending : pendingRequests) delete pending;
+  for (PendingRequest *pending : pendingRequests)
+    delete pending;
 
   downloadedFile.close();
 }
@@ -65,63 +66,62 @@ PieceManager::~PieceManager() {
  * the number of pieces and the size of the block.
  * @return a vector containing all the pieces in the file.
  */
-std::vector<Piece*> PieceManager::initiatePieces() {
+std::vector<Piece *> PieceManager::initiatePieces() {
   tl::expected<std::vector<std::string>, TorrentFileParserError> pieceHashes =
       fileParser.splitPieceHashes();
 
-  if (pieceHashes.has_value()) {
-    auto pieceHashesValue = pieceHashes.value();
-    totalPieces = pieceHashesValue.size();
-    std::vector<Piece*> torrentPieces;
-    missingPieces.reserve(totalPieces);
+  if (!pieceHashes.has_value()) {
+    return std::vector<Piece *>();
+  }
+  auto pieceHashesValue = pieceHashes.value();
+  totalPieces = pieceHashesValue.size();
+  std::vector<Piece *> torrentPieces;
+  missingPieces.reserve(totalPieces);
 
-    auto totalLengthResult = fileParser.getFileSize();
+  auto totalLengthResult = fileParser.getFileSize();
 
-    if (!totalLengthResult.has_value()) {
-      // LOG_F(ERROR, "Failed to get file size");
-      return std::vector<Piece*>();
-    }
-    // Check
-    long totalLength = totalLengthResult.value();
+  if (!totalLengthResult.has_value()) {
+    // LOG_F(ERROR, "Failed to get file size");
+    return std::vector<Piece *>();
+  }
+  // Check
+  long totalLength = totalLengthResult.value();
 
-    // number of blocks in a normal piece (i.e. pieces that are not the last
-    // one)
-    int blockCount = ceil(pieceLength / BLOCK_SIZE);
-    long remLength = pieceLength;
+  // number of blocks in a normal piece (i.e. pieces that are not the last
+  // one)
+  int blockCount = ceil(pieceLength / BLOCK_SIZE);
+  long remLength = pieceLength;
 
-    for (int i = 0; i < totalPieces; i++) {
-      // The final piece is likely to have a smaller size.
-      if (i == totalPieces - 1) {
-        remLength = totalLength % pieceLength;
-        blockCount = std::max((int)ceil(remLength / BLOCK_SIZE), 1);
-      }
-
-      std::vector<Block*> blocks;
-      blocks.reserve(blockCount);
-
-      for (int offset = 0; offset < blockCount; offset++) {
-        auto block = new Block;
-        block->piece = i;
-        block->status = missing;
-        block->offset = offset * BLOCK_SIZE;
-        int blockSize = BLOCK_SIZE;
-
-        if (i == totalPieces - 1 && offset == blockCount - 1) {
-          blockSize = remLength % BLOCK_SIZE;
-        }
-
-        block->length = blockSize;
-        blocks.push_back(block);
-      }
-
-      auto piece = new Piece(i, blocks, pieceHashesValue[i]);
-      torrentPieces.emplace_back(piece);
+  for (int i = 0; i < totalPieces; i++) {
+    // The final piece is likely to have a smaller size.
+    if (i == totalPieces - 1) {
+      remLength = totalLength % pieceLength;
+      blockCount = std::max((int)ceil(remLength / BLOCK_SIZE), 1);
     }
 
-    return torrentPieces;
+    std::vector<Block *> blocks;
+    blocks.reserve(blockCount);
+
+    for (int offset = 0; offset < blockCount; offset++) {
+      auto block = new Block;
+      block->piece = i;
+      block->status = missing;
+      block->offset = offset * BLOCK_SIZE;
+      int blockSize = BLOCK_SIZE;
+
+      if (i == totalPieces - 1 && offset == blockCount - 1) {
+        blockSize = remLength % BLOCK_SIZE;
+      }
+
+      block->length = blockSize;
+      blocks.push_back(block);
+    }
+
+    auto piece = new Piece(i, blocks, pieceHashesValue[i]);
+    torrentPieces.emplace_back(piece);
   }
 
-  return std::vector<Piece*>();
+  return torrentPieces;
 }
 
 /**
@@ -138,7 +138,7 @@ bool PieceManager::isComplete() {
  * Adds a peer and the BitField representing the pieces the peer has.
  * Store the given information in the instance variable peers.
  */
-void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
+void PieceManager::addPeer(const std::string &peerId, std::string bitField) {
   lock.lock();
   peers[peerId] = bitField;
   lock.unlock();
@@ -152,8 +152,8 @@ void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
  * Updates the information about which pieces a peer has (i.e. reflects
  * a Have message).
  */
-tl::expected<void, PieceManagerError> PieceManager::updatePeer(
-    const std::string& peerId, int index) {
+tl::expected<void, PieceManagerError>
+PieceManager::updatePeer(const std::string &peerId, int index) {
   lock.lock();
   if (peers.find(peerId) != peers.end()) {
     setPiece(peers[peerId], index);
@@ -171,8 +171,8 @@ tl::expected<void, PieceManagerError> PieceManager::updatePeer(
  * Removes a previously added peer in case of a lost connection.
  * @param peerId: Id of the peer to be removed.
  */
-tl::expected<void, PieceManagerError> PieceManager::removePeer(
-    const std::string& peerId) {
+tl::expected<void, PieceManagerError>
+PieceManager::removePeer(const std::string &peerId) {
   if (isComplete()) {
     return {};
   }
@@ -194,13 +194,15 @@ tl::expected<void, PieceManagerError> PieceManager::removePeer(
   return {};
 }
 
+std::vector<Piece *> getPieces() { return havePieces; }
+
 /**
  * Retrieves the next block that should be requested from the given peer.
  * If there are no more blocks left to download or if this peer does not
  * have any of the missing pieces, None is returned
  * @return pointer to the Block struct to be requested.
  */
-Block* PieceManager::nextRequest(std::string peerId) {
+Block *PieceManager::nextRequest(std::string peerId) {
   // The algorithm implemented for which piece to retrieve is a simple
   // one. This should preferably be replaced with an implementation of
   // "rarest-piece-first" algorithm instead.
@@ -223,10 +225,11 @@ Block* PieceManager::nextRequest(std::string peerId) {
     return nullptr;
   }
 
-  Block* block = expiredRequest(peerId);
+  Block *block = expiredRequest(peerId);
   if (!block) {
     block = nextOngoing(peerId);
-    if (!block) block = getRarestPiece(peerId)->nextRequest();
+    if (!block)
+      block = getRarestPiece(peerId)->nextRequest();
   }
   lock.unlock();
 
@@ -238,9 +241,9 @@ Block* PieceManager::nextRequest(std::string peerId) {
  * requested state for longer than `MAX_PENDING_TIME` returns the block to
  * be re-requested. If no pending blocks exist, None is returned
  */
-Block* PieceManager::expiredRequest(std::string peerId) {
+Block *PieceManager::expiredRequest(std::string peerId) {
   time_t currentTime = std::time(nullptr);
-  for (PendingRequest* pending : pendingRequests) {
+  for (PendingRequest *pending : pendingRequests) {
     if (hasPiece(peers[peerId], pending->block->piece)) {
       // If the request has expired
       auto diff = std::difftime(currentTime, pending->timestamp);
@@ -261,10 +264,10 @@ Block* PieceManager::expiredRequest(std::string peerId) {
  * returns the next Block to be requested or NULL if no Block is left to be
  * requested from the list of Pieces.
  */
-Block* PieceManager::nextOngoing(std::string peerId) {
-  for (Piece* piece : ongoingPieces) {
+Block *PieceManager::nextOngoing(std::string peerId) {
+  for (Piece *piece : ongoingPieces) {
     if (hasPiece(peers[peerId], piece->index)) {
-      Block* block = piece->nextRequest();
+      Block *block = piece->nextRequest();
       if (block) {
         auto newPendingRequest = new PendingRequest;
         newPendingRequest->block = block;
@@ -281,23 +284,24 @@ Block* PieceManager::nextOngoing(std::string peerId) {
  * Given the list of missing pieces, finds the rarest one (i.e. a piece
  * which is owned by the fewest number of peers).
  */
-Piece* PieceManager::getRarestPiece(std::string peerId) {
+Piece *PieceManager::getRarestPiece(std::string peerId) {
   // Custom comparator to make sure that the map is ordered by the index of
   // the Piece.
-  auto comp = [](const Piece* a, const Piece* b) {
+  auto comp = [](const Piece *a, const Piece *b) {
     return a->index < b->index;
   };
-  std::map<Piece*, int, decltype(comp)> pieceCount(comp);
-  for (Piece* piece : missingPieces) {
+  std::map<Piece *, int, decltype(comp)> pieceCount(comp);
+  for (Piece *piece : missingPieces) {
     // If a connection has been established with the peer
     if (peers.find(peerId) != peers.end()) {
-      if (hasPiece(peers[peerId], piece->index)) pieceCount[piece] += 1;
+      if (hasPiece(peers[peerId], piece->index))
+        pieceCount[piece] += 1;
     }
   }
 
-  Piece* rarest;
+  Piece *rarest;
   int leastCount = INT16_MAX;
-  for (auto const& [piece, count] : pieceCount) {
+  for (auto const &[piece, count] : pieceCount) {
     if (count < leastCount) {
       leastCount = count;
       rarest = piece;
@@ -319,14 +323,15 @@ Piece* PieceManager::getRarestPiece(std::string peerId) {
  * in the Piece will be reset to a missing state. If the hash matches, the
  * data in the Piece will be written to disk.
  */
-tl::expected<void, PieceManagerError> PieceManager::blockReceived(
-    std::string peerId, int pieceIndex, int blockOffset, std::string data) {
+tl::expected<void, PieceManagerError>
+PieceManager::blockReceived(std::string peerId, int pieceIndex, int blockOffset,
+                            std::string data) {
   // LOG_F(INFO, "Received block %d for piece %d from peer %s", blockOffset,
   // pieceIndex, peerId.c_str());
   // Removes the received block from pending requests
-  PendingRequest* requestToRemove = nullptr;
+  PendingRequest *requestToRemove = nullptr;
   lock.lock();
-  for (PendingRequest* pending : pendingRequests) {
+  for (PendingRequest *pending : pendingRequests) {
     if (pending->block->piece == pieceIndex &&
         pending->block->offset == blockOffset) {
       requestToRemove = pending;
@@ -339,8 +344,8 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
                         pendingRequests.end());
 
   // Retrieves the Piece to which this Block belongs
-  Piece* targetPiece = nullptr;
-  for (Piece* piece : ongoingPieces) {
+  Piece *targetPiece = nullptr;
+  for (Piece *piece : ongoingPieces) {
     if (piece->index == pieceIndex) {
       targetPiece = piece;
       break;
@@ -386,7 +391,7 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
 /**
  * Writes the given Piece to disk.
  */
-void PieceManager::write(Piece* piece) {
+void PieceManager::write(Piece *piece) {
   long position = piece->index * fileParser.getPieceLength().value();
   downloadedFile.seekp(position);
   downloadedFile << piece->getData();
@@ -472,4 +477,3 @@ void PieceManager::displayProgressBar() {
     std::cout << std::endl;
   }
 }
-

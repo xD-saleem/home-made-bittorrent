@@ -25,7 +25,7 @@ private:
   Peer *peer;
   std::string peerBitField;
   std::string peerId;
-  PieceManager *pieceManager;
+  std::shared_ptr<PieceManager> pieceManager;
 
   std::string createHandshakeMessage();
   tl::expected<void, PeerConnectionError> performHandshake();
@@ -48,7 +48,8 @@ public:
   const std::string &getPeerId() const;
 
   explicit PeerConnection(SharedQueue<Peer *> *queue, std::string clientId,
-                          std::string infoHash, PieceManager *pieceManager);
+                          std::string infoHash,
+                          std::shared_ptr<PieceManager> pm);
   ~PeerConnection();
   tl::expected<void, PeerConnectionError> start();
 

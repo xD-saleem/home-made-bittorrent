@@ -14,6 +14,7 @@
 #include <thread>
 #include <tl/expected.hpp>
 
+#include "BitTorrentMessage.h"
 #include "Block.h"
 #include "TorrentFileParser.h"
 #include "utils.h"
@@ -24,18 +25,18 @@
 
 #define PROGRESS_DISPLAY_INTERVAL 1 // 0.5 sec
 
-PieceManager::PieceManager(const TorrentFileParser &fileParser,
+PieceManager::PieceManager(std::shared_ptr<TorrentFileParser> fileParser,
                            const std::string &downloadPath,
                            const int maximumConnections)
 
-    : pieceLength(fileParser.getPieceLength().value()), fileParser(fileParser),
+    : pieceLength(fileParser->getPieceLength().value()), fileParser(fileParser),
       maximumConnections(maximumConnections) {
   missingPieces = initiatePieces();
   // Creates the destination file with the file size specified in the Torrent
   // file
   downloadedFile.open(downloadPath, std::ios::binary | std::ios::out);
 
-  long fileSize = fileParser.getFileSize().value();
+  long fileSize = fileParser->getFileSize().value();
   downloadedFile.seekp(fileSize - 1);
   downloadedFile.write("", 1);
 
@@ -68,7 +69,7 @@ PieceManager::~PieceManager() {
  */
 std::vector<Piece *> PieceManager::initiatePieces() {
   tl::expected<std::vector<std::string>, TorrentFileParserError> pieceHashes =
-      fileParser.splitPieceHashes();
+      fileParser->splitPieceHashes();
 
   if (!pieceHashes.has_value()) {
     return std::vector<Piece *>();
@@ -78,7 +79,7 @@ std::vector<Piece *> PieceManager::initiatePieces() {
   std::vector<Piece *> torrentPieces;
   missingPieces.reserve(totalPieces);
 
-  auto totalLengthResult = fileParser.getFileSize();
+  auto totalLengthResult = fileParser->getFileSize();
 
   if (!totalLengthResult.has_value()) {
     // LOG_F(ERROR, "Failed to get file size");
@@ -194,7 +195,7 @@ PieceManager::removePeer(const std::string &peerId) {
   return {};
 }
 
-std::vector<Piece *> getPieces() { return havePieces; }
+std::vector<Piece *> PieceManager::getPieces() { return havePieces; }
 
 /**
  * Retrieves the next block that should be requested from the given peer.
@@ -392,7 +393,7 @@ PieceManager::blockReceived(std::string peerId, int pieceIndex, int blockOffset,
  * Writes the given Piece to disk.
  */
 void PieceManager::write(Piece *piece) {
-  long position = piece->index * fileParser.getPieceLength().value();
+  long position = piece->index * fileParser->getPieceLength().value();
   downloadedFile.seekp(position);
   downloadedFile << piece->getData();
 }

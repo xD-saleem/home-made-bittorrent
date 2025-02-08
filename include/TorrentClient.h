@@ -2,11 +2,14 @@
 #ifndef BITTORRENTCLIENT_TORRENTCLIENT_H
 #define BITTORRENTCLIENT_TORRENTCLIENT_H
 
+#include <memory>
 #include <string>
 
 #include "PeerConnection.h"
 #include "PeerRetriever.h"
+#include "PieceManager.h"
 #include "SharedQueue.h"
+#include "TorrentFileParser.h"
 #include "TorrentState.h"
 
 struct TorrentClientError {
@@ -14,20 +17,24 @@ struct TorrentClientError {
 };
 
 class TorrentClient {
- private:
+private:
   // Dependencies
-  std::shared_ptr<TorrentState> torrentState;  // Shared pointer to TorrentState
+  std::shared_ptr<TorrentState> torrentState; // Shared pointer to TorrentState
 
   // Variables
   const int threadNum;
   std::string peerId;
-  SharedQueue<Peer*> queue;
+  SharedQueue<Peer *> queue;
   std::vector<std::thread> threadPool;
-  std::vector<PeerConnection*> connections;
+  std::vector<PeerConnection *> connections;
+  std::shared_ptr<PieceManager> pieceManager;
+  std::shared_ptr<TorrentFileParser> torrentFileParser;
 
- public:
+public:
   // Constructor that accepts a shared_ptr to TorrentState
   explicit TorrentClient(std::shared_ptr<TorrentState> torrentState,
+                         std::shared_ptr<PieceManager> pieceManager,
+                         std::shared_ptr<TorrentFileParser> torrentFileParser,
                          int threadNum = 5, bool enableLogging = true,
                          std::string logFilePath = "logs/client.log");
   // Destructor
@@ -37,16 +44,13 @@ class TorrentClient {
   void terminate();
 
   // Main download method
-  void start(const std::string& torrentFilePath,
-             const std::string& downloadDirectory);
+  void start(const std::string &downloadDirectory);
 
   // Method to download file from torrent
-  void downloadFile(const std::string& torrentFilePath,
-                    const std::string& downloadDirectory);
+  void downloadFile(const std::string &downloadDirectory);
 
   // Method to seed file
-  void seedFile(const std::string& torrentFilePath,
-                const std::string& downloadDirectory);
+  void seedFile(const std::string &downloadDirectory);
 };
 
-#endif  // BITTORRENTCLIENT_TORRENTCLIENT_H
+#endif // BITTORRENTCLIENT_TORRENTCLIENT_H

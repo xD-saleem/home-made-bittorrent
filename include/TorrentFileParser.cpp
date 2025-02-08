@@ -3,6 +3,7 @@
 #include <bencode/BItem.h>
 #include <bencode/Decoder.h>
 #include <bencode/bencoding.h>
+#include <fmt/base.h>
 #include <utils.h>
 
 #include <cassert>
@@ -12,7 +13,7 @@
 
 #define HASH_LEN 20
 
-TorrentFileParser::TorrentFileParser(const std::string& filePath) {
+TorrentFileParser::TorrentFileParser(const std::string &filePath) {
   // TODO have verification.
   // LOG_F(INFO, "Parsing Torrent file %s...", filePath.c_str());
   std::ifstream fileStream(filePath, std::ifstream::binary);
@@ -24,16 +25,21 @@ TorrentFileParser::TorrentFileParser(const std::string& filePath) {
   // LOG_F(INFO, "Parse Torrent file: SUCCESS");
 }
 
-std::shared_ptr<bencoding::BItem> TorrentFileParser::get(
-    std::string key) const {
+std::shared_ptr<bencoding::BItem>
+TorrentFileParser::get(std::string key) const {
   std::shared_ptr<bencoding::BItem> value = root->getValue(key);
   return value;
 }
 
 std::string TorrentFileParser::getInfoHash() const {
+  fmt::println("1");
   std::shared_ptr<bencoding::BItem> infoDictionary = get("info");
+  fmt::println("2");
   std::string infoString = bencoding::encode(infoDictionary);
+  fmt::println("3");
   std::string sha1Hash = sha1(infoString);
+  fmt::println("4");
+
   return sha1Hash;
 }
 
@@ -67,8 +73,8 @@ TorrentFileParser::splitPieceHashes() const {
   return pieceHashes;
 }
 
-tl::expected<long, TorrentFileParserError> TorrentFileParser::getFileSize()
-    const {
+tl::expected<long, TorrentFileParserError>
+TorrentFileParser::getFileSize() const {
   std::shared_ptr<bencoding::BItem> fileSizeItem = get("length");
   if (!fileSizeItem) {
     return tl::unexpected(
@@ -79,8 +85,8 @@ tl::expected<long, TorrentFileParserError> TorrentFileParser::getFileSize()
   return std::dynamic_pointer_cast<bencoding::BInteger>(fileSizeItem)->value();
 }
 
-tl::expected<long, TorrentFileParserError> TorrentFileParser::getPieceLength()
-    const {
+tl::expected<long, TorrentFileParserError>
+TorrentFileParser::getPieceLength() const {
   std::shared_ptr<bencoding::BItem> pieceLengthItem = get("piece length");
   if (!pieceLengthItem) {
     return tl::unexpected(TorrentFileParserError(

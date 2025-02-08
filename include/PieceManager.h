@@ -35,7 +35,7 @@ private:
   std::ofstream downloadedFile;
   // std::thread& progressTrackerThread;
   const long pieceLength;
-  const TorrentFileParser &fileParser;
+  std::shared_ptr<TorrentFileParser> fileParser;
   const int maximumConnections;
   int piecesDownloadedInInterval = 0;
   time_t startingTime;
@@ -52,7 +52,7 @@ private:
   void trackProgress();
 
 public:
-  explicit PieceManager(const TorrentFileParser &fileParser,
+  explicit PieceManager(std::shared_ptr<TorrentFileParser> fileParser,
                         const std::string &downloadPath,
                         int maximumConnections);
   ~PieceManager();

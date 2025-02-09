@@ -15,14 +15,13 @@
 
 TorrentFileParser::TorrentFileParser(const std::string &filePath) {
   // TODO have verification.
-  // LOG_F(INFO, "Parsing Torrent file %s...", filePath.c_str());
+  fmt::println("Parsing Torrent file {}...", filePath.c_str());
   std::ifstream fileStream(filePath, std::ifstream::binary);
   std::shared_ptr<bencoding::BItem> decodedTorrentFile =
       bencoding::decode(fileStream);
   std::shared_ptr<bencoding::BDictionary> rootDict =
       std::dynamic_pointer_cast<bencoding::BDictionary>(decodedTorrentFile);
   root = rootDict;
-  // LOG_F(INFO, "Parse Torrent file: SUCCESS");
 }
 
 std::shared_ptr<bencoding::BItem>
@@ -32,14 +31,9 @@ TorrentFileParser::get(std::string key) const {
 }
 
 std::string TorrentFileParser::getInfoHash() const {
-  fmt::println("1");
   std::shared_ptr<bencoding::BItem> infoDictionary = get("info");
-  fmt::println("2");
   std::string infoString = bencoding::encode(infoDictionary);
-  fmt::println("3");
   std::string sha1Hash = sha1(infoString);
-  fmt::println("4");
-
   return sha1Hash;
 }
 

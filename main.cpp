@@ -1,3 +1,5 @@
+#include <fmt/base.h>
+
 #include <iostream>
 #include <memory>
 #include <tl/expected.hpp>
@@ -6,6 +8,7 @@
 #include "TorrentClient.h"
 #include "TorrentFileParser.h"
 #include "TorrentState.h"
+#include "bencode/BInteger.h"
 
 int main(int argc, char *argv[]) {
   std::string filename = "debian.torrent";

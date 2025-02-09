@@ -21,25 +21,44 @@ TorrentClient::TorrentClient(
     std::shared_ptr<TorrentState> torrentState,
     std::shared_ptr<PieceManager> pieceManager,
     std::shared_ptr<TorrentFileParser> torrentFileParser, int threadNum,
-    bool enableLogging, std::string logFilePath)
-    : torrentState(std::move(torrentState)), threadNum(threadNum) {
-  peerId = "-UT2021-";
+    bool enableLogging,
+    std::string logFilePath)
+    : torrentState(torrentState), // Initialize member torrentState
+      pieceManager(pieceManager), // Initialize member pieceManager
+      torrentFileParser(
+          torrentFileParser), // Initialize member torrentFileParser
+      threadNum(threadNum),   // Initialize member threadNum
+      peerId("-UT2021-"),     // Initialize member peerId
+      queue(),                // Initialize queue
+      threadPool(),           // Initialize threadPool
+      connections()           // Initialize connections
+
+{
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> distrib(1, 9);
+
+  if (!this->torrentState) { // Correct check, but handle the error!
+    std::cerr << "torrentState is null!" << std::endl;
+    throw std::runtime_error("torrentState is null"); // Throw an exception
+  }
+  if (!this->torrentFileParser) {
+    std::cerr << "torrentFileParser is null!" << std::endl;
+    throw std::runtime_error("torrentFileParser is null");
+  }
+  if (!this->pieceManager) {
+    std::cerr << "pieceManager is null!" << std::endl;
+    throw std::runtime_error("pieceManager is null");
+  }
 
   for (int i = 0; i < 12; ++i) {
     peerId += std::to_string(distrib(gen));
   }
 
-  // Enable logging if required
   if (enableLogging) {
-    // loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
-    // loguru::g_flush_interval_ms = 100;
-    // loguru::add_file(logFilePath.c_str(), loguru::Truncate,
-    // loguru::Verbosity_MAX);
+    // ... logging code
   } else {
-    // loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
+    // ... logging code
   }
 }
 
@@ -49,10 +68,8 @@ TorrentClient::TorrentClient(
 TorrentClient::~TorrentClient() = default;
 
 void TorrentClient::start(const std::string &downloadDirectory) {
-  fmt::println("@@@@@@@@@@@@@");
   const std::string infoHash = torrentFileParser->getInfoHash();
   const std::string filename = torrentFileParser->getFileName().value();
-
   auto e = torrentState->getState(infoHash);
   if (!e) {
     fmt::print("No state found for this infoHash.\n");
@@ -104,8 +121,6 @@ void TorrentClient::seedFile(const std::string &downloadDirectory) {
   bool isSeededCompleted = false;
 
   while (!isSeededCompleted) {
-    // isSeededCompleted = pieceManager.isComplete();
-    // isSeededCompleted = true;
     //
     time_t currentTime = std::time(nullptr);
     auto diff = std::difftime(currentTime, lastPeerQuery);
@@ -143,7 +158,6 @@ void TorrentClient::downloadFile(const std::string &downloadDirectory) {
 
   long fileSize = torrentFileParser->getFileSize().value();
   const std::string infoHash = torrentFileParser->getInfoHash();
-
   std::string filename = torrentFileParser->getFileName().value();
 
   std::string downloadPath = downloadDirectory + filename;

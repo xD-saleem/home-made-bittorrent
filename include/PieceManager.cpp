@@ -90,14 +90,15 @@ std::vector<Piece *> PieceManager::initiatePieces() {
 
   // number of blocks in a normal piece (i.e. pieces that are not the last
   // one)
-  int blockCount = ceil(pieceLength / BLOCK_SIZE);
+  int blockCount = ceil(static_cast<double>(pieceLength) / BLOCK_SIZE);
   long remLength = pieceLength;
 
   for (int i = 0; i < totalPieces; i++) {
     // The final piece is likely to have a smaller size.
     if (i == totalPieces - 1) {
       remLength = totalLength % pieceLength;
-      blockCount = std::max((int)ceil(remLength / BLOCK_SIZE), 1);
+      blockCount =
+          std::max((int)ceil(static_cast<double>(remLength) / BLOCK_SIZE), 1);
     }
 
     std::vector<Block *> blocks;

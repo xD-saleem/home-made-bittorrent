@@ -193,9 +193,8 @@ tl::expected<void, PeerConnectionError> PeerConnection::sendBitField() {
   try {
     // 1. Calculate Bitfield Size and Data
     auto pieces = pieceManager->getPieces();
-    int numPieces =
-        pieces
-            .size(); // pieces is your std::vector<bool> or std::vector<Piece*>
+    int numPieces = pieces.size();
+
     int bitfieldSize = (numPieces + 7) / 8; // Calculate bytes needed (round up)
     std::vector<char> bitfield(bitfieldSize, 0); // Initialize to 0
 
@@ -336,10 +335,9 @@ bool PeerConnection::establishNewConnection() {
 
 bool PeerConnection::establishSeedNewConnection() {
   try {
-    // TODO return error instead of throwing
     performHandshake();
     sendBitField();
-    // sendSeed();
+    sendSeed();
     return true;
   } catch (const std::runtime_error &e) {
     return false;

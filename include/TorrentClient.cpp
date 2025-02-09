@@ -21,17 +21,10 @@ TorrentClient::TorrentClient(
     std::shared_ptr<TorrentState> torrentState,
     std::shared_ptr<PieceManager> pieceManager,
     std::shared_ptr<TorrentFileParser> torrentFileParser, int threadNum,
-    bool enableLogging,
-    std::string logFilePath)
-    : torrentState(torrentState), // Initialize member torrentState
-      pieceManager(pieceManager), // Initialize member pieceManager
-      torrentFileParser(
-          torrentFileParser), // Initialize member torrentFileParser
-      threadNum(threadNum),   // Initialize member threadNum
-      peerId("-UT2021-"),     // Initialize member peerId
-      queue(),                // Initialize queue
-      threadPool(),           // Initialize threadPool
-      connections()           // Initialize connections
+    bool enableLogging, std::string logFilePath)
+    : torrentState(torrentState), pieceManager(pieceManager),
+      torrentFileParser(torrentFileParser), threadNum(threadNum),
+      peerId("-UT2021-"), queue(), threadPool(), connections()
 
 {
   std::random_device rd;
@@ -70,17 +63,16 @@ TorrentClient::~TorrentClient() = default;
 void TorrentClient::start(const std::string &downloadDirectory) {
   const std::string infoHash = torrentFileParser->getInfoHash();
   const std::string filename = torrentFileParser->getFileName().value();
-  auto e = torrentState->getState(infoHash);
-  if (!e) {
-    fmt::print("No state found for this infoHash.\n");
+  auto state = torrentState->getState(infoHash);
+  if (!state) {
+    fmt::println("No state found for this infoHash.");
     return;
   }
 
-  // if (e->id == infoHash) {
-  // fmt::print("Torrent already downloaded\n");
-  // TODO handle error
-  // seedFile(torrentFilePath, downloadDirectory);
-  // return;
+  // if (state->id == infoHash) {
+  //   fmt::print("Torrent already downloaded\n");
+  //   seedFile(downloadDirectory);
+  //   return;
   // }
 
   // torrentState->storeState(infoHash, filename);
@@ -116,7 +108,7 @@ void TorrentClient::seedFile(const std::string &downloadDirectory) {
 
   auto lastPeerQuery = (time_t)(-1);
 
-  fmt::print("seeding file to {}\n", downloadPath);
+  fmt::print("seeding file {}\n", downloadPath);
 
   bool isSeededCompleted = false;
 
@@ -152,8 +144,6 @@ void TorrentClient::seedFile(const std::string &downloadDirectory) {
 }
 
 void TorrentClient::downloadFile(const std::string &downloadDirectory) {
-  fmt::print("Parsing torrent file {}\n", downloadDirectory);
-
   std::string announceUrl = torrentFileParser->getAnnounce().value();
 
   long fileSize = torrentFileParser->getFileSize().value();

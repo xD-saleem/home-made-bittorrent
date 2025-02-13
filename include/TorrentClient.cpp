@@ -63,6 +63,7 @@ TorrentClient::~TorrentClient() = default;
 void TorrentClient::start(const std::string &downloadDirectory) {
   const std::string infoHash = torrentFileParser->getInfoHash();
   const std::string filename = torrentFileParser->getFileName().value();
+
   auto state = torrentState->getState(infoHash);
   if (!state) {
     fmt::println("No state found for this infoHash.");

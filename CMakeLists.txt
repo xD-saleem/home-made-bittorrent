@@ -14,6 +14,7 @@ find_package(fmt CONFIG REQUIRED)
 find_package(tl-expected CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(SQLiteCpp REQUIRED)
+find_package(loguru REQUIRED)
 
 ## Include directories
 include_directories(lib)
@@ -101,7 +102,7 @@ include/DatabaseService_test.cpp
 )
 
 # Link libraries
-target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main OpenSSL::SSL SQLiteCpp)
+target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main OpenSSL::SSL SQLiteCpp loguru)
 
 # Flags for using clang
 # set(CMAKE_C_COMPILER /usr/bin/clang)

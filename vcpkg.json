@@ -9,6 +9,7 @@
     "fmt",
     "tl-expected",
     "sqlite3",
-    "sqlitecpp"
+    "sqlitecpp",
+    "loguru"
   ]
 }

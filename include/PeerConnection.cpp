@@ -1,5 +1,6 @@
 #include "PeerConnection.h"
 
+#include <fmt/base.h>
 #include <fmt/core.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -7,8 +8,11 @@
 #include <cassert>
 #include <cstring>
 #include <stdexcept>
+#include <string>
 #include <utility>
 
+#include "BitTorrentMessage.h"
+#include "Piece.h"
 #include "connect.h"
 #include "utils.h"
 
@@ -25,12 +29,11 @@
  * @param infoHash: info hash of the Torrent file.
  * @param pieceManager: pointer to the PieceManager.
  */
-PeerConnection::PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
-                               std::string infoHash, PieceManager* pieceManager)
-    : queue(queue),
-      clientId(std::move(clientId)),
-      infoHash(std::move(infoHash)),
-      pieceManager(pieceManager) {}
+PeerConnection::PeerConnection(SharedQueue<Peer *> *queue, std::string clientId,
+                               std::string infoHash,
+                               std::shared_ptr<PieceManager> pieceManager)
+    : queue(queue), clientId(std::move(clientId)),
+      infoHash(std::move(infoHash)), pieceManager(pieceManager) {}
 
 /**
  * Destructor of the PeerConnection class. Closes the established TCP connection
@@ -49,7 +52,6 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
       return {};
     }
 
-    // TODO remove try catch block
     try {
       // Establishes connection with the peer, and lets it know
       // that we are interested.
@@ -65,32 +67,32 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
                 "Received invalid message Id from peer " + peerId});
 
           switch (message.getMessageId()) {
-            case choke:
-              choked = true;
-              break;
+          case choke:
+            choked = true;
+            break;
 
-            case unchoke:
-              choked = false;
-              break;
+          case unchoke:
+            choked = false;
+            break;
 
-            case piece: {
-              requestPending = false;
-              std::string payload = message.getPayload();
-              int index = bytesToInt(payload.substr(0, 4));
-              int begin = bytesToInt(payload.substr(4, 4));
-              std::string blockData = payload.substr(8);
-              pieceManager->blockReceived(peerId, index, begin, blockData);
-              break;
-            }
-            case have: {
-              std::string payload = message.getPayload();
-              int pieceIndex = bytesToInt(payload);
-              pieceManager->updatePeer(peerId, pieceIndex);
-              break;
-            }
+          case piece: {
+            requestPending = false;
+            std::string payload = message.getPayload();
+            int index = bytesToInt(payload.substr(0, 4));
+            int begin = bytesToInt(payload.substr(4, 4));
+            std::string blockData = payload.substr(8);
+            pieceManager->blockReceived(peerId, index, begin, blockData);
+            break;
+          }
+          case have: {
+            std::string payload = message.getPayload();
+            int pieceIndex = bytesToInt(payload);
+            pieceManager->updatePeer(peerId, pieceIndex);
+            break;
+          }
 
-            default:
-              break;
+          default:
+            break;
           }
           if (!choked) {
             if (!requestPending) {
@@ -99,7 +101,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
           }
         }
       }
-    } catch (std::exception& e) {
+    } catch (std::exception &e) {
       closeSock();
     }
   }
@@ -111,18 +113,33 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
  */
 void PeerConnection::stop() { terminated = true; }
 
+std::string PeerConnection::XXX() {
+  const std::string protocol = "BitTorrent protocol";
+  std::stringstream buffer;
+  buffer << (char)protocol.length();
+  buffer << protocol;
+  std::string reserved;
+  for (int i = 0; i < 8; i++)
+    reserved.push_back('\0');
+  buffer << reserved;
+  buffer << hexDecode(infoHash);
+  buffer << clientId;
+  assert(buffer.str().length() == protocol.length() + 49);
+  return buffer.str();
+}
+
 /**
- * Establishes a TCP connection with the peer and sent it our initial BitTorrent
- * handshake message. Waits for its reply, and compares the info hash contained
- * in its response message with the info hash we calculated from the Torrent
- * file. If they do not match, close the connection.
+ * Establishes a TCP connection with the peer and sent it our initial
+ * BitTorrent handshake message. Waits for its reply, and compares the info
+ * hash contained in its response message with the info hash we calculated
+ * from the Torrent file. If they do not match, close the connection.
  */
 tl::expected<void, PeerConnectionError> PeerConnection::performHandshake() {
   // Connects to the peer
   try {
     auto sockOption = createConnection(peer->ip, peer->port);
     sock = sockOption.value();
-  } catch (std::runtime_error& e) {
+  } catch (std::runtime_error &e) {
     return tl::make_unexpected(PeerConnectionError{e.what()});
   }
 
@@ -133,6 +150,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::performHandshake() {
   // Receive the reply from the peer
   auto replyOption = receiveData(sock, handshakeMessage.length());
   auto reply = replyOption.value();
+  fmt::println("dd #### {}", reply);
 
   if (reply.empty()) {
     return tl::make_unexpected(PeerConnectionError{
@@ -141,8 +159,8 @@ tl::expected<void, PeerConnectionError> PeerConnection::performHandshake() {
   peerId = reply.substr(PEER_ID_STARTING_POS, HASH_LEN);
 
   // Compare the info hash from the peer's reply message with the info hash we
-  // sent. If the two values are not the same, close the connection and raise an
-  // exception.
+  // sent. If the two values are not the same, close the connection and raise
+  // an exception.
   std::string receivedInfoHash = reply.substr(INFO_HASH_STARTING_POS, HASH_LEN);
   if ((receivedInfoHash == infoHash) != 0) {
     return tl::make_unexpected(
@@ -170,14 +188,69 @@ tl::expected<void, PeerConnectionError> PeerConnection::receiveBitField() {
   return {};
 }
 
+tl::expected<void, PeerConnectionError> PeerConnection::sendBitField() {
+  try {
+    // 1. Calculate Bitfield Size and Data
+    auto pieces = pieceManager->getPieces();
+    int numPieces = pieces.size();
+
+    int bitfieldSize = (numPieces + 7) / 8; // Calculate bytes needed (round up)
+    std::vector<char> bitfield(bitfieldSize, 0); // Initialize to 0
+
+    for (int i = 0; i < numPieces; ++i) {
+      bitfield[i / 8] |= (1 << (7 - (i % 8))); // Set the corresponding bit
+    }
+
+    // 2. Construct the Message
+
+    int messageLength = 1 + bitfieldSize; // 1 for message ID + bitfield size
+    std::vector<char> message(4 + messageLength); // 4 for length prefix
+
+    // Length Prefix (Big-Endian)
+    message[0] = (messageLength >> 24) & 0xFF;
+    message[1] = (messageLength >> 16) & 0xFF;
+    message[2] = (messageLength >> 8) & 0xFF;
+    message[3] = messageLength & 0xFF;
+
+    // Message ID
+    message[4] = 5; // Bitfield message ID
+
+    // Bitfield Data
+    for (int i = 0; i < bitfieldSize; ++i) {
+      message[5 + i] = bitfield[i];
+    }
+
+    // 3. Send the Message
+
+    int bytesSent = send(0, message.data(), message.size(),
+                         0); // socketFD is your socket
+
+    if (bytesSent < 0) {
+      // LOG_F(ERROR, "Error sending bitfield: %s", strerror(errno));
+      // return false; // Return false on error
+    }
+    if (bytesSent != message.size()) {
+      // LOG_F(ERROR, "Error sending bitfield: sent partial message (%d of %d)",
+      // bytesSent, message.size());
+      // return false; // Return false on error
+      return {};
+    }
+
+    return {};
+
+  } catch (const std::exception &e) {
+    return {};
+  }
+}
 /**
  * Sends a request message to the peer for the next block
  * to be downloaded.
  */
 void PeerConnection::requestPiece() {
-  Block* block = pieceManager->nextRequest(peerId);
+  Block *block = pieceManager->nextRequest(peerId);
 
-  if (!block) return;
+  if (!block)
+    return;
 
   int payloadLength = 12;
   char temp[payloadLength];
@@ -189,7 +262,8 @@ void PeerConnection::requestPiece() {
   std::memcpy(temp + 4, &offset, sizeof(int));
   std::memcpy(temp + 8, &length, sizeof(int));
   std::string payload;
-  for (int i = 0; i < payloadLength; i++) payload += (char)temp[i];
+  for (int i = 0; i < payloadLength; i++)
+    payload += (char)temp[i];
 
   std::stringstream info;
   info << "Sending Request message to peer " << peer->ip << " ";
@@ -209,9 +283,15 @@ void PeerConnection::sendInterested() {
   sendData(sock, interestedMessage);
 }
 
+void PeerConnection::sendSeed() {
+  std::string seedMessge = BitTorrentMessage(have).toString();
+  sendData(sock, seedMessge);
+}
+
 /**
  * Receives and reads the Unchoke message from the peer.
- * If the received message does not match the expected Unchoke, raise an error.
+ * If the received message does not match the expected Unchoke, raise an
+ * error.
  */
 tl::expected<void, PeerConnectionError> PeerConnection::receiveUnchoke() {
   BitTorrentMessage message = receiveMessage();
@@ -247,7 +327,18 @@ bool PeerConnection::establishNewConnection() {
     receiveBitField();
     sendInterested();
     return true;
-  } catch (const std::runtime_error& e) {
+  } catch (const std::runtime_error &e) {
+    return false;
+  }
+}
+
+bool PeerConnection::establishSeedNewConnection() {
+  try {
+    performHandshake();
+    sendBitField();
+    sendSeed();
+    return true;
+  } catch (const std::runtime_error &e) {
     return false;
   }
 }
@@ -274,7 +365,8 @@ std::string PeerConnection::createHandshakeMessage() {
   buffer << (char)protocol.length();
   buffer << protocol;
   std::string reserved;
-  for (int i = 0; i < 8; i++) reserved.push_back('\0');
+  for (int i = 0; i < 8; i++)
+    reserved.push_back('\0');
   buffer << reserved;
   buffer << hexDecode(infoHash);
   buffer << clientId;
@@ -302,7 +394,7 @@ BitTorrentMessage PeerConnection::receiveMessage(int bufferSize) const {
 /**
  * Retrieves the peer ID of the peer that is currently in contact with us.
  */
-const std::string& PeerConnection::getPeerId() const { return peerId; }
+const std::string &PeerConnection::getPeerId() const { return peerId; }
 
 /**
  * Closes the socket to a peer and sets the
@@ -320,4 +412,92 @@ void PeerConnection::closeSock() {
       pieceManager->removePeer(peerId);
     }
   }
+}
+
+tl::expected<void, PeerConnectionError> PeerConnection::seed() {
+  while (true) {
+    peer = queue->pop_front();
+    if (peer->ip == DUMMY_PEER_IP) {
+      return {};
+    }
+
+    try {
+      if (establishSeedNewConnection()) {
+        while (true) { // Keep connection alive for seeding
+          BitTorrentMessage message = receiveMessage();
+
+          if (message.getMessageId() > 10) {
+            return tl::make_unexpected(PeerConnectionError{
+                "Received invalid message Id from peer " + peerId});
+          }
+
+          switch (message.getMessageId()) {
+          case choke:
+            choked = true;
+            break;
+
+          case unchoke:
+            choked = false;
+            break;
+
+          case have: {
+            std::string payload = message.getPayload();
+            int pieceIndex = bytesToInt(payload);
+            pieceManager->updatePeer(peerId, pieceIndex);
+            break;
+          }
+
+          case request: {  // Handle piece requests!
+            if (!choked) { // Only send if not choked
+              std::string payload = message.getPayload();
+              int index = bytesToInt(payload.substr(0, 4));
+              int begin = bytesToInt(payload.substr(4, 4));
+              int length =
+                  bytesToInt(payload.substr(8, 4)); // Get requested length
+
+              // if (index >= 0 && index < pieces.size() && // Validate index
+              //     begin >= 0 && begin < pieceSize && // Validate begin
+              //     offset begin + length <= pieceSize &&     // Validate
+              //     length pieces[index]) { // Check if you HAVE the piece
+              //
+              //   std::string blockData = pieceManager->getPieceBlock(
+              //       index, begin,
+              //       length); // Get the block from pieceManager
+              //
+              //   if (!blockData.empty()) {
+              //     BitTorrentMessage pieceMessage(piece, index, begin,
+              //                                    blockData);
+              //     sendMessage(pieceMessage);
+              //     LOG_F(INFO, "Sent piece %d, begin %d, length %d to peer
+              //     %s",
+              //           index, begin, length, peer->ip);
+              //   } else {
+              //     LOG_F(WARNING,
+              //           "Failed to get piece block %d, begin %d, length
+              //           %d", index, begin, length);
+              //   }
+              // } else {
+              //   LOG_F(WARNING,
+              //         "Invalid piece request: index=%d, begin=%d,
+              //         length=%d, " "choked=%d, hasPiece=%d", index, begin,
+              //         length, choked, (pieces[index] ? 1 : 0));
+              // }
+            }
+            break;
+          }
+
+          case cancel: { // Handle cancel requests (optional but good
+            break;
+          }
+
+          default:
+            break;
+          }
+        } // End inner while loop (connection handling)
+      }
+    } catch (std::exception &e) {
+      closeSock();
+    }
+  }
+  return {};
 }

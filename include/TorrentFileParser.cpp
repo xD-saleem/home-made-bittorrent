@@ -3,6 +3,7 @@
 #include <bencode/BItem.h>
 #include <bencode/Decoder.h>
 #include <bencode/bencoding.h>
+#include <fmt/base.h>
 #include <utils.h>
 
 #include <cassert>
@@ -12,20 +13,18 @@
 
 #define HASH_LEN 20
 
-TorrentFileParser::TorrentFileParser(const std::string& filePath) {
+TorrentFileParser::TorrentFileParser(const std::string &filePath) {
   // TODO have verification.
-  // LOG_F(INFO, "Parsing Torrent file %s...", filePath.c_str());
   std::ifstream fileStream(filePath, std::ifstream::binary);
   std::shared_ptr<bencoding::BItem> decodedTorrentFile =
       bencoding::decode(fileStream);
   std::shared_ptr<bencoding::BDictionary> rootDict =
       std::dynamic_pointer_cast<bencoding::BDictionary>(decodedTorrentFile);
   root = rootDict;
-  // LOG_F(INFO, "Parse Torrent file: SUCCESS");
 }
 
-std::shared_ptr<bencoding::BItem> TorrentFileParser::get(
-    std::string key) const {
+std::shared_ptr<bencoding::BItem>
+TorrentFileParser::get(std::string key) const {
   std::shared_ptr<bencoding::BItem> value = root->getValue(key);
   return value;
 }
@@ -42,9 +41,6 @@ TorrentFileParser::splitPieceHashes() const {
   std::shared_ptr<bencoding::BItem> piecesValue = get("pieces");
 
   if (!piecesValue) {
-    // LOG_F(ERROR,
-    // "Torrent file is malformed. [File does not contain key "
-    // "'pieces']");
     return tl::unexpected(
         TorrentFileParserError{"Torrent file is malformed. [File does not "
                                "contain key 'pieces']"});
@@ -67,8 +63,8 @@ TorrentFileParser::splitPieceHashes() const {
   return pieceHashes;
 }
 
-tl::expected<long, TorrentFileParserError> TorrentFileParser::getFileSize()
-    const {
+tl::expected<long, TorrentFileParserError>
+TorrentFileParser::getFileSize() const {
   std::shared_ptr<bencoding::BItem> fileSizeItem = get("length");
   if (!fileSizeItem) {
     return tl::unexpected(
@@ -79,8 +75,8 @@ tl::expected<long, TorrentFileParserError> TorrentFileParser::getFileSize()
   return std::dynamic_pointer_cast<bencoding::BInteger>(fileSizeItem)->value();
 }
 
-tl::expected<long, TorrentFileParserError> TorrentFileParser::getPieceLength()
-    const {
+tl::expected<long, TorrentFileParserError>
+TorrentFileParser::getPieceLength() const {
   std::shared_ptr<bencoding::BItem> pieceLengthItem = get("piece length");
   if (!pieceLengthItem) {
     return tl::unexpected(TorrentFileParserError(

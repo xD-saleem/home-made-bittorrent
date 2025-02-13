@@ -6,7 +6,6 @@
     "gtest",
     "cpr",
     "cryptopp",
-    "loguru",
     "fmt",
     "tl-expected",
     "sqlite3",

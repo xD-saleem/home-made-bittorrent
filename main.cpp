@@ -1,25 +1,21 @@
-#include <fmt/core.h>
+#include <fmt/base.h>
 
-// #include <loguru/loguru.hpp>
+#include <iostream>
+#include <memory>
 #include <tl/expected.hpp>
 
 #include "DatabaseService.h"
 #include "TorrentClient.h"
+#include "TorrentFileParser.h"
 #include "TorrentState.h"
+#include "bencode/BInteger.h"
 
-int main(int argc, char* argv[]) {
-  // loguru::init(argc, argv);
-
-  std::string torrentFilePath = "debian.torrent";
-
-  // LOG_F(INFO, "Starting torrent client");
-
+int main(int argc, char *argv[]) {
   std::string filename = "debian.torrent";
   std::string downloadDirectory = "./";
   std::string downloadPath = downloadDirectory + filename;
-  std::string peerID = "peer_id";
 
-  int workerThreadNum = 20;
+  int workerThreadNum = 200;
   int isLoggingEnabled = true;
 
   std::shared_ptr<SQLite::Database> db = initDB("torrent_state.db3");
@@ -32,17 +28,24 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<TorrentState> torrentState =
       std::make_shared<TorrentState>(databaseSvc);
 
+  // Torrent File Parser
+  std::shared_ptr<TorrentFileParser> torrentFileParser =
+      std::make_shared<TorrentFileParser>(downloadPath);
+
+  // Torrent Piece Manager
+  std::shared_ptr<PieceManager> pieceManager = std::make_shared<PieceManager>(
+      torrentFileParser, downloadDirectory, workerThreadNum);
+
   TorrentClient torrentClient(
       // Deps.
-      torrentState,
+      torrentState, pieceManager, torrentFileParser,
+
       // variables
       workerThreadNum, isLoggingEnabled, downloadDirectory);
 
-  // LOG_F(INFO, "Downloading torrent file");
+  std::cout << "Parsing Torrent file " + downloadPath + "..." << std::endl;
 
-  torrentClient.start(downloadPath, downloadDirectory);
+  torrentClient.start(downloadDirectory);
 
-  // LOG_F(INFO, "Downloaded torrent file successfully");
   return 0;
 };
-

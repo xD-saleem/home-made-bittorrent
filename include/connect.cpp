@@ -14,18 +14,20 @@
 #include "utils.h"
 
 #define CONNECT_TIMEOUT 3
-#define READ_TIMEOUT 3000  // 3 seconds
+#define READ_TIMEOUT 3000 // 3 seconds
 
 bool setSocketBlocking(int sock, bool blocking) {
-  if (sock < 0) return false;
+  if (sock < 0)
+    return false;
 
   int flags = fcntl(sock, F_GETFL, 0);
-  if (flags == -1) return false;
+  if (flags == -1)
+    return false;
   flags = blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
   return (fcntl(sock, F_SETFL, flags) == 0);
 }
 
-tl::expected<int, ConnectError> createConnection(const std::string& ip,
+tl::expected<int, ConnectError> createConnection(const std::string &ip,
                                                  const int port) {
   int sock = 0;
   struct sockaddr_in address;
@@ -37,7 +39,7 @@ tl::expected<int, ConnectError> createConnection(const std::string& ip,
   address.sin_family = AF_INET;
   address.sin_port = htons(port);
 
-  char* tempIp = new char[ip.length() + 1];
+  char *tempIp = new char[ip.length() + 1];
   strcpy(tempIp, ip.c_str());
 
   // Converts IP address from string to struct in_addr
@@ -52,7 +54,7 @@ tl::expected<int, ConnectError> createConnection(const std::string& ip,
                      std::to_string(sock) + "to NONBLOCK"});
   }
 
-  connect(sock, (struct sockaddr*)&address, sizeof(address));
+  connect(sock, (struct sockaddr *)&address, sizeof(address));
 
   fd_set fdset;
   struct timeval tv;
@@ -83,10 +85,12 @@ tl::expected<int, ConnectError> createConnection(const std::string& ip,
 }
 
 tl::expected<void, ConnectError> sendData(const int sock,
-                                          const std::string& data) {
+                                          const std::string &data) {
   int n = data.length();
   char buffer[n];
-  for (int i = 0; i < n; i++) buffer[i] = data[i];
+  for (int i = 0; i < n; i++) {
+    buffer[i] = data[i];
+  }
 
   int res = send(sock, buffer, n, 0);
   if (res < 0) {
@@ -114,14 +118,14 @@ tl::expected<std::string, ConnectError> receiveData(const int sock,
     const int lengthIndicatorSize = 4;
     char buffer[lengthIndicatorSize];
     switch (ret) {
-      case -1:
-        return tl::unexpected<ConnectError>(ConnectError{
-            "An error occurred when polling socket " + std::to_string(sock)});
-      case 0:
-        return tl::unexpected<ConnectError>(
-            ConnectError{"Read timeout from socket " + std::to_string(sock)});
-      default:
-        bytesRead = recv(sock, buffer, sizeof(buffer), 0);
+    case -1:
+      return tl::unexpected<ConnectError>(ConnectError{
+          "An error occurred when polling socket " + std::to_string(sock)});
+    case 0:
+      return tl::unexpected<ConnectError>(
+          ConnectError{"Read timeout from socket " + std::to_string(sock)});
+    default:
+      bytesRead = recv(sock, buffer, sizeof(buffer), 0);
     }
     if (bytesRead != lengthIndicatorSize) {
       return reply;
@@ -167,7 +171,9 @@ tl::expected<std::string, ConnectError> receiveData(const int sock,
     }
 
     bytesToRead -= bytesRead;
-    for (int i = 0; i < bytesRead; i++) reply.push_back(buffer[i]);
+    for (int i = 0; i < bytesRead; i++) {
+      reply.push_back(buffer[i]);
+    }
   } while (bytesToRead > 0);
 
   return reply;

@@ -69,78 +69,14 @@ void TorrentClient::start(const std::string &downloadDirectory) {
     return;
   }
 
-  // if (state->id == infoHash) {
-  //   fmt::print("Torrent already downloaded\n");
-  //   seedFile(downloadDirectory);
-  //   return;
-  // }
+  if (state->id == infoHash) {
+    fmt::print("Torrent already downloaded\n");
+    return;
+  }
 
-  // torrentState->storeState(infoHash, filename);
-
-  // TODO handle error
   downloadFile(downloadDirectory);
 
-  // torrentState->storeState(infoHash, filename);
-
-  seedFile(downloadDirectory);
-}
-
-void TorrentClient::seedFile(const std::string &downloadDirectory) {
-  fmt::print("Parsing downloaded torrent file {}\n", downloadDirectory);
-
-  std::string announceUrl = torrentFileParser->getAnnounce().value();
-
-  long fileSize = torrentFileParser->getFileSize().value();
-
-  const std::string infoHash = torrentFileParser->getInfoHash();
-
-  std::string filename = torrentFileParser->getFileName().value();
-
-  std::string downloadPath = downloadDirectory + filename;
-
-  // Adds threads to the thread pool
-  for (int i = 0; i < threadNum; i++) {
-    PeerConnection connection(&queue, peerId, infoHash, this->pieceManager);
-    connections.push_back(&connection);
-    std::thread thread(&PeerConnection::seed, connection);
-    threadPool.push_back(std::move(thread));
-  }
-
-  auto lastPeerQuery = (time_t)(-1);
-
-  fmt::print("seeding file {}\n", downloadPath);
-
-  bool isSeededCompleted = false;
-
-  while (!isSeededCompleted) {
-    //
-    time_t currentTime = std::time(nullptr);
-    auto diff = std::difftime(currentTime, lastPeerQuery);
-    // Retrieve peers from the tracker after a certain time interval or
-    // whenever the queue is empty
-    if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
-      PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
-                                  fileSize);
-      std::vector<Peer *> peers =
-          peerRetriever.retrieveSeedPeers(pieceManager->bytesDownloaded());
-
-      lastPeerQuery = currentTime;
-
-      if (!peers.empty()) {
-        queue.clear();
-        for (auto peer : peers) {
-          queue.push_back(peer);
-        }
-      }
-    }
-  }
-
-  terminate();
-
-  if (isSeededCompleted) {
-    std::cout << "Seeded completed!" << std::endl;
-    std::cout << "File downloaded to " << downloadPath << std::endl;
-  }
+  torrentState->storeState(infoHash, filename);
 }
 
 void TorrentClient::downloadFile(const std::string &downloadDirectory) {

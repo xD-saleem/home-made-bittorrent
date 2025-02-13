@@ -41,9 +41,6 @@ TorrentFileParser::splitPieceHashes() const {
   std::shared_ptr<bencoding::BItem> piecesValue = get("pieces");
 
   if (!piecesValue) {
-    // LOG_F(ERROR,
-    // "Torrent file is malformed. [File does not contain key "
-    // "'pieces']");
     return tl::unexpected(
         TorrentFileParserError{"Torrent file is malformed. [File does not "
                                "contain key 'pieces']"});

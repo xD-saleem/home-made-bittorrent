@@ -52,7 +52,6 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
       return {};
     }
 
-    // TODO remove try catch block
     try {
       // Establishes connection with the peer, and lets it know
       // that we are interested.

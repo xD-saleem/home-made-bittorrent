@@ -20,12 +20,6 @@ struct PieceManagerError {
   std::string message;
 };
 
-/**
- * Responsible for keeping track of all the available pieces
- * from the peers. Implementation is based on the Python code
- * in this repository:
- * https://github.com/eliasson/pieces/
- */
 class PieceManager {
 private:
   std::map<std::string, std::string> peers;

@@ -20,12 +20,10 @@ DatabaseService::~DatabaseService() = default;
 
 // Function to initialize the SQLite database
 std::shared_ptr<SQLite::Database> initDB(const std::string &dbName) {
-  // Create a shared pointer to manage the SQLite::Database instance
   auto dbConn = std::make_shared<SQLite::Database>(
       dbName, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 
-  // LOG_F(INFO, "Opened database successfully");
-  return dbConn; // Return the shared_ptr
+  return dbConn;
 }
 
 // Constructor implementation

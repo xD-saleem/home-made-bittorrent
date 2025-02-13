@@ -17,8 +17,7 @@ private:
 public:
   explicit TorrentState(std::shared_ptr<DatabaseService> dbSvc)
       : databaseSvc(dbSvc) {
-    // LOG_F(INFO, "launching state");
-    if (!databaseSvc) { // Check if databaseSvc is null
+    if (!databaseSvc) {
       std::exit(1);
     }
   }

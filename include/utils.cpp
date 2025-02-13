@@ -77,7 +77,6 @@ void setPiece(std::string &bitField, int index) {
 }
 
 int bytesToInt(std::string bytes) {
-  // FIXME: Use bitwise operation to convert
   std::string binStr;
   long byteCount = bytes.size();
   for (int i = 0; i < byteCount; i++)

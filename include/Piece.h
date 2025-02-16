@@ -7,19 +7,6 @@
 
 #include "Block.h"
 
-/**
- * A class representation of a piece of the Torrent content.
- * Each piece except the final one has a length equal to the
- * value specified by the 'piece length' attribute in the
- * Torrent file.
- * A piece is what is defined in the torrent meta-data. However,
- * when sharing data between peers a smaller unit is used - this
- * smaller piece is refereed to as `Block` by the unofficial
- * specification.
- * The implementation is based on the Python code from the
- * following repository:
- * https://github.com/eliasson/pieces/
- */
 struct PieceError {
   std::string message;
 };

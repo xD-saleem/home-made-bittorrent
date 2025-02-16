@@ -1,8 +1,15 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "name": "test",
-  "version": "0.0.0",
+  "name": "bittorrent-client",
+  "version": "0.0.1",
   "dependencies": [
-    "fmt"
+    "gtest",
+    "cpr",
+    "cryptopp",
+    "fmt",
+    "tl-expected",
+    "sqlite3",
+    "sqlitecpp",
+    "loguru"
   ]
 }

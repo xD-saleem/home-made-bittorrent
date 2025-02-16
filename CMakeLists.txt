@@ -100,19 +100,10 @@ include/DatabaseService_test.cpp
 
 include/Logger.cpp
 include/Logger.h
-
-
-# include/PieceManager.h
-# include/PieceManager.cpp
-# include/PieceManager_test.cpp
 )
 
 # Link libraries
 target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main OpenSSL::SSL SQLiteCpp)
-
-# Flags for using clang
-# set(CMAKE_C_COMPILER /usr/bin/clang)
-# set(CMAKE_CXX_COMPILER /usr/bin/clang++)
 
 ## Flags for using gcc
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")

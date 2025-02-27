@@ -5,6 +5,7 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 
+#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <random>
@@ -19,19 +20,16 @@
 #define PEER_QUERY_INTERVAL 60 // 1 minute
 
 TorrentClient::TorrentClient(
-    std::shared_ptr<Logger> logger, std::shared_ptr<TorrentState> torrentState,
+    std::shared_ptr<Logger> logger,
+
+    std::shared_ptr<TorrentState> torrentState,
     std::shared_ptr<PieceManager> pieceManager,
-    std::shared_ptr<TorrentFileParser> torrentFileParser, int threadNum,
+    std::shared_ptr<TorrentFileParser> torrentFileParser,
+    std::shared_ptr<PeerRetriever> peerRetriever, int threadNum,
     std::string logFilePath)
-    : logger(), torrentState(torrentState), pieceManager(pieceManager),
-      torrentFileParser(torrentFileParser), threadNum(threadNum),
-      peerId("-UT2021-"), queue(), threadPool(), connections()
-
-{
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_int_distribution<> distrib(1, 9);
-
+    : logger(logger), torrentState(torrentState), peerRetriever(peerRetriever),
+      pieceManager(pieceManager), torrentFileParser(torrentFileParser),
+      threadNum(threadNum), queue(), threadPool(), connections() {
   if (!this->torrentState) {
     logger->log("torrentState is null!");
     throw std::runtime_error("torrentState is null");
@@ -43,10 +41,6 @@ TorrentClient::TorrentClient(
   if (!this->pieceManager) {
     logger->log("pieceManager is null!");
     throw std::runtime_error("pieceManager is null");
-  }
-
-  for (int i = 0; i < 12; ++i) {
-    peerId += std::to_string(distrib(gen));
   }
 }
 
@@ -106,13 +100,14 @@ void TorrentClient::downloadFile(const std::string &downloadDirectory) {
     // Retrieve peers from the tracker after a certain time interval or
     // whenever the queue is empty
     if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
-      PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
-                                  fileSize);
-      std::vector<Peer *> peers =
-          peerRetriever.retrievePeers(pieceManager->bytesDownloaded());
-      lastPeerQuery = currentTime;
+      // PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
+      // fileSize);
 
-      if (!peers.empty()) {
+      tl::expected<std::vector<Peer *>, PeerRetrieverError> peersValue =
+          peerRetriever->retrievePeers(pieceManager->bytesDownloaded());
+      if (peersValue.has_value()) {
+        std::vector<Peer *> peers = peersValue.value();
+        lastPeerQuery = currentTime;
         queue.clear();
         for (auto peer : peers) {
           queue.push_back(peer);
@@ -129,13 +124,10 @@ void TorrentClient::downloadFile(const std::string &downloadDirectory) {
   }
 }
 
-/**
- * Terminates the download and cleans up all the resources
- */
 void TorrentClient::terminate() {
   // Pushes dummy Peers into the queue so that
   // the waiting threads can terminate
-  for (int i = 0; i < threadNum; i++) {
+  for (size_t i = 0; i < threadNum; i++) {
     Peer *dummyPeer = new Peer{"0.0.0.0", 0};
     queue.push_back(dummyPeer);
   }

@@ -22,6 +22,7 @@ private:
   // Deps
   std::shared_ptr<Logger> logger;
   std::shared_ptr<TorrentState> torrentState;
+  std::shared_ptr<PeerRetriever> peerRetriever;
   std::shared_ptr<PieceManager> pieceManager;
   std::shared_ptr<TorrentFileParser> torrentFileParser;
 
@@ -37,6 +38,7 @@ public:
                          std::shared_ptr<TorrentState> torrentState,
                          std::shared_ptr<PieceManager> pieceManager,
                          std::shared_ptr<TorrentFileParser> torrentFileParser,
+                         std::shared_ptr<PeerRetriever> peerRetriever,
                          int threadNum = 5,
                          std::string logFilePath = "logs/client.log");
   // Destructor

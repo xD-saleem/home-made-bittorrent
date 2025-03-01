@@ -4,6 +4,7 @@
 #include <bencode/bencoding.h>
 #include <fmt/base.h>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -137,6 +138,8 @@ void PieceManager::addPeer(const std::string &peerId, std::string bitField) {
   lock.lock();
   peers[peerId] = bitField;
   lock.unlock();
+
+  fmt::println("inside add PEER PR PEERID {}", peerId);
   std::stringstream info;
   info << "Number of connections: " << std::to_string(peers.size())
        << "/" + std::to_string(maximumConnections);
@@ -320,9 +323,8 @@ Piece *PieceManager::getRarestPiece(std::string peerId) {
 tl::expected<void, PieceManagerError>
 PieceManager::blockReceived(std::string peerId, int pieceIndex, int blockOffset,
                             std::string data) {
-  // LOG_F(INFO, "Received block %d for piece %d from peer %s", blockOffset,
-  // pieceIndex, peerId.c_str());
-  // Removes the received block from pending requests
+  logger->log(
+      fmt::format("Received block %d for piece %d from peer %s", blockOffset));
   PendingRequest *requestToRemove = nullptr;
   lock.lock();
   for (PendingRequest *pending : pendingRequests) {

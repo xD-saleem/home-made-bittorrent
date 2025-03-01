@@ -25,8 +25,9 @@ TorrentClient::TorrentClient(
     std::shared_ptr<TorrentState> torrentState,
     std::shared_ptr<PieceManager> pieceManager,
     std::shared_ptr<TorrentFileParser> torrentFileParser,
-    std::shared_ptr<PeerRetriever> peerRetriever, int threadNum,
-    std::string logFilePath)
+    std::shared_ptr<PeerRetriever> peerRetriever, std::string peerId,
+
+    int threadNum, std::string logFilePath)
     : logger(logger), torrentState(torrentState), peerRetriever(peerRetriever),
       pieceManager(pieceManager), torrentFileParser(torrentFileParser),
       threadNum(threadNum), queue(), threadPool(), connections() {
@@ -72,9 +73,9 @@ void TorrentClient::start(const std::string &downloadDirectory) {
 void TorrentClient::downloadFile(const std::string &downloadDirectory) {
   std::string announceUrl = torrentFileParser->getAnnounce().value();
 
-  long fileSize = torrentFileParser->getFileSize().value();
   const std::string infoHash = torrentFileParser->getInfoHash();
   std::string filename = torrentFileParser->getFileName().value();
+  auto fileSize = torrentFileParser->getFileSize().value();
 
   std::string downloadPath = downloadDirectory + filename;
 
@@ -86,9 +87,7 @@ void TorrentClient::downloadFile(const std::string &downloadDirectory) {
     threadPool.push_back(std::move(thread));
   }
 
-  auto lastPeerQuery = (time_t)(-1);
-
-  logger->log(fmt::format("Downloading file to {}\n", downloadPath));
+  time_t lastPeerQuery = -1;
 
   bool isDownloadCompleted = false;
 
@@ -99,12 +98,14 @@ void TorrentClient::downloadFile(const std::string &downloadDirectory) {
     auto diff = std::difftime(currentTime, lastPeerQuery);
     // Retrieve peers from the tracker after a certain time interval or
     // whenever the queue is empty
+
     if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
-      // PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
-      // fileSize);
+      PeerRetriever peerRetriever(logger, peerId, announceUrl, infoHash, PORT,
+                                  fileSize);
 
       tl::expected<std::vector<Peer *>, PeerRetrieverError> peersValue =
-          peerRetriever->retrievePeers(pieceManager->bytesDownloaded());
+          peerRetriever.retrievePeers(pieceManager->bytesDownloaded());
+
       if (peersValue.has_value()) {
         std::vector<Peer *> peers = peersValue.value();
         lastPeerQuery = currentTime;

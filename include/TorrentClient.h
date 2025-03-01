@@ -25,9 +25,8 @@ private:
   std::shared_ptr<PeerRetriever> peerRetriever;
   std::shared_ptr<PieceManager> pieceManager;
   std::shared_ptr<TorrentFileParser> torrentFileParser;
-
   const int threadNum = 5;
-  std::string peerId;
+
   SharedQueue<Peer *> queue;
   std::vector<std::thread> threadPool;
   std::vector<PeerConnection *> connections;
@@ -39,7 +38,7 @@ public:
                          std::shared_ptr<PieceManager> pieceManager,
                          std::shared_ptr<TorrentFileParser> torrentFileParser,
                          std::shared_ptr<PeerRetriever> peerRetriever,
-                         int threadNum = 5,
+                         std::string peerId, int threadNum = 5,
                          std::string logFilePath = "logs/client.log");
   // Destructor
   ~TorrentClient();

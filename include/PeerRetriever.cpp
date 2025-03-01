@@ -27,6 +27,7 @@ PeerRetriever::PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
 
 tl::expected<std::vector<Peer *>, PeerRetrieverError>
 PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
+  fmt::println("inside PR PEERID {}", peerId);
   std::stringstream info;
   info << "Retrieving peers from " << announceUrl
        << " with the following parameters...\n";

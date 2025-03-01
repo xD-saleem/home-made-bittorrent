@@ -57,7 +57,6 @@ int main(int argc, char *argv[]) {
       torrentFileParser, logger, downloadDirectory, workerThreadNum);
 
   // GeneratePeerID
-
   std::random_device rd;
   std::uniform_int_distribution<> distrib(1, 9);
   std::mt19937 gen(rd());
@@ -82,6 +81,7 @@ int main(int argc, char *argv[]) {
     panic("failed to get file size");
   }
 
+  fmt::println("PEERID {}", peerId);
   PeerRetriever peerRetriever(logger, peerId, announceUrlResult.value(),
                               infoHash, torrentPort, fileSizeResult.value());
 
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
       std::make_shared<PeerRetriever>(peerRetriever);
 
   TorrentClient torrentClient(logger, torrentState, pieceManager,
-                              torrentFileParser, pr, workerThreadNum,
+                              torrentFileParser, pr, peerId, workerThreadNum,
                               downloadDirectory); // variables
 
   logger->log("Parsing Torrent file " + downloadPath);

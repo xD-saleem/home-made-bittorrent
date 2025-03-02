@@ -28,6 +28,19 @@ PeerRetriever::PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
 tl::expected<std::vector<Peer *>, PeerRetrieverError>
 PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
   std::stringstream info;
+  fmt::println("========================================");
+  fmt::println("Starting peer retrieval process...");
+  fmt::println("========================================");
+
+  fmt::println("Retrieving peers from {} with the following parameters...",
+               announceUrl);
+  fmt::println("info_hash: {}", infoHash);
+  fmt::println("peer_id: {}", peerId);
+  fmt::println("port: {}", port);
+  fmt::println("uploaded: 0");
+  fmt::println("downloaded: {}", bytesDownloaded);
+  fmt::println("left: {}", fileSize - bytesDownloaded);
+  fmt::println("compact: 1");
   info << "Retrieving peers from " << announceUrl
        << " with the following parameters...\n";
   info << "info_hash: " << infoHash << "\n";
@@ -59,6 +72,7 @@ PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
         bencoding::decode(res.text);
     auto peers = decodeResponse(res.text);
 
+  fmt:
     // Check if peers were successfully decoded
     if (peers.has_value()) {
       return peers.value(); // Return the decoded peers

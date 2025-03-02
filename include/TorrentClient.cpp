@@ -104,22 +104,27 @@ void TorrentClient::downloadFile(const std::string &downloadPath) {
       tl::expected<std::vector<Peer *>, PeerRetrieverError> peersValue =
           peerRetriever->retrievePeers(pieceManager->bytesDownloaded());
 
-      if (peersValue.has_value()) {
-        std::vector<Peer *> peers = peersValue.value();
-        lastPeerQuery = currentTime;
-        queue.clear();
-        for (auto peer : peers) {
-          queue.push_back(peer);
+      bool hasPeerValue = peersValue.has_value();
+      fmt::println("I have value {}", hasPeerValue);
+      if (hasPeerValue) {
+        auto peers = peersValue.value();
+        fmt::println("peers empty {}", peers.empty());
+        if (!peers.empty()) {
+          lastPeerQuery = currentTime;
+          queue.clear();
+          for (auto peer : peers) {
+            queue.push_back(peer);
+          }
         }
       }
     }
-  }
 
-  terminate();
+    terminate();
 
-  if (isDownloadCompleted) {
-    logger->log("Download completed!");
-    logger->log(fmt::format("File downloaded to {}", downloadPath));
+    if (isDownloadCompleted) {
+      logger->log("Download completed!");
+      logger->log(fmt::format("File downloaded to {}", downloadPath));
+    }
   }
 }
 

@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 
   logger->log("Parsing Torrent file " + downloadPath);
 
-  torrentClient.start(downloadDirectory);
+  torrentClient.start(downloadPath);
 
   return 0;
 };

@@ -30,10 +30,15 @@ TorrentClient::TorrentClient(
     int threadNum, std::string logFilePath)
     : logger(logger), torrentState(torrentState), peerRetriever(peerRetriever),
       pieceManager(pieceManager), torrentFileParser(torrentFileParser),
-      threadNum(threadNum), queue(), threadPool(), connections() {
+      threadNum(threadNum), queue(), threadPool(), connections(),
+      peerId(peerId) {
   if (!this->torrentState) {
     logger->log("torrentState is null!");
     throw std::runtime_error("torrentState is null");
+  }
+  if (peerId == "") {
+    logger->log("peer ID is null!");
+    throw std::runtime_error("peerID is null");
   }
   if (!this->torrentFileParser) {
     logger->log("torrentFileParser is null!");
@@ -49,7 +54,6 @@ TorrentClient::TorrentClient(
  * Ensures that all resources are freed when TorrentClient is destroyed
  */
 TorrentClient::~TorrentClient() = default;
-
 void TorrentClient::start(const std::string &downloadDirectory) {
   const std::string infoHash = torrentFileParser->getInfoHash();
   const std::string filename = torrentFileParser->getFileName().value();
@@ -75,7 +79,6 @@ void TorrentClient::downloadFile(const std::string &downloadDirectory) {
 
   const std::string infoHash = torrentFileParser->getInfoHash();
   std::string filename = torrentFileParser->getFileName().value();
-  auto fileSize = torrentFileParser->getFileSize().value();
 
   std::string downloadPath = downloadDirectory + filename;
 
@@ -100,11 +103,8 @@ void TorrentClient::downloadFile(const std::string &downloadDirectory) {
     // whenever the queue is empty
 
     if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
-      PeerRetriever peerRetriever(logger, peerId, announceUrl, infoHash, PORT,
-                                  fileSize);
-
       tl::expected<std::vector<Peer *>, PeerRetrieverError> peersValue =
-          peerRetriever.retrievePeers(pieceManager->bytesDownloaded());
+          peerRetriever->retrievePeers(pieceManager->bytesDownloaded());
 
       if (peersValue.has_value()) {
         std::vector<Peer *> peers = peersValue.value();

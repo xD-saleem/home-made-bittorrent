@@ -30,6 +30,7 @@ private:
   SharedQueue<Peer *> queue;
   std::vector<std::thread> threadPool;
   std::vector<PeerConnection *> connections;
+  std::string peerId;
 
 public:
   // Constructor that accepts a shared_ptr to TorrentState

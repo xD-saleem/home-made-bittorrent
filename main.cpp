@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
   std::mt19937 gen(rd());
 
   std::string peerId = "";
+
   for (int i = 0; i < 12; ++i) {
     peerId += std::to_string(distrib(gen));
   }
@@ -81,7 +82,6 @@ int main(int argc, char *argv[]) {
     panic("failed to get file size");
   }
 
-  fmt::println("PEERID {}", peerId);
   PeerRetriever peerRetriever(logger, peerId, announceUrlResult.value(),
                               infoHash, torrentPort, fileSizeResult.value());
 

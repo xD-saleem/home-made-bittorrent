@@ -23,8 +23,6 @@ void customLogFunction(const std::string &message) {
 
 int workerThreadNum = 50;
 
-int torrentPort = 9000;
-
 void panic(const std::string message) {
   std::cerr << "Panic: " << message << std::endl;
   std::terminate();
@@ -83,7 +81,7 @@ int main(int argc, char *argv[]) {
   }
 
   PeerRetriever peerRetriever(logger, peerId, announceUrlResult.value(),
-                              infoHash, torrentPort, fileSizeResult.value());
+                              infoHash, 8080, fileSizeResult.value());
 
   std::shared_ptr<PeerRetriever> pr =
       std::make_shared<PeerRetriever>(peerRetriever);

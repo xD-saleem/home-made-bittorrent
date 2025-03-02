@@ -16,7 +16,7 @@
 #include "PieceManager.h"
 #include "TorrentFileParser.h"
 
-#define PORT 8080
+#define PORT 9000
 #define PEER_QUERY_INTERVAL 60 // 1 minute
 
 TorrentClient::TorrentClient(

@@ -75,14 +75,12 @@ void TorrentClient::start(const std::string &downloadDirectory) {
   torrentState->storeState(infoHash, filename);
 }
 
-void TorrentClient::downloadFile(const std::string &downloadDirectory) {
+void TorrentClient::downloadFile(const std::string &downloadPath) {
   std::string announceUrl = torrentFileParser->getAnnounce().value();
 
   long fileSize = torrentFileParser->getFileSize().value();
   const std::string infoHash = torrentFileParser->getInfoHash();
   std::string filename = torrentFileParser->getFileName().value();
-
-  std::string downloadPath = downloadDirectory + filename;
 
   // Adds threads to the thread pool
   for (int i = 0; i < threadNum; i++) {

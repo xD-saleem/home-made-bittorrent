@@ -106,7 +106,7 @@ void TorrentClient::downloadFile(const std::string &downloadDirectory) {
     // Retrieve peers from the tracker after a certain time interval or
     // whenever the queue is empty
     if (lastPeerQuery == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
-      PeerRetriever peerRetriever(peerId, announceUrl, infoHash, PORT,
+      PeerRetriever peerRetriever(logger, peerId, announceUrl, infoHash, PORT,
                                   fileSize);
       std::vector<Peer *> peers =
           peerRetriever.retrievePeers(pieceManager->bytesDownloaded());

@@ -4,6 +4,7 @@
 #include <cpr/cpr.h>
 #include <fmt/base.h>
 #include <fmt/core.h>
+#include <fmt/format.h>
 
 #include <iostream>
 #include <string>
@@ -23,14 +24,15 @@
  * @param port: the TCP port this client listens on.
  * @param fileSize: the size of the file to be downloaded in bytes.
  */
-PeerRetriever::PeerRetriever(std::string peerId, std::string announceUrl,
-                             std::string infoHash, int port,
-                             const unsigned long fileSize)
+PeerRetriever::PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
+                             std::string announceUrl, std::string infoHash,
+                             int port, const unsigned long fileSize)
     : fileSize(fileSize) {
   this->peerId = std::move(peerId);
   this->announceUrl = std::move(announceUrl);
   this->infoHash = std::move(infoHash);
   this->port = port;
+  this->logger = logger;
 }
 
 /**
@@ -61,8 +63,6 @@ PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
   info << "left: " << std::to_string(fileSize - bytesDownloaded) << std::endl;
   info << "compact: " << std::to_string(1);
 
-  // LOG_F(INFO, "%s", info.str().c_str());
-
   cpr::Response res = cpr::Get(
       cpr::Url{announceUrl},
       cpr::Parameters{{"info_hash", std::string(hexDecode(infoHash))},
@@ -76,22 +76,22 @@ PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
 
   // If response successfully retrieved
   if (res.status_code == 200) {
-    // LOG_F(INFO, "Retrieve response from tracker: SUCCESS");
     std::shared_ptr<bencoding::BItem> decodedResponse =
         bencoding::decode(res.text);
 
     auto peers = decodeResponse(res.text);
 
     if (!peers.has_value()) {
-      // LOG_F(ERROR, "Decoding tracker response: FAILED [ %s ]",
-      // peers.error().message.c_str());
+      logger->log(fmt::format("Decoding tracker response: FAILED [ {} ]",
+                              peers.error().message.c_str()));
       return std::vector<Peer *>();
     }
 
     return peers.value();
   } else {
-    // LOG_F(ERROR, "Retrieving response from tracker: FAILED [ %d: %s ]",
-    // res.status_code, res.text.c_str());
+    logger->log(
+        fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
+                    res.status_code, res.text.c_str()));
   }
   return std::vector<Peer *>();
 }
@@ -126,42 +126,27 @@ PeerRetriever::retrieveSeedPeers(unsigned long bytesDownloaded) {
 
   // If response successfully retrieved
   if (res.status_code == 200) {
-    // LOG_F(INFO, "Retrieve response from tracker: SUCCESS");
     std::shared_ptr<bencoding::BItem> decodedResponse =
         bencoding::decode(res.text);
 
     auto peers = decodeResponse(res.text);
 
     if (!peers.has_value()) {
-      // LOG_F(ERROR, "Decoding tracker response: FAILED [ %s ]",
-      //  peers.error().message.c_str());
-      //
       return std::vector<Peer *>();
     }
 
     return peers.value();
   } else {
-    // LOG_F(ERROR, "Retrieving response from tracker: FAILED [ %d: %s ]",
-    //  res.status_code, res.text.c_str());
-    //
+    logger->log(
+        fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
+                    res.status_code, res.text.c_str()));
   }
 
   return std::vector<Peer *>();
 }
 
-/**
- * Decodes the response string sent by the tracker. If the string can
- * successfully decoded, returns a list of pointers to Peer structs. Note that
- * this functions handles two distinct representations, one of them has the
- * peers denoted as a long binary blob (compact), the other represents peers in
- * a list with all the information already in place. The former can be seen in
- * the response of the kali-linux tracker, whereas the latter can be found in
- * the tracker response of the other two files.
- */
-
 tl::expected<std::vector<Peer *>, PeerRetrieverError>
 PeerRetriever::decodeResponse(std::string response) {
-  // LOG_F(INFO, "Decoding tracker response...");
   std::shared_ptr<bencoding::BItem> decodedResponse =
       bencoding::decode(response);
 
@@ -204,8 +189,6 @@ PeerRetriever::decodeResponse(std::string response) {
       peerIp << std::to_string((uint8_t)peersString[offset + 2]) << ".";
       peerIp << std::to_string((uint8_t)peersString[offset + 3]);
       int peerPort = bytesToInt(peersString.substr(offset + 4, 2));
-      // std::cout << "IP: " << peerIp.str() << std::endl;
-      // std::cout << "Port: " << std::to_string(peerPort) << std::endl;
       Peer *newPeer = new Peer{peerIp.str(), peerPort};
       peers.push_back(newPeer);
     }
@@ -247,7 +230,5 @@ PeerRetriever::decodeResponse(std::string response) {
     return tl::unexpected(PeerRetrieverError{
         "Received malformed 'peers' from tracker. [Unknown type]"});
   }
-  // LOG_F(INFO, "Decode tracker response: SUCCESS");
-  // LOG_F(INFO, "Number of peers discovered: %zu", peers.size());
   return peers;
 }

@@ -14,7 +14,6 @@
 #define HASH_LEN 20
 
 TorrentFileParser::TorrentFileParser(const std::string &filePath) {
-  // TODO have verification.
   std::ifstream fileStream(filePath, std::ifstream::binary);
   std::shared_ptr<bencoding::BItem> decodedTorrentFile =
       bencoding::decode(fileStream);

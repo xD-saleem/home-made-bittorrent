@@ -6,6 +6,8 @@
 #include <tl/expected.hpp>
 #include <vector>
 
+#include "Logger.h"
+
 struct PeerRetrieverError {
   std::string message;
 };
@@ -23,6 +25,7 @@ struct Peer {
  */
 class PeerRetriever {
 private:
+  std::shared_ptr<Logger> logger;
   std::string announceUrl;
   std::string infoHash;
   std::string peerId;
@@ -33,9 +36,9 @@ private:
   decodeResponse(std::string response);
 
 public:
-  explicit PeerRetriever(std::string peerId, std::string announceUrL,
-                         std::string infoHash, int port,
-                         unsigned long fileSize);
+  explicit PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
+                         std::string announceUrL, std::string infoHash,
+                         int port, unsigned long fileSize);
   std::vector<Peer *> retrievePeers(unsigned long bytesDownloaded = 0);
   std::vector<Peer *> retrieveSeedPeers(unsigned long bytesDownloaded = 0);
 };

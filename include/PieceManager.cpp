@@ -4,6 +4,7 @@
 #include <bencode/bencoding.h>
 #include <fmt/base.h>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -77,13 +78,14 @@ std::vector<Piece *> PieceManager::initiatePieces() {
   std::vector<Piece *> torrentPieces;
   missingPieces.reserve(totalPieces);
 
-  auto totalLengthResult = fileParser->getFileSize();
+  tl::expected<long, TorrentFileParserError> totalLengthResult =
+      fileParser->getFileSize();
 
   if (!totalLengthResult.has_value()) {
     logger->log("Failed to get file size");
     return std::vector<Piece *>();
   }
-  // Check
+
   long totalLength = totalLengthResult.value();
 
   // number of blocks in a normal piece (i.e. pieces that are not the last
@@ -178,7 +180,6 @@ PieceManager::removePeer(const std::string &peerId) {
     std::stringstream info;
     info << "Number of connections: " << std::to_string(peers.size())
          << "/" + std::to_string(maximumConnections);
-    // LOG_F(INFO, "%s", info.str().c_str());
   } else {
     lock.unlock();
     return tl::unexpected(
@@ -244,8 +245,6 @@ Block *PieceManager::expiredRequest(std::string peerId) {
       if (diff >= MAX_PENDING_TIME) {
         // Resets the timer for that request
         pending->timestamp = currentTime;
-        // LOG_F(INFO, "Block %d from piece %d has expired",
-        // pending->block->offset, pending->block->piece);
         return pending->block;
       }
     }
@@ -320,8 +319,6 @@ Piece *PieceManager::getRarestPiece(std::string peerId) {
 tl::expected<void, PieceManagerError>
 PieceManager::blockReceived(std::string peerId, int pieceIndex, int blockOffset,
                             std::string data) {
-  // LOG_F(INFO, "Received block %d for piece %d from peer %s", blockOffset,
-  // pieceIndex, peerId.c_str());
   // Removes the received block from pending requests
   PendingRequest *requestToRemove = nullptr;
   lock.lock();
@@ -367,16 +364,12 @@ PieceManager::blockReceived(std::string peerId, int pieceIndex, int blockOffset,
       lock.unlock();
 
       std::stringstream info;
-      info << "(" << std::fixed
-           << std::setprecision(2)
-           // TODO check this
+      info << "(" << std::fixed << std::setprecision(2)
            << (((float)havePieces.size()) / (float)totalPieces * 100) << "%) ";
       info << std::to_string(havePieces.size()) + " / " +
                   std::to_string(totalPieces) + " Pieces downloaded...";
-      // LOG_F(INFO, "%s", info.str().c_str());
     } else {
       targetPiece->reset();
-      // LOG_F(INFO, "Hash mismatch for Piece %d", targetPiece->index);
     }
   }
   return {};

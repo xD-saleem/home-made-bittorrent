@@ -36,7 +36,7 @@ jobs:
         database: build/
         files-changed-only: false
         format-review: false
-        ignore: 'build|cmake-modules|docker'
+        ignore: 'build|cmake-modules|docker|vcpkg'
         passive-reviews: true
         step-summary: true
         style: 'file'

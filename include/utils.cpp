@@ -85,8 +85,7 @@ int bytesToInt(std::string bytes) {
 }
 
 std::string formatTime(long seconds) {
-  if (seconds < 0)
-    return "inf";
+  if (seconds < 0) return "inf";
 
   std::string result;
   // compute h, m, s

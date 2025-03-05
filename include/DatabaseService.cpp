@@ -49,8 +49,8 @@ tl::expected<void, DatabaseServiceError> DatabaseService::up() {
   return {};
 }
 
-tl::expected<void, DatabaseServiceError>
-DatabaseService::insertOne(std::string hashinfo, std::string name) {
+tl::expected<void, DatabaseServiceError> DatabaseService::insertOne(
+    std::string hashinfo, std::string name) {
   SQLite::Statement query{
       *this->db, "INSERT INTO Torrents (name, hashinfo) VALUES (?, ?)"};
 
@@ -63,8 +63,8 @@ DatabaseService::insertOne(std::string hashinfo, std::string name) {
   return {};
 }
 
-tl::expected<TorrentRecord, DatabaseServiceError>
-DatabaseService::getTorrent(std::string hashinfo) {
+tl::expected<TorrentRecord, DatabaseServiceError> DatabaseService::getTorrent(
+    std::string hashinfo) {
   SQLite::Statement query{*this->db,
                           "SELECT * FROM Torrents WHERE hashinfo = ?"};
 

@@ -21,16 +21,14 @@ Piece::Piece(int index, std::vector<Block *> blocks, std::string hashValue)
  * Destructor of the object. Releases all the allocated memory for blocks.
  */
 Piece::~Piece() {
-  for (Block *block : blocks)
-    delete block;
+  for (Block *block : blocks) delete block;
 }
 
 /**
  * Resets the status of all Blocks in this Piece to Missing.
  */
 void Piece::reset() {
-  for (Block *block : blocks)
-    block->status = missing;
+  for (Block *block : blocks) block->status = missing;
 }
 
 /**
@@ -100,7 +98,6 @@ bool Piece::isHashMatching() {
 std::string Piece::getData() {
   assert(isComplete());
   std::stringstream data;
-  for (Block *block : blocks)
-    data << block->data;
+  for (Block *block : blocks) data << block->data;
   return std::string(data.str());
 }

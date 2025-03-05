@@ -38,4 +38,3 @@ TEST(TorrentState, storeStateHandlesInsertOK) {
 
   ASSERT_TRUE(val.has_value());
 }
-

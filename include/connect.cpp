@@ -17,12 +17,10 @@ constexpr int READ_TIMEOUT = 300;
 constexpr int CONNECT_TIMEOUT = 5;
 
 bool setSocketBlocking(int sock, bool blocking) {
-  if (sock < 0)
-    return false;
+  if (sock < 0) return false;
 
   int flags = fcntl(sock, F_GETFL, 0);
-  if (flags == -1)
-    return false;
+  if (flags == -1) return false;
 
   if (blocking)
     flags &= ~O_NONBLOCK;

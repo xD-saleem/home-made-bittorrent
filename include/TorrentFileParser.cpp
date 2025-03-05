@@ -22,8 +22,8 @@ TorrentFileParser::TorrentFileParser(const std::string &filePath) {
   root = rootDict;
 }
 
-std::shared_ptr<bencoding::BItem>
-TorrentFileParser::get(std::string key) const {
+std::shared_ptr<bencoding::BItem> TorrentFileParser::get(
+    std::string key) const {
   std::shared_ptr<bencoding::BItem> value = root->getValue(key);
   return value;
 }
@@ -62,8 +62,8 @@ TorrentFileParser::splitPieceHashes() const {
   return pieceHashes;
 }
 
-tl::expected<long, TorrentFileParserError>
-TorrentFileParser::getFileSize() const {
+tl::expected<long, TorrentFileParserError> TorrentFileParser::getFileSize()
+    const {
   std::shared_ptr<bencoding::BItem> fileSizeItem = get("length");
   if (!fileSizeItem) {
     return tl::unexpected(
@@ -74,8 +74,8 @@ TorrentFileParser::getFileSize() const {
   return std::dynamic_pointer_cast<bencoding::BInteger>(fileSizeItem)->value();
 }
 
-tl::expected<long, TorrentFileParserError>
-TorrentFileParser::getPieceLength() const {
+tl::expected<long, TorrentFileParserError> TorrentFileParser::getPieceLength()
+    const {
   std::shared_ptr<bencoding::BItem> pieceLengthItem = get("piece length");
   if (!pieceLengthItem) {
     return tl::unexpected(TorrentFileParserError(

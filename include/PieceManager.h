@@ -23,7 +23,7 @@ struct PieceManagerError {
 };
 
 class PieceManager {
-private:
+ private:
   std::shared_ptr<Logger> logger;
   std::map<std::string, std::string> peers;
   std::vector<Piece *> missingPieces;
@@ -48,7 +48,7 @@ private:
   void displayProgressBar();
   void trackProgress();
 
-public:
+ public:
   explicit PieceManager(
 
       std::shared_ptr<TorrentFileParser> fileParser,
@@ -72,4 +72,4 @@ public:
   std::vector<Piece *> havePieces;
 };
 
-#endif // BITTORRENTCLIENT_PIECEMANAGER_H
+#endif  // BITTORRENTCLIENT_PIECEMANAGER_H

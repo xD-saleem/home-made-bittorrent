@@ -1,3 +1,4 @@
+// Copyright 2025
 #include <fmt/base.h>
 #include <fmt/color.h>
 
@@ -11,46 +12,49 @@
 #include "TorrentFileParser.h"
 #include "TorrentState.h"
 #include "bencode/BInteger.h"
+#include "string"
 
-void customLogFunction(const std::string &message) {
+using std::shared_ptr;
+
+void custom_log_function(const std::string &message) {
   fmt::print(fg(fmt::color::cyan), "[LOG]: {}\n", message);
 }
 
-int workerThreadNum = 50;
+const WORKER_THREAD_NUM = 50;
 
-int main(int argc, char *argv[]) {
+int main() {
   std::string filename = "debian.torrent";
-  std::string downloadDirectory = "./";
-  std::string downloadPath = downloadDirectory + filename;
+  std::string download_directory = "./";
+  std::string download_path = download_directory + filename;
 
   // Logger
-  std::shared_ptr<Logger> logger = std::make_shared<Logger>(customLogFunction);
+  shared_ptr<Logger> logger = std::make_shared<Logger>(custom_log_function);
 
-  std::shared_ptr<SQLite::Database> db = initDB("torrent_state.db3");
+  std::shared_ptr<SQLite::Database> database = initDB("torrent_state.db3");
 
   // Database Service
-  std::shared_ptr<DatabaseService> databaseSvc =
-      std::make_shared<DatabaseService>(db, logger);
+  std::shared_ptr<DatabaseService> database_service =
+      std::make_shared<DatabaseService>(database, logger);
 
   // Torrent State
-  std::shared_ptr<TorrentState> torrentState =
-      std::make_shared<TorrentState>(databaseSvc);
+  std::shared_ptr<TorrentState> torrent_state =
+      std::make_shared<TorrentState>(database_service);
 
   // Torrent File Parser
-  std::shared_ptr<TorrentFileParser> torrentFileParser =
-      std::make_shared<TorrentFileParser>(downloadPath);
+  std::shared_ptr<TorrentFileParser> torrent_file_parser =
+      std::make_shared<TorrentFileParser>(download_path);
 
   // Torrent Piece Manager
-  std::shared_ptr<PieceManager> pieceManager = std::make_shared<PieceManager>(
-      torrentFileParser, logger, downloadDirectory, workerThreadNum);
+  std::shared_ptr<PieceManager> piece_manager = std::make_shared<PieceManager>(
+      torrent_file_parser, logger, download_directory, WORKER_THREAD_NUM);
 
-  TorrentClient torrentClient(logger, torrentState, pieceManager,
-                              torrentFileParser,                   // deps
-                              workerThreadNum, downloadDirectory); // variables
+  TorrentClient torrent_client =
+      0(logger, torrent_state, piece_manager, torrent_file_parser,
+        WORKER_THREAD_NUM, download_directory);
 
-  logger->log("Parsing Torrent file " + downloadPath);
+  logger->log("Parsing Torrent file " + download_path);
 
-  torrentClient.start(downloadPath);
+  torrent_client.start(download_path);
 
   return 0;
-};
+}

@@ -13,4 +13,3 @@ TEST(PieceManagerTest, splitPieceHashes) {
   // EXPECT_EQ(output.value().size(), result);
   EXPECT_EQ(1, 1);
 }
-

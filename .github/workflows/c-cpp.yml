@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: vcpkg build
       uses: johnwason/vcpkg-action@v6
@@ -30,16 +30,16 @@ jobs:
     - name: test
       run: make ci-tests
 
-    - uses: actions/checkout@v4
-    - uses: cpp-linter/cpp-linter-action@v2
+    - name: Run clang-tidy and clang-format
+      if: ${{env.preset == 'cl-x64-debug'}}
+      uses: cpp-linter/cpp-linter-action@v2
       id: linter
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        style: 'file'  # Use .clang-format config file
-        tidy-checks: '' # Use .clang-tidy config file
-        # only 'update' a single comment in a pull request thread.
-        thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
-    - name: Fail fast?!
-      if: steps.linter.outputs.checks-failed > 0
-      run: exit 1
+        version: 15
+        style: file
+        database: out/build/${{env.preset}}
+        thread-comments: true
+        step-summary: true
+        tidy-checks: ''

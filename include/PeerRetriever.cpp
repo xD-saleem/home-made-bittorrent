@@ -49,8 +49,8 @@ PeerRetriever::PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
  * not.
  * @return a vector that contains the information of all peers.
  */
-std::vector<Peer *>
-PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
+std::vector<Peer *> PeerRetriever::retrievePeers(
+    unsigned long bytesDownloaded) {
   std::stringstream info;
   info << "Retrieving peers from " << announceUrl
        << " with the following parameters..." << std::endl;
@@ -96,8 +96,8 @@ PeerRetriever::retrievePeers(unsigned long bytesDownloaded) {
   return std::vector<Peer *>();
 }
 
-std::vector<Peer *>
-PeerRetriever::retrieveSeedPeers(unsigned long bytesDownloaded) {
+std::vector<Peer *> PeerRetriever::retrieveSeedPeers(
+    unsigned long bytesDownloaded) {
   std::stringstream info;
   info << "Retrieving peers from " << announceUrl
        << " with the following parameters..." << std::endl;

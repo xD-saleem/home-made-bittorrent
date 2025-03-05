@@ -25,10 +25,10 @@ struct PieceError {
 };
 
 class Piece {
-private:
+ private:
   const std::string hashValue;
 
-public:
+ public:
   const int index;
   std::vector<Block *> blocks;
 
@@ -42,4 +42,4 @@ public:
   bool isHashMatching();
 };
 
-#endif // BITTORRENTCLIENT_PIECE_H
+#endif  // BITTORRENTCLIENT_PIECE_H

@@ -21,17 +21,18 @@
 #include "TorrentFileParser.h"
 #include "utils.h"
 
-#define BLOCK_SIZE 16384   // 2 ^ 14
-#define MAX_PENDING_TIME 5 // 5 sec
+#define BLOCK_SIZE 16384    // 2 ^ 14
+#define MAX_PENDING_TIME 5  // 5 sec
 #define PROGRESS_BAR_WIDTH 40
-#define PROGRESS_DISPLAY_INTERVAL 1 // 1 sec
+#define PROGRESS_DISPLAY_INTERVAL 1  // 1 sec
 
 PieceManager::PieceManager(std::shared_ptr<TorrentFileParser> fileParser,
                            std::shared_ptr<Logger> logger,
                            const std::string &downloadPath,
                            const int maximumConnections)
 
-    : pieceLength(fileParser->getPieceLength().value()), fileParser(fileParser),
+    : pieceLength(fileParser->getPieceLength().value()),
+      fileParser(fileParser),
       maximumConnections(maximumConnections) {
   missingPieces = initiatePieces();
   downloadedFile.open(downloadPath, std::ios::binary | std::ios::out);
@@ -49,14 +50,11 @@ PieceManager::PieceManager(std::shared_ptr<TorrentFileParser> fileParser,
  * Destructor of the PieceManager class. Frees all resources allocated.
  */
 PieceManager::~PieceManager() {
-  for (Piece *piece : missingPieces)
-    delete piece;
+  for (Piece *piece : missingPieces) delete piece;
 
-  for (Piece *piece : ongoingPieces)
-    delete piece;
+  for (Piece *piece : ongoingPieces) delete piece;
 
-  for (PendingRequest *pending : pendingRequests)
-    delete pending;
+  for (PendingRequest *pending : pendingRequests) delete pending;
 
   downloadedFile.close();
 }
@@ -148,8 +146,8 @@ void PieceManager::addPeer(const std::string &peerId, std::string bitField) {
  * Updates the information about which pieces a peer has (i.e. reflects
  * a Have message).
  */
-tl::expected<void, PieceManagerError>
-PieceManager::updatePeer(const std::string &peerId, int index) {
+tl::expected<void, PieceManagerError> PieceManager::updatePeer(
+    const std::string &peerId, int index) {
   lock.lock();
   if (peers.find(peerId) != peers.end()) {
     setPiece(peers[peerId], index);
@@ -167,8 +165,8 @@ PieceManager::updatePeer(const std::string &peerId, int index) {
  * Removes a previously added peer in case of a lost connection.
  * @param peerId: Id of the peer to be removed.
  */
-tl::expected<void, PieceManagerError>
-PieceManager::removePeer(const std::string &peerId) {
+tl::expected<void, PieceManagerError> PieceManager::removePeer(
+    const std::string &peerId) {
   if (isComplete()) {
     return {};
   }
@@ -223,8 +221,7 @@ Block *PieceManager::nextRequest(std::string peerId) {
   Block *block = expiredRequest(peerId);
   if (!block) {
     block = nextOngoing(peerId);
-    if (!block)
-      block = getRarestPiece(peerId)->nextRequest();
+    if (!block) block = getRarestPiece(peerId)->nextRequest();
   }
   lock.unlock();
 
@@ -287,8 +284,7 @@ Piece *PieceManager::getRarestPiece(std::string peerId) {
   for (Piece *piece : missingPieces) {
     // If a connection has been established with the peer
     if (peers.find(peerId) != peers.end()) {
-      if (hasPiece(peers[peerId], piece->index))
-        pieceCount[piece] += 1;
+      if (hasPiece(peers[peerId], piece->index)) pieceCount[piece] += 1;
     }
   }
 
@@ -316,9 +312,8 @@ Piece *PieceManager::getRarestPiece(std::string peerId) {
  * in the Piece will be reset to a missing state. If the hash matches, the
  * data in the Piece will be written to disk.
  */
-tl::expected<void, PieceManagerError>
-PieceManager::blockReceived(std::string peerId, int pieceIndex, int blockOffset,
-                            std::string data) {
+tl::expected<void, PieceManagerError> PieceManager::blockReceived(
+    std::string peerId, int pieceIndex, int blockOffset, std::string data) {
   // Removes the received block from pending requests
   PendingRequest *requestToRemove = nullptr;
   lock.lock();

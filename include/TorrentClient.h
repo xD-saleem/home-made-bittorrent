@@ -18,7 +18,7 @@ struct TorrentClientError {
 };
 
 class TorrentClient {
-private:
+ private:
   // Deps
   std::shared_ptr<Logger> logger;
   std::shared_ptr<TorrentState> torrentState;
@@ -31,7 +31,7 @@ private:
   std::vector<std::thread> threadPool;
   std::vector<PeerConnection *> connections;
 
-public:
+ public:
   // Constructor that accepts a shared_ptr to TorrentState
   explicit TorrentClient(std::shared_ptr<Logger> logger,
                          std::shared_ptr<TorrentState> torrentState,
@@ -55,4 +55,4 @@ public:
   void seedFile(const std::string &downloadDirectory);
 };
 
-#endif // BITTORRENTCLIENT_TORRENTCLIENT_H
+#endif  // BITTORRENTCLIENT_TORRENTCLIENT_H

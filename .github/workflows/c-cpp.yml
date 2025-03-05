@@ -30,16 +30,19 @@ jobs:
     - name: test
       run: make ci-tests
 
-    - name: Run clang-tidy and clang-format
-      if: ${{env.preset == 'cl-x64-debug'}}
-      uses: cpp-linter/cpp-linter-action@v2
+    - name: Run Clang Format and Clang Tidy
+      uses: cpp-linter/cpp-linter-action@v2.13.4
       id: linter
       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        version: 15
-        style: file
-        database: out/build/${{env.preset}}
-        thread-comments: true
+        database: build/
+        files-changed-only: false
+        format-review: false
+        ignore: 'build|cmake-modules|docker'
+        passive-reviews: true
         step-summary: true
+        style: 'file'
         tidy-checks: ''
+        thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+        version: 19

@@ -20,9 +20,8 @@ void custom_log_function(const std::string &message) {
   fmt::print(fg(fmt::color::cyan), "[LOG]: {}\n", message);
 }
 
-const WORKER_THREAD_NUM = 50;
-
 int main() {
+  int threads = 50;
   std::string filename = "debian.torrent";
   std::string download_directory = "./";
   std::string download_path = download_directory + filename;
@@ -46,11 +45,11 @@ int main() {
 
   // Torrent Piece Manager
   std::shared_ptr<PieceManager> piece_manager = std::make_shared<PieceManager>(
-      torrent_file_parser, logger, download_directory, WORKER_THREAD_NUM);
+      torrent_file_parser, logger, download_directory, threads);
 
   TorrentClient torrent_client =
-      0(logger, torrent_state, piece_manager, torrent_file_parser,
-        WORKER_THREAD_NUM, download_directory);
+      TorrentClient(logger, torrent_state, piece_manager, torrent_file_parser,
+                    threads, download_directory);
 
   logger->log("Parsing Torrent file " + download_path);
 

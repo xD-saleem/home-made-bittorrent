@@ -3,7 +3,12 @@ project(main)
 
 ## Set C++ standard
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+if(NOT APPLE)
+    # set(CMAKE_CXX_CLANG_TIDY clang-tidy)
+endif()
+
 
 ## Dependencies
 find_package(GTest CONFIG REQUIRED)
@@ -17,104 +22,115 @@ find_package(SQLiteCpp REQUIRED)
 
 ## Include directories
 include_directories(lib)
-include_directories(include)
+include_directories(src)
 
 # Bencoding
-file(GLOB BENCODING_SRC "lib/bencode/*.cpp" "include/bencode/*.h")
+file(GLOB BENCODING_SRC "lib/bencode/*.cpp" "lib/bencode/*.h")
 add_library(bencoding STATIC ${BENCODING_SRC})
 
+set(
+    CPP_TEMPLATE_SOURCES
+    src/main.cpp
+)
+set(
+    CPP_TEMPLATE_TEST_SOURCES
+    src/main_test.cpp
+)
 # Main
-add_executable(main main.cpp
+add_executable(main ${CPP_TEMPLATE_SOURCES}
 
-## Classes
-include/BitTorrentMessage.cpp
-include/BitTorrentMessage.h
+# Classes
+src/BitTorrentMessage.cpp
+src/BitTorrentMessage.h
 
-include/Block.h
+src/Block.h
 
-include/connect.cpp
-include/connect.h
+src/connect.cpp
+src/connect.h
 
-include/PeerConnection.cpp
-include/PeerConnection.h
+src/PeerConnection.cpp
+src/PeerConnection.h
 
-include/PeerRetriever.cpp
-include/PeerRetriever.h
+src/PeerRetriever.cpp
+src/PeerRetriever.h
 
-include/Piece.cpp
-include/Piece.h
+src/Piece.cpp
+src/Piece.h
 
-include/PieceManager.cpp
-include/PieceManager.h
+src/PieceManager.cpp
+src/PieceManager.h
 
-include/SharedQueue.h
+src/SharedQueue.h
 
-include/TorrentClient.cpp
-include/TorrentClient.h
+src/TorrentClient.cpp
+src/TorrentClient.h
 
-include/TorrentFileParser.cpp
-include/TorrentFileParser.h
+src/TorrentFileParser.cpp
+src/TorrentFileParser.h
 
-include/TorrentState.cpp
-include/TorrentState.h
+src/TorrentState.cpp
+src/TorrentState.h
 
-include/DatabaseService.h
-include/DatabaseService.cpp
+src/DatabaseService.h
+src/DatabaseService.cpp
 
-include/Logger.cpp
-include/Logger.h
+src/Logger.cpp
+src/Logger.h
 
-include/utils.h
-include/utils.cpp
+src/utils.h
+src/utils.cpp
 )
 
 target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp fmt::fmt tl::expected SQLiteCpp)
 
 # Tests
 enable_testing()
-add_executable(
-tests ${TEST_SRC}
+add_executable(tests ${TEST_SRC}
 
 # Business logic
-include/Main_test.cpp
+src/Main_test.cpp
 
-include/utils.cpp
-include/utils.h
+src/utils.cpp
+src/utils.h
 
-include/TorrentFileParser.h
-include/TorrentFileParser.cpp
-include/TorrentFileParser_test.cpp
+src/TorrentFileParser.h
+src/TorrentFileParser.cpp
+src/TorrentFileParser_test.cpp
 
-include/BitTorrentMessage.h
-include/BitTorrentMessage.cpp
-include/BitTorrentMessage_test.cpp
+src/BitTorrentMessage.h
+src/BitTorrentMessage.cpp
+src/BitTorrentMessage_test.cpp
 
-include/TorrentState.h
-include/TorrentState.cpp
-include/TorrentState_test.cpp
+src/TorrentState.h
+src/TorrentState.cpp
+src/TorrentState_test.cpp
 
-include/DatabaseService.h
-include/DatabaseService.cpp
-include/DatabaseService_mock.h
-include/DatabaseService_test.cpp
+src/DatabaseService.h
+src/DatabaseService.cpp
+src/DatabaseService_mock.h
+src/DatabaseService_test.cpp
 
-include/Logger.cpp
-include/Logger.h
+src/Logger.cpp
+src/Logger.h
 
-
-# include/PieceManager.h
-# include/PieceManager.cpp
-# include/PieceManager_test.cpp
+src/PieceManager.h
+src/PieceManager.cpp
+src/PieceManager_test.cpp
 )
 
 # Link libraries
 target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main OpenSSL::SSL SQLiteCpp)
 
-# Flags for using clang
-# set(CMAKE_C_COMPILER /usr/bin/clang)
-# set(CMAKE_CXX_COMPILER /usr/bin/clang++)
+add_custom_target(
+    check-format
+    COMMAND clang-format --dry-run ${CPP_TEMPLATE_SOURCES} ${CPP_TEMPLATE_TEST_SOURCES}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "checking format in src..."
+)
 
-## Flags for using gcc
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
-set(CMAKE_C_COMPILER "gcc")
-set(CMAKE_CXX_COMPILER "g++")
+add_custom_target(
+    format
+    COMMAND clang-format -i ${CPP_TEMPLATE_SOURCES} ${CPP_TEMPLATE_TEST_SOURCES}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "checking format in src..."
+)

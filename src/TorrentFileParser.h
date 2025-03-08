@@ -22,13 +22,16 @@ class TorrentFileParser {
   // Torrent file
   explicit TorrentFileParser(const std::string& filePath);
 
-  tl::expected<long, TorrentFileParserError> getFileSize() const;
-  tl::expected<long, TorrentFileParserError> getPieceLength() const;
-  tl::expected<std::string, TorrentFileParserError> getFileName() const;
-  tl::expected<std::string, TorrentFileParserError> getAnnounce() const;
-  std::shared_ptr<bencoding::BItem> get(std::string key) const;
-  std::string getInfoHash() const;
-  tl::expected<std::vector<std::string>, TorrentFileParserError>
+  [[nodiscard]] tl::expected<long, TorrentFileParserError> getFileSize() const;
+  [[nodiscard]] tl::expected<long, TorrentFileParserError> getPieceLength()
+      const;
+  [[nodiscard]] tl::expected<std::string, TorrentFileParserError> getFileName()
+      const;
+  [[nodiscard]] tl::expected<std::string, TorrentFileParserError> getAnnounce()
+      const;
+  [[nodiscard]] std::shared_ptr<bencoding::BItem> get(std::string key) const;
+  [[nodiscard]] std::string getInfoHash() const;
+  [[nodiscard]] tl::expected<std::vector<std::string>, TorrentFileParserError>
   splitPieceHashes() const;
 };
 

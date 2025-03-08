@@ -9,6 +9,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <iostream>
 #include <limits>
 
 #include "utils.h"
@@ -17,17 +18,28 @@ constexpr int READ_TIMEOUT = 300;
 constexpr int CONNECT_TIMEOUT = 5;
 
 bool setSocketBlocking(int sock, bool blocking) {
-  if (sock < 0) return false;
+  if (sock < 0) {
+    std::cerr << "Invalid socket descriptor\n";
+    return false;
+  }
 
   int flags = fcntl(sock, F_GETFL, 0);
-  if (flags == -1) return false;
+  if (flags == -1) {
+    std::cerr << "Failed to get socket flags\n";
+    return false;
+  }
 
   if (blocking)
-    flags &= ~O_NONBLOCK;
+    flags &= ~O_NONBLOCK;  // Clear O_NONBLOCK flag (blocking mode)
   else
-    flags |= O_NONBLOCK;
+    flags |= O_NONBLOCK;  // Set O_NONBLOCK flag (non-blocking mode)
 
-  return fcntl(sock, F_SETFL, flags) == 0;
+  if (fcntl(sock, F_SETFL, flags) == -1) {
+    std::cerr << "Failed to set socket flags\n";
+    return false;
+  }
+
+  return true;
 }
 
 tl::expected<int, ConnectError> createConnection(const std::string &ip,
@@ -87,7 +99,7 @@ tl::expected<void, ConnectError> sendData(const int sock,
 
   int res = send(sock, buffer, n, 0);
   if (res < 0) {
-    return tl::unexpected<ConnectError>(
+    return tl::unexpected(
         ConnectError{"Failed to send data to socket " + std::to_string(sock)});
   }
 
@@ -106,27 +118,27 @@ tl::expected<std::string, ConnectError> receiveData(int sock,
     int ret = poll(&fd, 1, READ_TIMEOUT);
 
     if (ret < 0) {
-      return tl::unexpected<ConnectError>("Polling error on socket " +
-                                          std::to_string(sock));
+      return tl::unexpected(
+          ConnectError{"Polling error on socket" + std::to_string(sock)});
     }
     if (ret == 0) {
-      return tl::unexpected<ConnectError>("Read timeout on socket " +
-                                          std::to_string(sock));
+      return tl::unexpected(
+          ConnectError{"Read timeout on socket " + std::to_string(sock)});
     }
 
     char lengthBuffer[lengthIndicatorSize] = {};
     if (recv(sock, lengthBuffer, lengthIndicatorSize, 0) !=
         lengthIndicatorSize) {
-      return tl::unexpected<ConnectError>(
-          "Failed to read message length from socket " + std::to_string(sock));
+      return tl::unexpected(ConnectError{
+          "Failed to read message length from socket " + std::to_string(sock)});
     }
 
     bufferSize = bytesToInt(std::string(lengthBuffer, lengthIndicatorSize));
   }
 
   if (bufferSize > std::numeric_limits<uint16_t>::max()) {
-    return tl::unexpected<ConnectError>("Buffer size too large: " +
-                                        std::to_string(bufferSize));
+    return tl::unexpected(
+        ConnectError{"Buffer size too large: " + std::to_string(bufferSize)});
   }
 
   std::vector<char> buffer(bufferSize);
@@ -136,15 +148,15 @@ tl::expected<std::string, ConnectError> receiveData(int sock,
   while (bytesRead < bufferSize) {
     if (std::chrono::steady_clock::now() - startTime >
         std::chrono::milliseconds(READ_TIMEOUT)) {
-      return tl::unexpected<ConnectError>("Read timeout on socket " +
-                                          std::to_string(sock));
+      return tl::unexpected(
+          ConnectError{"Read timeout on socket " + std::to_string(sock)});
     }
 
     long result =
         recv(sock, buffer.data() + bytesRead, bufferSize - bytesRead, 0);
     if (result <= 0) {
-      return tl::unexpected<ConnectError>("Failed to read data from socket " +
-                                          std::to_string(sock));
+      return tl::unexpected(ConnectError{"Failed to read data from socket " +
+                                         std::to_string(sock)});
     }
     bytesRead += result;
   }

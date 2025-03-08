@@ -8,10 +8,9 @@
 
 #include <cassert>
 #include <fstream>
-// #include <loguru/loguru.hpp>
 #include <tl/expected.hpp>
 
-#define HASH_LEN 20
+constexpr int HASH_LEN = 20;
 
 TorrentFileParser::TorrentFileParser(const std::string &filePath) {
   std::ifstream fileStream(filePath, std::ifstream::binary);
@@ -78,9 +77,9 @@ tl::expected<long, TorrentFileParserError> TorrentFileParser::getPieceLength()
     const {
   std::shared_ptr<bencoding::BItem> pieceLengthItem = get("piece length");
   if (!pieceLengthItem) {
-    return tl::unexpected(TorrentFileParserError(
+    return tl::unexpected(TorrentFileParserError{
         "Torrent file is malformed. [File does not contain key 'piece "
-        "length']"));
+        "length']"});
   }
   return std::dynamic_pointer_cast<bencoding::BInteger>(pieceLengthItem)
       ->value();
@@ -90,8 +89,8 @@ tl::expected<std::string, TorrentFileParserError>
 TorrentFileParser::getFileName() const {
   std::shared_ptr<bencoding::BItem> filenameItem = get("name");
   if (!filenameItem) {
-    return tl::unexpected(TorrentFileParserError(
-        "Torrent file is malformed. [File does not contain key 'name']"));
+    return tl::unexpected(TorrentFileParserError{
+        "Torrent file is malformed. [File does not contain key 'name']"});
   }
   return std::dynamic_pointer_cast<bencoding::BString>(filenameItem)->value();
 }
@@ -100,8 +99,8 @@ tl::expected<std::string, TorrentFileParserError>
 TorrentFileParser::getAnnounce() const {
   std::shared_ptr<bencoding::BItem> announceItem = get("announce");
   if (!announceItem) {
-    return tl::unexpected(TorrentFileParserError(
-        "Torrent file is malformed. [File does not contain key 'announce']"));
+    return tl::unexpected(TorrentFileParserError{
+        "Torrent file is malformed. [File does not contain key 'announce']"});
   }
   return std::dynamic_pointer_cast<bencoding::BString>(announceItem)->value();
 }

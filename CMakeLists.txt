@@ -36,6 +36,7 @@ set(
     CPP_TEMPLATE_TEST_SOURCES
     src/main_test.cpp
 )
+
 # Main
 add_executable(main ${CPP_TEMPLATE_SOURCES}
 
@@ -113,9 +114,9 @@ src/DatabaseService_test.cpp
 src/Logger.cpp
 src/Logger.h
 
-src/PieceManager.h
-src/PieceManager.cpp
-src/PieceManager_test.cpp
+# src/PieceManager.h
+# src/PieceManager.cpp
+# src/PieceManager_test.cpp
 )
 
 # Link libraries

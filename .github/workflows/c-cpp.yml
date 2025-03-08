@@ -28,7 +28,6 @@ jobs:
       run: make ci-tests
 
     - name: Run Clang Format and Clang Tidy
-      uses: actions/checkout@v4
       uses: cpp-linter/cpp-linter-action@v2
       id: linter
       env:

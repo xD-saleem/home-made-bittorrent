@@ -17,5 +17,3 @@ tl::expected<std::string, ConnectError> receiveData(int sock,
                                                     uint32_t bufferSize = 0);
 
 #endif  // BITTORRENTCLIENT_CONNECT_H
-        //
-        //

@@ -6,9 +6,9 @@ on:
     branches:
       - main
 
-permissions:
 jobs:
-  contents: write
+  permissions:
+    contents: write
   build:
     runs-on: ubuntu-latest
     steps:

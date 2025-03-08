@@ -19,4 +19,4 @@ int bytesToInt(std::string bytes);
 
 std::string formatTime(long seconds);
 
-#endif // BITTORRENTCLIENT_UTILS_H
+#endif  // BITTORRENTCLIENT_UTILS_H

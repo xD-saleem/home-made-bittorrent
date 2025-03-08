@@ -36,4 +36,3 @@ TEST(PieceManagerTest, splitPieceHashes) {
   EXPECT_EQ(output.has_value(), true);
   EXPECT_EQ(output.value().size(), result);
 }
-

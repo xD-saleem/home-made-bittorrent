@@ -18,7 +18,7 @@ enum class DatabaseServiceError {
 };
 
 struct TorrentRecord {
-  std::string id; // hashinfo
+  std::string id;  // hashinfo
   std::string name;
 };
 
@@ -32,19 +32,19 @@ struct SQLiteDeleter {
 };
 
 class DatabaseService {
-private:
+ private:
   std::shared_ptr<SQLite::Database> db;
   std::shared_ptr<Logger> logger;
 
-public:
+ public:
   explicit DatabaseService(std::shared_ptr<SQLite::Database> dbState,
                            std::shared_ptr<Logger> logger);
 
-  virtual tl::expected<void, DatabaseServiceError>
-  insertOne(std::string hashinfo, std::string name);
+  virtual tl::expected<void, DatabaseServiceError> insertOne(
+      std::string hashinfo, std::string name);
 
-  virtual tl::expected<TorrentRecord, DatabaseServiceError>
-  getTorrent(std::string hashinfo);
+  virtual tl::expected<TorrentRecord, DatabaseServiceError> getTorrent(
+      std::string hashinfo);
 
   virtual tl::expected<void, DatabaseServiceError> up();
 
@@ -54,4 +54,4 @@ public:
 
 std::shared_ptr<SQLite::Database> initDB(const std::string &dbName);
 
-#endif // BITTORRENTCLIENT_DatabaseService_H
+#endif  // BITTORRENTCLIENT_DatabaseService_H

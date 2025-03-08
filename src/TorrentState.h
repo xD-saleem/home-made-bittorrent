@@ -12,10 +12,10 @@ struct TorrentStateError {
 };
 
 class TorrentState {
-private:
+ private:
   std::shared_ptr<DatabaseService> databaseSvc;
 
-public:
+ public:
   explicit TorrentState(std::shared_ptr<DatabaseService> dbSvc)
       : databaseSvc(dbSvc) {
     if (!databaseSvc) {
@@ -30,4 +30,4 @@ public:
 
   ~TorrentState();
 };
-#endif // BITTORRENTCLIENT_TORRENTSTATE_H
+#endif  // BITTORRENTCLIENT_TORRENTSTATE_H

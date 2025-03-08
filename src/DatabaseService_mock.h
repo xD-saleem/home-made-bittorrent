@@ -5,7 +5,7 @@
 #include "DatabaseService.h"
 
 class MockDatabaseService : public DatabaseService {
-public:
+ public:
   MockDatabaseService() : DatabaseService(nullptr, nullptr) {}
 
   MOCK_METHOD((tl::expected<void, DatabaseServiceError>), up, (), (override));

@@ -16,4 +16,3 @@ TEST(BittorrentMessage, init2) {
   std::string actual = message.toString();
   EXPECT_EQ(actual, expected);
 }
-

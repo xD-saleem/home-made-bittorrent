@@ -14,7 +14,7 @@ struct PeerConnectionError {
 };
 
 class PeerConnection {
-private:
+ private:
   int sock{};
   SharedQueue<Peer *> *queue;
   bool choked = true;
@@ -43,7 +43,7 @@ private:
   void sendSeed();
   void sendPiece();
 
-public:
+ public:
   const std::string &getPeerId() const;
 
   explicit PeerConnection(SharedQueue<Peer *> *queue, std::string clientId,
@@ -54,4 +54,4 @@ public:
   void stop();
 };
 
-#endif // BITTORRENTCLIENT_PEERCONNECTION_H
+#endif  // BITTORRENTCLIENT_PEERCONNECTION_H

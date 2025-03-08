@@ -15,6 +15,5 @@ ci-build:
 
 ci-tests:
 	echo "running tests" &&  ./build/tests
-	 # cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=.//vcpkg/scriildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
 

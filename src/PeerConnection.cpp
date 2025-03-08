@@ -33,8 +33,10 @@
 PeerConnection::PeerConnection(SharedQueue<Peer *> *queue, std::string clientId,
                                std::string infoHash,
                                std::shared_ptr<PieceManager> pieceManager)
-    : queue(queue), clientId(std::move(clientId)),
-      infoHash(std::move(infoHash)), pieceManager(pieceManager) {}
+    : queue(queue),
+      clientId(std::move(clientId)),
+      infoHash(std::move(infoHash)),
+      pieceManager(pieceManager) {}
 
 /**
  * Destructor of the PeerConnection class. Closes the established TCP connection
@@ -68,32 +70,32 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
                 "Received invalid message Id from peer " + peerId});
 
           switch (message.getMessageId()) {
-          case choke:
-            choked = true;
-            break;
+            case choke:
+              choked = true;
+              break;
 
-          case unchoke:
-            choked = false;
-            break;
+            case unchoke:
+              choked = false;
+              break;
 
-          case piece: {
-            requestPending = false;
-            std::string payload = message.getPayload();
-            int index = bytesToInt(payload.substr(0, 4));
-            int begin = bytesToInt(payload.substr(4, 4));
-            std::string blockData = payload.substr(8);
-            pieceManager->blockReceived(peerId, index, begin, blockData);
-            break;
-          }
-          case have: {
-            std::string payload = message.getPayload();
-            int pieceIndex = bytesToInt(payload);
-            pieceManager->updatePeer(peerId, pieceIndex);
-            break;
-          }
+            case piece: {
+              requestPending = false;
+              std::string payload = message.getPayload();
+              int index = bytesToInt(payload.substr(0, 4));
+              int begin = bytesToInt(payload.substr(4, 4));
+              std::string blockData = payload.substr(8);
+              pieceManager->blockReceived(peerId, index, begin, blockData);
+              break;
+            }
+            case have: {
+              std::string payload = message.getPayload();
+              int pieceIndex = bytesToInt(payload);
+              pieceManager->updatePeer(peerId, pieceIndex);
+              break;
+            }
 
-          default:
-            break;
+            default:
+              break;
           }
           if (!choked) {
             if (!requestPending) {
@@ -161,8 +163,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::receiveBitField() {
 void PeerConnection::requestPiece() {
   Block *block = pieceManager->nextRequest(peerId);
 
-  if (!block)
-    return;
+  if (!block) return;
 
   int payloadLength = 12;
   char temp[payloadLength];
@@ -174,8 +175,7 @@ void PeerConnection::requestPiece() {
   std::memcpy(temp + 4, &offset, sizeof(int));
   std::memcpy(temp + 8, &length, sizeof(int));
   std::string payload;
-  for (int i = 0; i < payloadLength; i++)
-    payload += (char)temp[i];
+  for (int i = 0; i < payloadLength; i++) payload += (char)temp[i];
 
   std::stringstream info;
   info << "Sending Request message to peer " << peer->ip << " ";

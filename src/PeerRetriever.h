@@ -24,7 +24,7 @@ struct Peer {
  * Retrieves a list of peers by sending a GET request to the tracker.
  */
 class PeerRetriever {
-private:
+ private:
   std::shared_ptr<Logger> logger;
   std::string announceUrl;
   std::string infoHash;
@@ -32,10 +32,10 @@ private:
   int port;
   const unsigned long fileSize;
 
-  tl::expected<std::vector<Peer *>, PeerRetrieverError>
-  decodeResponse(std::string response);
+  tl::expected<std::vector<Peer *>, PeerRetrieverError> decodeResponse(
+      std::string response);
 
-public:
+ public:
   explicit PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
                          std::string announceUrL, std::string infoHash,
                          int port, unsigned long fileSize);
@@ -43,4 +43,4 @@ public:
   std::vector<Peer *> retrieveSeedPeers(unsigned long bytesDownloaded = 0);
 };
 
-#endif // BITTORRENTCLIENT_PEERRETRIEVER_H
+#endif  // BITTORRENTCLIENT_PEERRETRIEVER_H

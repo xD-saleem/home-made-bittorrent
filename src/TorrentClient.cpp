@@ -16,16 +16,22 @@
 #include "TorrentFileParser.h"
 
 #define PORT 8080
-#define PEER_QUERY_INTERVAL 60 // 1 minute
+#define PEER_QUERY_INTERVAL 60  // 1 minute
 
 TorrentClient::TorrentClient(
     std::shared_ptr<Logger> logger, std::shared_ptr<TorrentState> torrentState,
     std::shared_ptr<PieceManager> pieceManager,
     std::shared_ptr<TorrentFileParser> torrentFileParser, int threadNum,
     std::string logFilePath)
-    : logger(), torrentState(torrentState), pieceManager(pieceManager),
-      torrentFileParser(torrentFileParser), threadNum(threadNum),
-      peerId("-UT2021-"), queue(), threadPool(), connections()
+    : logger(),
+      torrentState(torrentState),
+      pieceManager(pieceManager),
+      torrentFileParser(torrentFileParser),
+      threadNum(threadNum),
+      peerId("-UT2021-"),
+      queue(),
+      threadPool(),
+      connections()
 
 {
   std::random_device rd;
@@ -75,14 +81,12 @@ void TorrentClient::start(const std::string &downloadDirectory) {
   torrentState->storeState(infoHash, filename);
 }
 
-void TorrentClient::downloadFile(const std::string &downloadDirectory) {
+void TorrentClient::downloadFile(const std::string &downloadPath) {
   std::string announceUrl = torrentFileParser->getAnnounce().value();
 
   long fileSize = torrentFileParser->getFileSize().value();
   const std::string infoHash = torrentFileParser->getInfoHash();
   std::string filename = torrentFileParser->getFileName().value();
-
-  std::string downloadPath = downloadDirectory + filename;
 
   // Adds threads to the thread pool
   for (int i = 0; i < threadNum; i++) {
@@ -139,8 +143,7 @@ void TorrentClient::terminate() {
     Peer *dummyPeer = new Peer{"0.0.0.0", 0};
     queue.push_back(dummyPeer);
   }
-  for (auto connection : connections)
-    connection->stop();
+  for (auto connection : connections) connection->stop();
 
   for (std::thread &thread : threadPool) {
     if (thread.joinable()) {

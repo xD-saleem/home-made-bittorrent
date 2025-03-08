@@ -28,18 +28,16 @@ jobs:
       run: make ci-tests
 
     - name: Run Clang Format and Clang Tidy
-      uses: cpp-linter/cpp-linter-action@v2.13.4
+      uses: actions/checkout@v4
+      uses: cpp-linter/cpp-linter-action@v2
       id: linter
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        database: build/
-        files-changed-only: false
-        format-review: false
-        ignore: 'build|cmake-modules|docker|vcpkg'
-        passive-reviews: true
-        step-summary: true
-        style: 'file'
-        tidy-checks: ''
+        style: 'file'  # Use .clang-format config file
+        tidy-checks: '' # Use .clang-tidy config file
+        # only 'update' a single comment in a pull request thread.
         thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
-        version: 19
+    - name: Fail fast?!
+      if: steps.linter.outputs.checks-failed > 0
+      run: exit 1

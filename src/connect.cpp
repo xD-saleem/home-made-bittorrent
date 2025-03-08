@@ -12,6 +12,7 @@
 #include <iostream>
 #include <limits>
 
+#include "Logger.h"
 #include "utils.h"
 
 constexpr int READ_TIMEOUT = 300;

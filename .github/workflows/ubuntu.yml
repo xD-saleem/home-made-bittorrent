@@ -12,29 +12,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: vcpkg build
-      uses: johnwason/vcpkg-action@v6
-      id: vcpkg
-      with:
-        manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
-        token: ${{ github.token }}
-        triplet: x64-linux-release
-
-    - name: build
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_BUILD_TYPE=Release && cd build && make && cd - && echo "successfully built"
-
-    - name: test
-      run: make ci-tests
-
-  release-on-push:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: rymndhng/release-on-push-action@master
+      - name: vcpkg build
+        uses: johnwason/vcpkg-action@v6
+        id: vcpkg
         with:
-          tag_prefix: "v"
-          release_name: "Release <RELEASE_VERSION>"
+          manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
+          token: ${{ github.token }}
+          triplet: x64-linux-release
+
+      - name: build
+        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_BUILD_TYPE=Release && cd build && make && cd - && echo "successfully built"
+
+      - name: Test
+        run: make ci-tests
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build/main

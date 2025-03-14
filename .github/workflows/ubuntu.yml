@@ -12,10 +12,11 @@ on:
 jobs:
   # Job for Pull Requests
   pr-build:
-   permissions:
-    contents: write
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
       # Step 1: Checkout the code

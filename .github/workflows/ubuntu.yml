@@ -58,6 +58,7 @@ jobs:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
+          artifacts: "build/main"
 
 
       # Step 5: Release the build if the Git reference is a tag

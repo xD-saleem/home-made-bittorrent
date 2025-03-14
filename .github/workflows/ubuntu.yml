@@ -5,6 +5,9 @@ on:
   pull_request:
     branches:
       - '**' # Triggers for any pull request to any branch
+  permissions:
+    contents: write
+
   push:
     branches:
       - main # Triggers when pushing to the 'main' branch

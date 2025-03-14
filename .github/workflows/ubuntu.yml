@@ -2,8 +2,6 @@ name: CI
 
 on:
   pull_request:
-  permissions:
-    contents: write
   push:
     branches:
       - main
@@ -11,24 +9,35 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout the code
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Step 2: Install dependencies via vcpkg
       - name: vcpkg build
         uses: johnwason/vcpkg-action@v6
         id: vcpkg
         with:
-          manifest-dir: ${{ github.workspace }} # Set to directory containing vcpkg.json
-          token: ${{ github.token }}
-          triplet: x64-linux-release
+          manifest-dir: ${{ github.workspace }} # Directory containing vcpkg.json
+          token: ${{ github.token }}  # GitHub token for authentication
+          triplet: x64-linux-release  # Build for the Linux platform
 
+      # Step 3: Build the project using CMake and Make
       - name: build
-        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_BUILD_TYPE=Release && cd build && make && cd - && echo "successfully built"
+        run: |
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Release
+          cd build
+          make
+          cd -
+          echo "successfully built"
 
+      # Step 4: Run the tests
       - name: Test
         run: make ci-tests
 
+      # Step 5: Release the build if the Git reference is a tag
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')

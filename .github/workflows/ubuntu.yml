@@ -47,7 +47,7 @@ jobs:
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ github.token }}  # GitHub token for authentication
 
       # Step 5: Release the build if the Git reference is a tag
       # - name: Release
@@ -94,9 +94,15 @@ jobs:
         run: make ci-tests
 
       # Step 5: Release the build if the Git reference is a tag
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+      # - name: Release
+      #   uses: softprops/action-gh-release@v2
+      #   if: startsWith(github.ref, 'refs/tags/')
+      #   with:
+      #     files: build/main
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
         with:
-          files: build/main
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
 

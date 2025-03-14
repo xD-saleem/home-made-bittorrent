@@ -29,14 +29,12 @@ jobs:
     - name: test
       run: make ci-tests
 
-
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: build/main
-        asset_name: mything
-        tag: ${{ github.ref }}
-        overwrite: true
-        body: "This is my release text"
-
+  release-on-push:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: rymndhng/release-on-push-action@master
+        with:
+          tag_prefix: "v"
+          release_name: "Release <RELEASE_VERSION>"

@@ -1,0 +1,114 @@
+
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - '**' # Triggers for any pull request to any branch
+  push:
+    branches:
+      - main # Triggers when pushing to the 'main' branch
+
+jobs:
+  # Job for Pull Requests
+  pr-build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest-arm
+    permissions:
+      contents: write
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2: Install dependencies via vcpkg
+      - name: vcpkg build
+        uses: johnwason/vcpkg-action@v6
+        id: vcpkg
+        with:
+          manifest-dir: ${{ github.workspace }} # Directory containing vcpkg.json
+          token: ${{ github.token }}  # GitHub token for authentication
+          triplet: x64-linux-release  # Build for the Linux platform
+
+      # Step 3: Build the project using CMake and Make
+      - name: build
+        run: |
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Release
+          cd build
+          make
+          cd -
+          echo "successfully built"
+
+      # Step 4: Run the tests
+      - name: Test
+        run: make ci-tests
+
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ github.token }}  # GitHub token for authentication
+
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+          artifacts: "build/main"
+
+
+      # Step 5: Release the build if the Git reference is a tag
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build/main
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+
+  # Job for pushes to the 'main' branch
+  main-build:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest-arm
+ 
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2: Install dependencies via vcpkg
+      - name: vcpkg build
+        uses: johnwason/vcpkg-action@v6
+        id: vcpkg
+        with:
+          manifest-dir: ${{ github.workspace }} # Directory containing vcpkg.json
+          token: ${{ github.token }}  # GitHub token for authentication
+          triplet: x64-linux-release  # Build for the Linux platform
+
+      # Step 3: Build the project using CMake and Make
+      - name: build
+        run: |
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Release
+          cd build
+          make
+          cd -
+          echo "successfully built"
+
+      # Step 4: Run the tests
+      - name: Test
+        run: make ci-tests
+
+      # Step 5: Release the build if the Git reference is a tag
+      # - name: Release
+      #   uses: softprops/action-gh-release@v2
+      #   if: startsWith(github.ref, 'refs/tags/')
+      #   with:
+      #     files: build/main
+   

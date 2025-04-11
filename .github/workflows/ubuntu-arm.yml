@@ -13,8 +13,7 @@ jobs:
   # Job for Pull Requests
   pr-build:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-latest-arm
     permissions:
       contents: write
 
@@ -76,7 +75,8 @@ jobs:
   # Job for pushes to the 'main' branch
   main-build:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-arm
+ 
 
     steps:
       # Step 1: Checkout the code

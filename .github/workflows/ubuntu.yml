@@ -12,7 +12,7 @@ on:
 jobs:
   # Job for Pull Requests
   pr-build:
-    if: github.event_name == 'pull_request'
+    # if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     permissions:

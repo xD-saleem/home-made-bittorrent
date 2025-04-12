@@ -7,14 +7,13 @@ on:
       - '**' # Triggers for any pull request to any branch
   push:
     branches:
-      - '**' # Triggers for any pull request to any branch
-      # - main # Triggers when pushing to the 'main' branch
+      - main # Triggers when pushing to the 'main' branch
 
 jobs:
   # Job for Pull Requests
   pr-build:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     permissions:
       contents: write

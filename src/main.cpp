@@ -2,6 +2,7 @@
 #include <fmt/base.h>
 #include <fmt/color.h>
 
+#include <iostream>
 #include <memory>
 #include <tl/expected.hpp>
 
@@ -12,16 +13,20 @@
 #include "TorrentState.h"
 #include "string"
 
-using std::shared_ptr;
-
-int main() {
+int main(int argc, char *argv[]) {
   int threads = 50;
-  std::string filename = "debian.torrent";
   std::string download_directory = "./";
-  std::string download_path = download_directory + filename;
+
+  if (argc != 2) {
+    std::cerr << "Usage: " << argv[0] << " <file_path>" << std::endl;
+    return 1;
+  }
+
+  std::string download_path = argv[1];
+  std::cout << "You provided the file path: " << download_path << std::endl;
 
   // Logger
-  shared_ptr<Logger> logger =
+  std::shared_ptr<Logger> logger =
       std::make_shared<Logger>(Logger::custom_log_function);
 
   std::shared_ptr<SQLite::Database> database = initDB("torrent_state.db3");

@@ -24,21 +24,20 @@ struct PieceManagerError {
 
 class PieceManager {
  private:
-  std::shared_ptr<Logger> logger;
-  std::map<std::string, std::string> peers;
-  std::vector<Piece *> missingPieces;
-  std::vector<Piece *> ongoingPieces;
-  std::vector<PendingRequest *> pendingRequests;
-  std::ofstream downloadedFile;
-  // std::thread& progressTrackerThread;
-  const long pieceLength;
-  std::shared_ptr<TorrentFileParser> fileParser;
-  const int maximumConnections;
-  int piecesDownloadedInInterval = 0;
-  time_t startingTime;
+  std::shared_ptr<Logger> logger_;
+  std::map<std::string, std::string> peers_;
+  std::vector<Piece *> missingPieces_;
+  std::vector<Piece *> ongoingPieces_;
+  std::vector<PendingRequest *> pendingRequests_;
+  std::ofstream downloadedFile_;
+  const int64_t pieceLength_;
+  std::shared_ptr<TorrentFileParser> fileParser_;
+  const int maximumConnections_;
+  int piecesDownloadedInInterval_ = 0;
+  time_t startingTime_;
 
   // Uses a lock to prevent race condition
-  std::mutex lock;
+  std::mutex lock_;
 
   std::vector<Piece *> initiatePieces();
   Block *expiredRequest(std::string peerId);
@@ -49,15 +48,12 @@ class PieceManager {
   void trackProgress();
 
  public:
-  explicit PieceManager(
-
-      std::shared_ptr<TorrentFileParser> fileParser,
-      std::shared_ptr<Logger> logger, const std::string &downloadPath,
-      int maximumConnections);
+  explicit PieceManager(const std::shared_ptr<TorrentFileParser> &fileParser,
+                        const std::string &downloadPath,
+                        int maximumConnections);
   ~PieceManager();
   bool isComplete();
-  tl::expected<void, PieceManagerError> blockReceived(std::string peerId,
-                                                      int pieceIndex,
+  tl::expected<void, PieceManagerError> blockReceived(int pieceIndex,
                                                       int blockOffset,
                                                       std::string data);
   void addPeer(const std::string &peerId, std::string bitField);
@@ -66,8 +62,8 @@ class PieceManager {
                                                    int index);
 
   std::vector<Piece *> getPieces();
-  unsigned long bytesDownloaded();
-  size_t totalPieces{};
+  uint64_t bytesDownloaded();
+  size_t total_pieces{};
   Block *nextRequest(std::string peerId);
   std::vector<Piece *> havePieces;
 };

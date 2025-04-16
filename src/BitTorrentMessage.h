@@ -5,25 +5,25 @@
 #include <string>
 
 enum MessageId {
-  keepAlive = -1,
-  choke = 0,
-  unchoke = 1,
-  interested = 2,
-  notInterested = 3,
-  have = 4,
-  bitField = 5,
-  request = 6,
-  piece = 7,
-  cancel = 8,
-  port = 9,
-  seeding = 10
+  kEepAlive = -1,
+  kChoke = 0,
+  kUnchoke = 1,
+  kInterested = 2,
+  kNotInterested = 3,
+  kHave = 4,
+  kBitField = 5,
+  kRequest = 6,
+  kPiece = 7,
+  kCancel = 8,
+  kPort = 9,
+  kSeeding = 10
 };
 
 class BitTorrentMessage {
  private:
-  const uint32_t messageLength;
-  const uint8_t id;
-  const std::string payload;
+  const uint32_t messageLength_;
+  const uint8_t id_;
+  const std::string payload_;
 
  public:
   explicit BitTorrentMessage(uint8_t id, const std::string &payload = "");

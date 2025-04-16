@@ -6,28 +6,28 @@
 
 #include <cstdlib>
 
-void customLogFunction(const std::string &message) {}
-std::shared_ptr<Logger> logger = std::make_shared<Logger>(customLogFunction);
+static std::shared_ptr<Logger> logger =
+    std::make_shared<Logger>(Logger::custom_log_function);
 
 TEST(DatabaseService, InsertOneAndGetOne) {
-  std::string memoryDb = ":memory:";
+  std::string memory_db = ":memory:";
 
-  auto db = initDB(memoryDb);
-  DatabaseService databaseSvc = DatabaseService(db, logger);
+  auto db = initDB(memory_db);
+  DatabaseService database_svc = DatabaseService(db, logger);
 
-  databaseSvc.up();
+  database_svc.up();
 
-  std::string mockHash = "mockHash";
-  std::string mockTorrentName = "mockTorrentName";
+  std::string mock_hash = "mockHash";
+  std::string mock_torrent_name = "mockTorrentName";
 
   tl::expected<void, DatabaseServiceError> res =
-      databaseSvc.insertOne(mockHash, mockTorrentName);
+      database_svc.insertOne(mock_hash, mock_torrent_name);
 
   EXPECT_TRUE(res.has_value());
 
   tl::expected<TorrentRecord, DatabaseServiceError> obj =
-      databaseSvc.getTorrent(mockHash);
+      database_svc.getTorrent(mock_hash);
 
-  EXPECT_EQ(obj->id, mockHash);
-  EXPECT_EQ(obj->name, mockTorrentName);
+  EXPECT_EQ(obj->id, mock_hash);
+  EXPECT_EQ(obj->name, mock_torrent_name);
 }

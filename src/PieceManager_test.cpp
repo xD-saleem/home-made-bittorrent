@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 TEST(PieceManagerTest, splitPieceHashes) {
-  std::string downloadPath = "./piece";
+  std::string download_path = "./piece";
 
   // PieceManager pieceManager(torrentFileParser, downloadPath, 1);
   //

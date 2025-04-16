@@ -1,2 +1,4 @@
-BasedOnStyle: Google
-
+# Run manually to reformat a file:
+# clang-format -i --style=file <file>
+Language:        Cpp
+BasedOnStyle:  Google

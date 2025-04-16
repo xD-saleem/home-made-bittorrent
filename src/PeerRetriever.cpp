@@ -5,7 +5,9 @@
 #include <fmt/base.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <sys/types.h>
 
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <tl/expected.hpp>
@@ -26,13 +28,13 @@
  */
 PeerRetriever::PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
                              std::string announceUrl, std::string infoHash,
-                             int port, const unsigned long fileSize)
+                             int port, const u_int64_t fileSize)
     : fileSize(fileSize) {
   this->peerId = std::move(peerId);
   this->announceUrl = std::move(announceUrl);
   this->infoHash = std::move(infoHash);
   this->port = port;
-  this->logger = logger;
+  this->logger = std::move(logger);
 }
 
 /**
@@ -49,8 +51,7 @@ PeerRetriever::PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
  * not.
  * @return a vector that contains the information of all peers.
  */
-std::vector<Peer *> PeerRetriever::retrievePeers(
-    unsigned long bytesDownloaded) {
+std::vector<Peer *> PeerRetriever::retrievePeers(u_int64_t bytesDownloaded) {
   std::stringstream info;
   info << "Retrieving peers from " << announceUrl
        << " with the following parameters..." << std::endl;
@@ -76,13 +77,13 @@ std::vector<Peer *> PeerRetriever::retrievePeers(
 
   // If response successfully retrieved
   if (res.status_code == 200) {
-    std::shared_ptr<bencoding::BItem> decodedResponse =
+    std::shared_ptr<bencoding::BItem> decoded_response =
         bencoding::decode(res.text);
 
     auto peers = decodeResponse(res.text);
 
     if (!peers.has_value()) {
-      logger->log(fmt::format("Decoding tracker response: FAILED [ {} ]",
+      Logger::log(fmt::format("Decoding tracker response: FAILED [ {} ]",
                               peers.error().message.c_str()));
       return std::vector<Peer *>();
     }
@@ -97,7 +98,7 @@ std::vector<Peer *> PeerRetriever::retrievePeers(
 }
 
 std::vector<Peer *> PeerRetriever::retrieveSeedPeers(
-    unsigned long bytesDownloaded) {
+    u_int64_t bytesDownloaded) {
   std::stringstream info;
   info << "Retrieving peers from " << announceUrl
        << " with the following parameters..." << std::endl;
@@ -126,7 +127,7 @@ std::vector<Peer *> PeerRetriever::retrieveSeedPeers(
 
   // If response successfully retrieved
   if (res.status_code == 200) {
-    std::shared_ptr<bencoding::BItem> decodedResponse =
+    std::shared_ptr<bencoding::BItem> decoded_response =
         bencoding::decode(res.text);
 
     auto peers = decodeResponse(res.text);
@@ -137,7 +138,7 @@ std::vector<Peer *> PeerRetriever::retrieveSeedPeers(
 
     return peers.value();
   } else {
-    logger->log(
+    Logger::log(
         fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
                     res.status_code, res.text.c_str()));
   }
@@ -147,14 +148,14 @@ std::vector<Peer *> PeerRetriever::retrieveSeedPeers(
 
 tl::expected<std::vector<Peer *>, PeerRetrieverError>
 PeerRetriever::decodeResponse(std::string response) {
-  std::shared_ptr<bencoding::BItem> decodedResponse =
+  std::shared_ptr<bencoding::BItem> decoded_response =
       bencoding::decode(response);
 
-  std::shared_ptr<bencoding::BDictionary> responseDict =
-      std::dynamic_pointer_cast<bencoding::BDictionary>(decodedResponse);
-  std::shared_ptr<bencoding::BItem> peersValue =
-      responseDict->getValue("peers");
-  if (!peersValue) {
+  std::shared_ptr<bencoding::BDictionary> response_dict =
+      std::dynamic_pointer_cast<bencoding::BDictionary>(decoded_response);
+  std::shared_ptr<bencoding::BItem> peers_value =
+      response_dict->getValue("peers");
+  if (!peers_value) {
     return tl::unexpected(PeerRetrieverError{
         "Response returned by the tracker is not in the correct format. "
         "['peers' not found]"});
@@ -164,67 +165,71 @@ PeerRetriever::decodeResponse(std::string response) {
 
   // Handles the first case where peer information is sent in a binary blob
   // (compact)
-  if (typeid(*peersValue) == typeid(bencoding::BString)) {
+  if (typeid(*peers_value) == typeid(bencoding::BString)) {
     // Unmarshalls the peer information:
     // Detailed explanation can be found here:
     // https://blog.jse.li/posts/torrent/
     // Essentially, every 6 bytes represent a single peer with the first 4
     // bytes being the IP and the last 2 bytes being the port number.
-    const int peerInfoSize = 6;
-    std::string peersString =
-        std::dynamic_pointer_cast<bencoding::BString>(peersValue)->value();
+    const int peer_info_size = 6;
+    std::string peers_string =
+        std::dynamic_pointer_cast<bencoding::BString>(peers_value)->value();
 
-    if (peersString.length() % peerInfoSize != 0) {
+    if (peers_string.length() % peer_info_size != 0) {
       return tl::unexpected(PeerRetrieverError{
           "Received malformed 'peers' from tracker. ['peers' length needs to "
           "be divisible by 6]"});
     }
 
-    const int peerNum = peersString.length() / peerInfoSize;
-    for (int i = 0; i < peerNum; i++) {
-      int offset = i * peerInfoSize;
-      std::stringstream peerIp;
-      peerIp << std::to_string((uint8_t)peersString[offset]) << ".";
-      peerIp << std::to_string((uint8_t)peersString[offset + 1]) << ".";
-      peerIp << std::to_string((uint8_t)peersString[offset + 2]) << ".";
-      peerIp << std::to_string((uint8_t)peersString[offset + 3]);
-      int peerPort = bytesToInt(peersString.substr(offset + 4, 2));
-      Peer *newPeer = new Peer{peerIp.str(), peerPort};
-      peers.push_back(newPeer);
+    const int peer_num = peers_string.length() / peer_info_size;
+    for (int i = 0; i < peer_num; i++) {
+      int offset = i * peer_info_size;
+      std::stringstream peer_ip;
+      peer_ip << std::to_string(static_cast<uint8_t>(peers_string[offset]))
+              << ".";
+      peer_ip << std::to_string(static_cast<uint8_t>(peers_string[offset + 1]))
+              << ".";
+      peer_ip << std::to_string(static_cast<uint8_t>(peers_string[offset + 2]))
+              << ".";
+      peer_ip << std::to_string(static_cast<uint8_t>(peers_string[offset + 3]));
+      int peer_port = bytesToInt(peers_string.substr(offset + 4, 2));
+      Peer *new_peer = new Peer{.ip = peer_ip.str(), .port = peer_port};
+      peers.push_back(new_peer);
     }
   }
   // Handles the second case where peer information is stored in a list
-  else if (typeid(*peersValue) == typeid(bencoding::BList)) {
-    std::shared_ptr<bencoding::BList> peerList =
-        std::dynamic_pointer_cast<bencoding::BList>(peersValue);
-    for (auto &item : *peerList) {
+  else if (typeid(*peers_value) == typeid(bencoding::BList)) {
+    std::shared_ptr<bencoding::BList> peer_list =
+        std::dynamic_pointer_cast<bencoding::BList>(peers_value);
+    for (auto &item : *peer_list) {
       // Casts each item to a dictionary
-      std::shared_ptr<bencoding::BDictionary> peerDict =
+      std::shared_ptr<bencoding::BDictionary> peer_dict =
           std::dynamic_pointer_cast<bencoding::BDictionary>(item);
 
       // Gets peer ip from the dictionary
-      std::shared_ptr<bencoding::BItem> tempPeerIp = peerDict->getValue("ip");
+      std::shared_ptr<bencoding::BItem> temp_peer_ip =
+          peer_dict->getValue("ip");
 
-      if (!tempPeerIp)
+      if (!temp_peer_ip)
         return tl::unexpected(PeerRetrieverError{
             "Received malformed 'peers' from tracker. [Item does not contain "
             "key 'ip']"});
 
-      std::string peerIp =
-          std::dynamic_pointer_cast<bencoding::BString>(tempPeerIp)->value();
+      std::string peer_ip =
+          std::dynamic_pointer_cast<bencoding::BString>(temp_peer_ip)->value();
       // Gets peer port from the dictionary
-      std::shared_ptr<bencoding::BItem> tempPeerPort =
-          peerDict->getValue("port");
-      if (!tempPeerPort) {
+      std::shared_ptr<bencoding::BItem> temp_peer_port =
+          peer_dict->getValue("port");
+      if (!temp_peer_port) {
         return tl::unexpected(PeerRetrieverError{
             "Received malformed 'peers' from tracker. [Item does not contain "
             "key 'port']"});
       }
-      int peerPort =
-          (int)std::dynamic_pointer_cast<bencoding::BInteger>(tempPeerPort)
-              ->value();
-      Peer *newPeer = new Peer{peerIp, peerPort};
-      peers.push_back(newPeer);
+      int peer_port = static_cast<int>(
+          std::dynamic_pointer_cast<bencoding::BInteger>(temp_peer_port)
+              ->value());
+      Peer *new_peer = new Peer{.ip = peer_ip, .port = peer_port};
+      peers.push_back(new_peer);
     }
   } else {
     return tl::unexpected(PeerRetrieverError{

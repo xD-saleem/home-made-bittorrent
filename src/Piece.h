@@ -26,7 +26,7 @@ struct PieceError {
 
 class Piece {
  private:
-  const std::string hashValue;
+  const std::string hashValue_;
 
  public:
   const int index;

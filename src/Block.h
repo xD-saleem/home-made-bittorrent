@@ -3,7 +3,7 @@
 
 #include <string>
 
-enum BlockStatus { missing = 0, pending = 1, retrieved = 2 };
+enum BlockStatus { kMissing = 0, kPending = 1, kRetrieved = 2 };
 
 struct Block {
   int piece;

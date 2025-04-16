@@ -11,10 +11,10 @@
 #include "Logger.h"
 
 enum class DatabaseServiceError {
-  OpenError,
-  InsertError,
-  QueryError,
-  UpdateError
+  kOpenError,
+  kInsertError,
+  kQueryError,
+  kUpdateError
 };
 
 struct TorrentRecord {
@@ -33,8 +33,8 @@ struct SQLiteDeleter {
 
 class DatabaseService {
  private:
-  std::shared_ptr<SQLite::Database> db;
-  std::shared_ptr<Logger> logger;
+  std::shared_ptr<SQLite::Database> db_;
+  std::shared_ptr<Logger> logger_;
 
  public:
   explicit DatabaseService(std::shared_ptr<SQLite::Database> dbState,

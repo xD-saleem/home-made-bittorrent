@@ -8,17 +8,17 @@
 #include <unistd.h>
 
 #include <chrono>
+#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <limits>
 
-#include "Logger.h"
 #include "utils.h"
 
-constexpr int READ_TIMEOUT = 300;
-constexpr int CONNECT_TIMEOUT = 5;
+constexpr int kReadTimeout = 300;
+constexpr int kConnectTimeout = 5;
 
-bool setSocketBlocking(int sock, bool blocking) {
+static bool setSocketBlocking(int sock, bool blocking) {
   if (sock < 0) {
     std::cerr << "Invalid socket descriptor\n";
     return false;
@@ -68,7 +68,7 @@ tl::expected<int, ConnectError> createConnection(const std::string &ip,
   connect(sock, reinterpret_cast<struct sockaddr *>(&address), sizeof(address));
 
   fd_set fdset;
-  timeval tv{CONNECT_TIMEOUT, 0};
+  timeval tv{.tv_sec = kConnectTimeout, .tv_usec = 0};
   FD_ZERO(&fdset);
   FD_SET(sock, &fdset);
 
@@ -110,13 +110,11 @@ tl::expected<void, ConnectError> sendData(const int sock,
 tl::expected<std::string, ConnectError> receiveData(int sock,
                                                     uint32_t bufferSize) {
   std::string reply;
-  constexpr int lengthIndicatorSize = 4;
+  constexpr int kLengthIndicatorSize = 4;
 
   if (bufferSize == 0) {
-    struct pollfd fd {
-      sock, POLLIN, 0
-    };
-    int ret = poll(&fd, 1, READ_TIMEOUT);
+    struct pollfd fd{sock, POLLIN, 0};
+    int ret = poll(&fd, 1, kReadTimeout);
 
     if (ret < 0) {
       return tl::unexpected(
@@ -127,14 +125,14 @@ tl::expected<std::string, ConnectError> receiveData(int sock,
           ConnectError{"Read timeout on socket " + std::to_string(sock)});
     }
 
-    char lengthBuffer[lengthIndicatorSize] = {};
-    if (recv(sock, lengthBuffer, lengthIndicatorSize, 0) !=
-        lengthIndicatorSize) {
+    char length_buffer[kLengthIndicatorSize] = {};
+    if (recv(sock, length_buffer, kLengthIndicatorSize, 0) !=
+        kLengthIndicatorSize) {
       return tl::unexpected(ConnectError{
           "Failed to read message length from socket " + std::to_string(sock)});
     }
 
-    bufferSize = bytesToInt(std::string(lengthBuffer, lengthIndicatorSize));
+    bufferSize = bytesToInt(std::string(length_buffer, kLengthIndicatorSize));
   }
 
   if (bufferSize > std::numeric_limits<uint16_t>::max()) {
@@ -143,23 +141,23 @@ tl::expected<std::string, ConnectError> receiveData(int sock,
   }
 
   std::vector<char> buffer(bufferSize);
-  size_t bytesRead = 0;
-  auto startTime = std::chrono::steady_clock::now();
+  size_t bytes_read = 0;
+  auto start_time = std::chrono::steady_clock::now();
 
-  while (bytesRead < bufferSize) {
-    if (std::chrono::steady_clock::now() - startTime >
-        std::chrono::milliseconds(READ_TIMEOUT)) {
+  while (bytes_read < bufferSize) {
+    if (std::chrono::steady_clock::now() - start_time >
+        std::chrono::milliseconds(kReadTimeout)) {
       return tl::unexpected(
           ConnectError{"Read timeout on socket " + std::to_string(sock)});
     }
 
-    long result =
-        recv(sock, buffer.data() + bytesRead, bufferSize - bytesRead, 0);
+    int64_t result =
+        recv(sock, buffer.data() + bytes_read, bufferSize - bytes_read, 0);
     if (result <= 0) {
       return tl::unexpected(ConnectError{"Failed to read data from socket " +
                                          std::to_string(sock)});
     }
-    bytesRead += result;
+    bytes_read += result;
   }
 
   return std::string(buffer.begin(), buffer.end());

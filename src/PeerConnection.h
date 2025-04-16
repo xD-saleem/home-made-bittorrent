@@ -36,7 +36,7 @@ class PeerConnection {
   void requestPiece();
   void closeSock();
   tl::expected<void, PeerConnectionError> establishNewConnection();
-  BitTorrentMessage receiveMessage(int bufferSize = 0) const;
+  BitTorrentMessage receiveMessage() const;
   BitTorrentMessage sendMessage(int bufferSize = 0) const;
 
   // seed

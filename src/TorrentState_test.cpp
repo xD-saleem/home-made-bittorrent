@@ -8,14 +8,14 @@
 
 TEST(TorrentState, storeStateHandlesInsertError) {
   // Create a mock database service
-  std::shared_ptr<MockDatabaseService> dbService =
+  std::shared_ptr<MockDatabaseService> db_service =
       std::make_shared<MockDatabaseService>();
 
-  TorrentState ts = TorrentState(dbService);
+  TorrentState ts = TorrentState(db_service);
 
-  EXPECT_CALL(*dbService, insertOne("mockHashMock", "mockName"))
+  EXPECT_CALL(*db_service, insertOne("mockHashMock", "mockName"))
       .WillOnce(::testing::Return(tl::unexpected<DatabaseServiceError>{
-          DatabaseServiceError::InsertError}));
+          DatabaseServiceError::kInsertError}));
 
   auto val = ts.storeState("mockHashMock", "mockName");
 
@@ -26,12 +26,12 @@ TEST(TorrentState, storeStateHandlesInsertError) {
 }
 
 TEST(TorrentState, storeStateHandlesInsertOK) {
-  std::shared_ptr<MockDatabaseService> dbService =
+  std::shared_ptr<MockDatabaseService> db_service =
       std::make_shared<MockDatabaseService>();
 
-  TorrentState ts = TorrentState(dbService);
+  TorrentState ts = TorrentState(db_service);
 
-  EXPECT_CALL(*dbService, insertOne("mockHashMock1", "mockName1"))
+  EXPECT_CALL(*db_service, insertOne("mockHashMock1", "mockName1"))
       .WillOnce(::testing::Return(tl::expected<void, DatabaseServiceError>{}));
 
   auto val = ts.storeState("mockHashMock1", "mockName1");

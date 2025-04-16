@@ -3,9 +3,8 @@
 #define BITTORRENTCLIENT_SHAREDQUEUE_H
 
 #include <condition_variable>
+#include <deque>
 #include <mutex>
-#include <ostream>
-#include <queue>
 
 /**
  * Implementation of a thread-safe Queue. Code from

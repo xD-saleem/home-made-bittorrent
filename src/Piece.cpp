@@ -13,7 +13,7 @@
 #include "utils.h"
 
 Piece::Piece(int index, std::vector<Block *> blocks, std::string hashValue)
-    : index(index), hashValue(std::move(hashValue)) {
+    : index(index), hashValue_(std::move(hashValue)) {
   this->blocks = std::move(blocks);
 }
 
@@ -28,7 +28,7 @@ Piece::~Piece() {
  * Resets the status of all Blocks in this Piece to Missing.
  */
 void Piece::reset() {
-  for (Block *block : blocks) block->status = missing;
+  for (Block *block : blocks) block->status = kMissing;
 }
 
 /**
@@ -39,8 +39,8 @@ void Piece::reset() {
  */
 Block *Piece::nextRequest() {
   for (Block *block : blocks) {
-    if (block->status == missing) {
-      block->status = pending;
+    if (block->status == kMissing) {
+      block->status = kPending;
       return block;
     }
   }
@@ -57,7 +57,7 @@ tl::expected<void, PieceError> Piece::blockReceived(int offset,
                                                     std::string data) {
   for (Block *block : blocks) {
     if (block->offset == offset) {
-      block->status = retrieved;
+      block->status = kRetrieved;
       block->data = data;
       return {};
     }
@@ -73,7 +73,7 @@ tl::expected<void, PieceError> Piece::blockReceived(int offset,
  */
 bool Piece::isComplete() {
   return std::all_of(blocks.begin(), blocks.end(),
-                     [](Block *block) { return block->status == retrieved; });
+                     [](Block *block) { return block->status == kRetrieved; });
 }
 
 /**
@@ -85,7 +85,7 @@ bool Piece::isHashMatching() {
   auto sha1edData = sha1(data);
 
   std::string pieceHash = hexDecode(sha1edData);
-  return pieceHash == hashValue;
+  return pieceHash == hashValue_;
 }
 
 /**

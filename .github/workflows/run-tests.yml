@@ -19,8 +19,8 @@ jobs:
           vcpkg_triplet: x64-windows-release
           github-binarycache: false
 
-    name: Test for on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Test for on ${{ matrix.config.os }}
+    runs-on: ${{ matrix.config.os }}
     steps:
       # Step 1: Checkout the code
       - name: Checkout

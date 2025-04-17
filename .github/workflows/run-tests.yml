@@ -9,7 +9,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-    name: Test for ${{ matrix.python-version }} on ${{ matrix.os }}
+        matrix:
+        config:
+        - os: ubuntu-20.04
+          vcpkg_triplet: x64-linux-release
+        - os: macos-11
+          vcpkg_triplet: x64-osx-release
+        - os: windows-2019
+          vcpkg_triplet: x64-windows-release
+
+    name: Test for on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
       # Step 1: Checkout the code
@@ -23,7 +32,10 @@ jobs:
         with:
           manifest-dir: ${{ github.workspace }} # Directory containing vcpkg.json
           token: ${{ github.token }}  # GitHub token for authentication
-          triplet: x64-linux-release  # Build for the Linux platform
+          triplet: ${{ matrix.config.vcpkg_triplet }}
+          cache-key: ${{ matrix.config.os }}
+          revision: master
+          github-binarycache: true
 
       # Step 3: Build the project using CMake and Make
       - name: build

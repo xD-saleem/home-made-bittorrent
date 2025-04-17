@@ -6,17 +6,14 @@ on: [push, pull_request]
 jobs:
   linux-macos-test:
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        matrix:
-        config:
-        - os: ubuntu-20.04
-          vcpkg_triplet: x64-linux-release
-        - os: macos-11
-          vcpkg_triplet: x64-osx-release
-        - os: windows-2019
-          vcpkg_triplet: x64-windows-release
+        include:
+          - os: ubuntu-latest
+            vcpkg_triplet: x64-linux-release
+          - os: macos-latest
+            vcpkg_triplet: x64-osx-release
+          - os: windows-2019
+            vcpkg_triplet: x64-windows-release
 
     name: Test for on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}

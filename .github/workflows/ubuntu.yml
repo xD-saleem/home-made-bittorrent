@@ -51,6 +51,7 @@ jobs:
         with:
           github_token: ${{ github.token }}  # GitHub token for authentication
 
+      # Step 5: Release the build if the Git reference is a tag
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
         with:
@@ -59,19 +60,11 @@ jobs:
           body: ${{ steps.tag_version.outputs.changelog }}
           artifacts: "build/main"
 
-      # Step 5: Release the build if the Git reference is a tag
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: build/main
-        id: tag_version
-
-      - name: Tag Release
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
+      # - name: Release
+      #   uses: softprops/action-gh-release@v2
+      #   if: startsWith(github.ref, 'refs/tags/')
+      #   with:
+      #     files: build/main
 
   # Job for pushes to the 'main' branch
   main-build:
@@ -106,9 +99,9 @@ jobs:
         run: make ci-tests
 
       # Step 5: Release the build if the Git reference is a tag
-      # - name: Release
-      #   uses: softprops/action-gh-release@v2
-      #   if: startsWith(github.ref, 'refs/tags/')
-      #   with:
-      #     files: build/main
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build/main
    

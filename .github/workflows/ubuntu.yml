@@ -60,11 +60,12 @@ jobs:
           body: ${{ steps.tag_version.outputs.changelog }}
           artifacts: "build/main"
 
-      # - name: Release
-      #   uses: softprops/action-gh-release@v2
-      #   if: startsWith(github.ref, 'refs/tags/')
-      #   with:
-      #     files: build/main
+      # Step 5: Release the build if the Git reference is a tag
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build/main
 
   # Job for pushes to the 'main' branch
   main-build:

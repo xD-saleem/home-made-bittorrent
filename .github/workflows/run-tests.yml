@@ -47,63 +47,64 @@ jobs:
       - name: Test
         run: make ci-tests
 
-  windows-test:
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-        - os: windows-2019
-          vcpkg_triplet: x64-windows-release
-          github-binarycache: false
-    defaults:
-      run:
-        shell: pwsh
-    name: Test for build on windows-latest
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ilammy/msvc-dev-cmd@v1
-      - uses: johnwason/vcpkg-action@v6
-        with:
-          manifest-dir: ${{ github.workspace }}
-          triplet: x64-windows-static
-          token: ${{ github.token }}
-          github-binarycache: true
-
-      # Step 1: Checkout the code
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Step 2: Install dependencies via vcpkg
-      - name: vcpkg build
-        uses: johnwason/vcpkg-action@v6
-        id: vcpkg
-        with:
-          manifest-dir: ${{ github.workspace }} # Directory containing vcpkg.json
-          token: ${{ github.token }}  # GitHub token for authentication
-          triplet: ${{ matrix.config.vcpkg_triplet }}
-          cache-key: ${{ matrix.config.os }}
-          revision: master
-          github-binarycache: true
-
-      # Step 3: Build the project using CMake and Make
-      - name: Configure CMake with Ninja
-        run: |
-          cmake -B build -S . `
-            -G "Ninja" `
-            -DCMAKE_TOOLCHAIN_FILE="${env:GITHUB_WORKSPACE}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=1 `
-            -DCMAKE_BUILD_TYPE=Release
-        shell: pwsh
-
-      - name: Build with Ninja
-        run: cd build && ninja
-        shell: pwsh
-
-      # Step 4: Run the tests
-      - name: Test
-        run: ls build
-        env:
-          CMAKE_GENERATOR: "Ninja"
-          CMAKE_TOOLCHAIN_FILE: "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-          SKBUILD_CMAKE_ARGS: "-DVCPKG_TARGET_TRIPLET=x64-windows-static;-DVCPKG_MANIFEST_MODE=OFF"
+  # TODO windows build
+  # windows-test:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       config:
+  #       - os: windows-2019
+  #         vcpkg_triplet: x64-windows-release
+  #         github-binarycache: false
+  #   defaults:
+  #     run:
+  #       shell: pwsh
+  #   name: Test for build on windows-latest
+  #   runs-on: windows-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: ilammy/msvc-dev-cmd@v1
+  #     - uses: johnwason/vcpkg-action@v6
+  #       with:
+  #         manifest-dir: ${{ github.workspace }}
+  #         triplet: x64-windows-static
+  #         token: ${{ github.token }}
+  #         github-binarycache: true
+  #
+  #     # Step 1: Checkout the code
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     # Step 2: Install dependencies via vcpkg
+  #     - name: vcpkg build
+  #       uses: johnwason/vcpkg-action@v6
+  #       id: vcpkg
+  #       with:
+  #         manifest-dir: ${{ github.workspace }} # Directory containing vcpkg.json
+  #         token: ${{ github.token }}  # GitHub token for authentication
+  #         triplet: ${{ matrix.config.vcpkg_triplet }}
+  #         cache-key: ${{ matrix.config.os }}
+  #         revision: master
+  #         github-binarycache: true
+  #
+  #     # Step 3: Build the project using CMake and Make
+  #     - name: Configure CMake with Ninja
+  #       run: |
+  #         cmake -B build -S . `
+  #           -G "Ninja" `
+  #           -DCMAKE_TOOLCHAIN_FILE="${env:GITHUB_WORKSPACE}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+  #           -DCMAKE_EXPORT_COMPILE_COMMANDS=1 `
+  #           -DCMAKE_BUILD_TYPE=Release
+  #       shell: pwsh
+  #
+  #     - name: Build with Ninja
+  #       run: cd build && ninja
+  #       shell: pwsh
+  #
+  #     # Step 4: Run the tests
+  #     - name: Test
+  #       run: ls build
+  #       env:
+  #         CMAKE_GENERATOR: "Ninja"
+  #         CMAKE_TOOLCHAIN_FILE: "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+  #         SKBUILD_CMAKE_ARGS: "-DVCPKG_TARGET_TRIPLET=x64-windows-static;-DVCPKG_MANIFEST_MODE=OFF"

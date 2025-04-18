@@ -29,12 +29,12 @@
 PeerRetriever::PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
                              std::string announceUrl, std::string infoHash,
                              int port, const u_int64_t fileSize)
-    : fileSize(fileSize) {
-  this->peerId = std::move(peerId);
-  this->announceUrl = std::move(announceUrl);
-  this->infoHash = std::move(infoHash);
-  this->port = port;
-  this->logger = std::move(logger);
+    : fileSize_(fileSize) {
+  this->peerId_ = std::move(peerId);
+  this->announceUrl_ = std::move(announceUrl);
+  this->infoHash_ = std::move(infoHash);
+  this->port_ = port;
+  this->logger_ = std::move(logger);
 }
 
 /**
@@ -53,25 +53,25 @@ PeerRetriever::PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
  */
 std::vector<Peer *> PeerRetriever::retrievePeers(u_int64_t bytesDownloaded) {
   std::stringstream info;
-  info << "Retrieving peers from " << announceUrl
+  info << "Retrieving peers from " << announceUrl_
        << " with the following parameters..." << std::endl;
   // Note that info hash will be URL-encoded by the cpr library
-  info << "info_hash: " << infoHash << std::endl;
-  info << "peer_id: " << peerId << std::endl;
-  info << "port: " << port << std::endl;
+  info << "info_hash: " << infoHash_ << std::endl;
+  info << "peer_id: " << peerId_ << std::endl;
+  info << "port: " << port_ << std::endl;
   info << "uploaded: " << 0 << std::endl;
   info << "downloaded: " << std::to_string(bytesDownloaded) << std::endl;
-  info << "left: " << std::to_string(fileSize - bytesDownloaded) << std::endl;
+  info << "left: " << std::to_string(fileSize_ - bytesDownloaded) << std::endl;
   info << "compact: " << std::to_string(1);
 
   cpr::Response res = cpr::Get(
-      cpr::Url{announceUrl},
-      cpr::Parameters{{"info_hash", std::string(hexDecode(infoHash))},
-                      {"peer_id", std::string(peerId)},
-                      {"port", std::to_string(port)},
+      cpr::Url{announceUrl_},
+      cpr::Parameters{{"info_hash", std::string(hexDecode(infoHash_))},
+                      {"peer_id", std::string(peerId_)},
+                      {"port", std::to_string(port_)},
                       {"uploaded", std::to_string(0)},
                       {"downloaded", std::to_string(bytesDownloaded)},
-                      {"left", std::to_string(fileSize - bytesDownloaded)},
+                      {"left", std::to_string(fileSize_ - bytesDownloaded)},
                       {"compact", std::to_string(1)}},
       cpr::Timeout{TRACKER_TIMEOUT});
 
@@ -90,7 +90,7 @@ std::vector<Peer *> PeerRetriever::retrievePeers(u_int64_t bytesDownloaded) {
 
     return peers.value();
   } else {
-    logger->log(
+    logger_->log(
         fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
                     res.status_code, res.text.c_str()));
   }
@@ -100,24 +100,22 @@ std::vector<Peer *> PeerRetriever::retrievePeers(u_int64_t bytesDownloaded) {
 std::vector<Peer *> PeerRetriever::retrieveSeedPeers(
     u_int64_t bytesDownloaded) {
   std::stringstream info;
-  info << "Retrieving peers from " << announceUrl
+  info << "Retrieving peers from " << announceUrl_
        << " with the following parameters..." << std::endl;
   // Note that info hash will be URL-encoded by the cpr library
-  info << "info_hash: " << infoHash << std::endl;
-  info << "peer_id: " << peerId << std::endl;
-  info << "port: " << port << std::endl;
+  info << "info_hash: " << infoHash_ << std::endl;
+  info << "peer_id: " << peerId_ << std::endl;
+  info << "port: " << port_ << std::endl;
   info << "uploaded: " << 0 << std::endl;
   info << "downloaded: " << std::to_string(bytesDownloaded) << std::endl;
-  info << "left: " << std::to_string(fileSize - bytesDownloaded) << std::endl;
+  info << "left: " << std::to_string(fileSize_ - bytesDownloaded) << std::endl;
   info << "compact: " << std::to_string(1);
 
-  // LOG_F(INFO, "%s", info.str().c_str());
-
   cpr::Response res =
-      cpr::Get(cpr::Url{announceUrl},
-               cpr::Parameters{{"info_hash", std::string(hexDecode(infoHash))},
-                               {"peer_id", std::string(peerId)},
-                               {"port", std::to_string(port)},
+      cpr::Get(cpr::Url{announceUrl_},
+               cpr::Parameters{{"info_hash", std::string(hexDecode(infoHash_))},
+                               {"peer_id", std::string(peerId_)},
+                               {"port", std::to_string(port_)},
                                {"uploaded", std::to_string(0)},
                                {"downloaded", std::to_string(bytesDownloaded)},
                                {"left", std::to_string(0)},

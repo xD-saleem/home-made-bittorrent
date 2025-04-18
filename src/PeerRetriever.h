@@ -25,12 +25,12 @@ struct Peer {
  */
 class PeerRetriever {
  private:
-  std::shared_ptr<Logger> logger;
-  std::string announceUrl;
-  std::string infoHash;
-  std::string peerId;
-  int port;
-  const u_int64_t fileSize;
+  std::shared_ptr<Logger> logger_;
+  std::string announceUrl_;
+  std::string infoHash_;
+  std::string peerId_;
+  int port_;
+  const u_int64_t fileSize_;
 
   tl::expected<std::vector<Peer *>, PeerRetrieverError> decodeResponse(
       std::string response);

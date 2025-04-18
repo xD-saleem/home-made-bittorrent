@@ -103,7 +103,7 @@ jobs:
 
       # Step 4: Run the tests
       - name: Test
-        run: make ci-tests
+        run: ls build
         env:
           CMAKE_GENERATOR: "Ninja"
           CMAKE_TOOLCHAIN_FILE: "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"

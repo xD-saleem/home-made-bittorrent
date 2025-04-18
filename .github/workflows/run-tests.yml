@@ -36,13 +36,19 @@ jobs:
           github-binarycache: true
 
       # Step 3: Build the project using CMake and Make
-      - name: build
-        run: |
-          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Release
-          cd build
-          make
-          cd -
-          echo "successfully built"
+        env:
+        CMAKE_BUILD_TYPE: Release
+        VCPKG_TOOLCHAIN_FILE: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      - name: Configure
+        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$VCPKG_TOOLCHAIN_FILE -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE
+
+      - name: Build
+        run: make
+        working-directory: build
+
+      - name: Post-Build
+        run: echo "successfully built"
 
       # Step 4: Run the tests
       - name: Test

@@ -88,13 +88,19 @@ jobs:
           github-binarycache: true
 
       # Step 3: Build the project using CMake and Make
-      - name: build
+
+      - name: Configure CMake with Ninja
         run: |
-          cmake -B build -S .
-          cd build
-          make
-          cd -
-          echo "successfully built"
+          cmake -B build -S . `
+            -G "Ninja" `
+            -DCMAKE_TOOLCHAIN_FILE="${env:GITHUB_WORKSPACE}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=1 `
+            -DCMAKE_BUILD_TYPE=Release
+        shell: pwsh
+
+      - name: Build with Ninja
+        run: cmake --build build
+        shell: pwsh
 
       # Step 4: Run the tests
       - name: Test

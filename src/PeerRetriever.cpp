@@ -111,8 +111,6 @@ std::vector<Peer *> PeerRetriever::retrieveSeedPeers(
   info << "left: " << std::to_string(fileSize - bytesDownloaded) << std::endl;
   info << "compact: " << std::to_string(1);
 
-  // LOG_F(INFO, "%s", info.str().c_str());
-
   cpr::Response res =
       cpr::Get(cpr::Url{announceUrl},
                cpr::Parameters{{"info_hash", std::string(hexDecode(infoHash))},

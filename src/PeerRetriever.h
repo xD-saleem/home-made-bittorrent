@@ -30,7 +30,7 @@ class PeerRetriever {
   std::string infoHash;
   std::string peerId;
   int port;
-  const unsigned long fileSize;
+  const u_int64_t fileSize;
 
   tl::expected<std::vector<Peer *>, PeerRetrieverError> decodeResponse(
       std::string response);
@@ -38,9 +38,9 @@ class PeerRetriever {
  public:
   explicit PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
                          std::string announceUrL, std::string infoHash,
-                         int port, unsigned long fileSize);
-  std::vector<Peer *> retrievePeers(unsigned long bytesDownloaded = 0);
-  std::vector<Peer *> retrieveSeedPeers(unsigned long bytesDownloaded = 0);
+                         int port, u_int64_t fileSize);
+  std::vector<Peer *> retrievePeers(u_int64_t bytesDownloaded = 0);
+  std::vector<Peer *> retrieveSeedPeers(u_int64_t bytesDownloaded = 0);
 };
 
 #endif  // BITTORRENTCLIENT_PEERRETRIEVER_H

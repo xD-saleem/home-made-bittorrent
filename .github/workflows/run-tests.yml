@@ -47,13 +47,13 @@ jobs:
       - name: Test
         run: make ci-tests
 
-      #       - name: Upload Artifacts
-      #         uses: actions/upload-artifact@v4
-      #         with:
-      #           name: ${{ matrix.config.os }}-build
-      #           path: |
-      #             build/**/*
-      #             !build/CMakeFiles/**
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.config.os }}-build
+          path: |
+            build/**/*
+            !build/CMakeFiles/**
 
       # release:
       #   name: Create GitHub Release

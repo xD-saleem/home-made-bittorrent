@@ -5,6 +5,9 @@ on: [push, pull_request]
 
 jobs:
   linux-macos-test:
+    permissions:
+      contents: write
+
     strategy:
       fail-fast: false
       matrix:

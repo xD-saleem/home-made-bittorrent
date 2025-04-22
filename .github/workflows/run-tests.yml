@@ -54,16 +54,12 @@ jobs:
             build/**/*
             !build/CMakeFiles/**
 
-      - name: Download build artifacts (if you uploaded them earlier)
-        uses: actions/download-artifact@v4
-        path: ./artifacts
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          files: ./artifacts/**/*
+          files: ./build/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

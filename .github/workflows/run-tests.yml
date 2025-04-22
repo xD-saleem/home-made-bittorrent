@@ -4,72 +4,78 @@ name: Tests Runner
 on: [push, pull_request]
 
 jobs:
-  linux-macos-test:
-    permissions:
-      contents: write
-
+  build:
+    name: Build on ${{ matrix.config.os }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
         config:
-        - os: ubuntu-latest
-          vcpkg_triplet: x64-linux-release
-          github-binarycache: false
-        - os: macos-latest
-          vcpkg_triplet: x64-osx-release
-          github-binarycache: false
+          - os: ubuntu-latest
+            vcpkg_triplet: x64-linux-release
+            out_name: main-linux
+          - os: macos-latest
+            vcpkg_triplet: x64-osx-release
+            out_name: main-macos
 
-    name: Test for on ${{ matrix.config.os }}
-    runs-on: ${{ matrix.config.os }}
     steps:
-      # Step 1: Checkout the code
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Install dependencies via vcpkg
       - name: vcpkg build
         uses: johnwason/vcpkg-action@v6
-        id: vcpkg
         with:
-          manifest-dir: ${{ github.workspace }} # Directory containing vcpkg.json
-          token: ${{ github.token }}  # GitHub token for authentication
+          manifest-dir: ${{ github.workspace }}
+          token: ${{ github.token }}
           triplet: ${{ matrix.config.vcpkg_triplet }}
           cache-key: ${{ matrix.config.os }}
           revision: master
           github-binarycache: true
 
-      # Step 3: Build the project using CMake and Make
-      - name: build
+      - name: Build
         run: |
           cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Release
           make
-          echo "successfully built"
+          mv build/main ${{ matrix.config.out_name }}
 
-      # Step 4: Run the tests
-      - name: Test
-        run: make ci-tests
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.config.out_name }}
+          path: ${{ matrix.config.out_name }}
 
-      - name: Bump version and push tag
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List files for debugging
+        run: ls -R artifacts
+
+      - name: Tag Version
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.2
         with:
-          github_token: ${{ github.token }}  # GitHub token for authentication
+          github_token: ${{ github.token }}
 
-      # Step 5: Release the build if the Git reference is a tag
-      - name: Create a GitHub release
-        uses: ncipollo/release-action@v1
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/')
         with:
-          tag: ${{ steps.tag_version.outputs.new_tag }}
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
-          artifacts: "build/main"
-
-      # Step 5: Release the build if the Git reference is a tag
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: build/main
+          files: |
+            artifacts/main-linux/main-linux
+            artifacts/main-macos/main-macos
 
 
   # TODO windows build

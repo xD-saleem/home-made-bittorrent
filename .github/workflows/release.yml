@@ -13,10 +13,10 @@ jobs:
         config:
           - os: ubuntu-24.04
             vcpkg_triplet: x64-linux-release
-            out_name: homemade-bittorrent-linux-x64
+            out_name: bittorrent-linux-x64
           - os: macos-15
             vcpkg_triplet: x64-osx-release
-            out_name: homemade-bittorrent-macos-x64
+            out_name: bittorrent-macos-x64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,8 +75,8 @@ jobs:
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
           files: |
-            artifacts/main-linux/main-linux
-            artifacts/main-macos/main-macos
+            artifacts/bittorrent-linux-x64/bittorrent-linux-x64
+            artifacts/bittorrent-macos-x64/bittorrent-macos-x64
 
 
   # TODO windows build

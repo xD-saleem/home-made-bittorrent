@@ -11,13 +11,12 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             vcpkg_triplet: x64-linux-release
-            out_name: main-linux
-          - os: macos-latest
+            out_name: homemade-bittorrent-linux-x64
+          - os: macos-15
             vcpkg_triplet: x64-osx-release
-            out_name: main-macos
-
+            out_name: homemade-bittorrent-macos-x64
     steps:
       - name: Checkout
         uses: actions/checkout@v4

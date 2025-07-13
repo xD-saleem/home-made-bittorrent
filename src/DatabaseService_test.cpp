@@ -4,8 +4,6 @@
 #include <fmt/core.h>
 #include <gtest/gtest.h>
 
-#include <cstdlib>
-
 static std::shared_ptr<Logger> logger =
     std::make_shared<Logger>(Logger::custom_log_function);
 

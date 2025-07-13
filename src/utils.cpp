@@ -1,90 +1,101 @@
 #include <openssl/sha.h>
 
+#include <array>
 #include <bitset>
+#include <cctype>
 #include <cmath>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string_view>
+
+using std::array;
 
 std::string sha1(const std::string &str) {
   unsigned char hash[SHA_DIGEST_LENGTH];
   SHA1(reinterpret_cast<const unsigned char *>(str.c_str()), str.size(), hash);
 
   std::stringstream ss;
-  for (int i = 0; i < SHA_DIGEST_LENGTH; ++i) {
-    ss << std::hex << std::setw(2) << std::setfill('0')
-       << static_cast<int>(hash[i]);
+  for (unsigned char i : hash) {
+    ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(i);
   }
   return ss.str();
 }
 
-std::string urlEncode(const std::string &value) {
-  std::ostringstream escaped;
-  escaped.fill('0');
-  escaped << std::hex;
+std::string urlEncode(std::string_view value) {
+  static constexpr auto kIsUnreserved = [](char c) noexcept {
+    return std::isalnum(static_cast<unsigned char>(c)) || c == '-' ||
+           c == '_' || c == '.' || c == '~';
+  };
 
-  for (char c : value) {
-    if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
-      escaped << c;
-      continue;
+  // Estimate worst-case size: every char becomes "%XX" (3 bytes)
+  std::string result;
+  result.reserve(value.size() * 3);
+
+  for (unsigned char c : value) {
+    if (kIsUnreserved(c)) {
+      result.push_back(c);
+    } else {
+      static constexpr array<char, 16> kHex = {'0', '1', '2', '3', '4', '5',
+                                               '6', '7', '8', '9', 'A', 'B',
+                                               'C', 'D', 'E', 'F'};
+      result.push_back('%');
+      result.push_back(kHex[c >> 4]);
+      result.push_back(kHex[c & 0xF]);
     }
-
-    // Any other characters are percent-encoded
-    escaped << std::uppercase;
-    escaped << '%' << std::setw(2) << int((unsigned char)c);
-    escaped << std::nouppercase;
   }
-
-  return escaped.str();
+  return result;
 }
 
 std::string hexDecode(const std::string &value) {
-  int hashLength = value.length();
-  std::string decodedHexString;
-  for (int i = 0; i < hashLength; i += 2) {
+  int hash_length = value.length();
+  std::string decoded_hex_string;
+  for (int i = 0; i < hash_length; i += 2) {
     std::string byte = value.substr(i, 2);
-    char c = (char)(int)strtol(byte.c_str(), nullptr, 16);
-    decodedHexString.push_back(c);
+    char c =
+        static_cast<char>(static_cast<int>(strtol(byte.c_str(), nullptr, 16)));
+    decoded_hex_string.push_back(c);
   }
-  return decodedHexString;
+  return decoded_hex_string;
 }
 
 std::string hexEncode(const std::string &input) {
-  static const char hexDigits[] = "0123456789ABCDEF";
+  static const char kHexDigits[] = "0123456789ABCDEF";
 
   std::string output;
   output.reserve(input.length() * 2);
   for (unsigned char c : input) {
     output.push_back('\\');
     output.push_back('x');
-    output.push_back(hexDigits[c >> 4]);
-    output.push_back(hexDigits[c & 15]);
+    output.push_back(kHexDigits[c >> 4]);
+    output.push_back(kHexDigits[c & 15]);
   }
   return output;
 }
 
 bool hasPiece(const std::string &bitField, int index) {
-  int byteIndex = floor(index / 8);
+  float byte_index = floor(index / 8);
   int offset = index % 8;
-  return (bitField[byteIndex] >> (7 - offset) & 1) != 0;
+  return (bitField[byte_index] >> (7 - offset) & 1) != 0;
 }
 
 void setPiece(std::string &bitField, int index) {
-  int byteIndex = floor(index / 8);
+  int byte_index = floor(index / 8);
   int offset = index % 8;
-  bitField[byteIndex] |= (1 << (7 - offset));
+  bitField[byte_index] |= (1 << (7 - offset));
 }
 
 int bytesToInt(std::string bytes) {
-  std::string binStr;
-  long byteCount = bytes.size();
-  for (int i = 0; i < byteCount; i++)
-    binStr += std::bitset<8>(bytes[i]).to_string();
-  return stoi(binStr, 0, 2);
+  std::string bin_str;
+  int64_t byte_count = bytes.size();
+  for (int i = 0; i < byte_count; i++)
+    bin_str += std::bitset<8>(bytes[i]).to_string();
+  return stoi(bin_str, nullptr, 2);
 }
 
-std::string formatTime(long seconds) {
+std::string formatTime(int64_t seconds) {
   if (seconds < 0) return "inf";
 
   std::string result;
@@ -97,7 +108,7 @@ std::string formatTime(long seconds) {
   std::string mm = std::string(2 - m.length(), '0') + m;
   std::string ss = std::string(2 - s.length(), '0') + s;
   // return mm:ss if hh is 00
-  if (hh.compare("00") != 0) {
+  if (hh != "00") {
     result = hh + ':' + mm + ":" + ss;
   } else {
     result = mm + ":" + ss;

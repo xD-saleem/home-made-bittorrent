@@ -1,6 +1,7 @@
 #ifndef BITTORRENTCLIENT_UTILS_H
 #define BITTORRENTCLIENT_UTILS_H
 
+#include <cstdint>
 #include <string>
 
 std::string sha1(const std::string &str);
@@ -17,6 +18,6 @@ void setPiece(std::string &bitField, int index);
 
 int bytesToInt(std::string bytes);
 
-std::string formatTime(long seconds);
+std::string formatTime(int64_t seconds);
 
 #endif  // BITTORRENTCLIENT_UTILS_H

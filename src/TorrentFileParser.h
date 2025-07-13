@@ -16,14 +16,15 @@ using byte = unsigned char;
 
 class TorrentFileParser {
  private:
-  std::shared_ptr<bencoding::BDictionary> root;
+  std::shared_ptr<bencoding::BDictionary> root_;
 
  public:
   // Torrent file
   explicit TorrentFileParser(const std::string& filePath);
 
-  [[nodiscard]] tl::expected<long, TorrentFileParserError> getFileSize() const;
-  [[nodiscard]] tl::expected<long, TorrentFileParserError> getPieceLength()
+  [[nodiscard]] tl::expected<int64_t, TorrentFileParserError> getFileSize()
+      const;
+  [[nodiscard]] tl::expected<int64_t, TorrentFileParserError> getPieceLength()
       const;
   [[nodiscard]] tl::expected<std::string, TorrentFileParserError> getFileName()
       const;

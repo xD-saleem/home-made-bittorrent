@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <string>
+#include <utility>
 
 #include "DatabaseService.h"
 
@@ -13,12 +14,12 @@ struct TorrentStateError {
 
 class TorrentState {
  private:
-  std::shared_ptr<DatabaseService> databaseSvc;
+  std::shared_ptr<DatabaseService> databaseSvc_;
 
  public:
   explicit TorrentState(std::shared_ptr<DatabaseService> dbSvc)
-      : databaseSvc(dbSvc) {
-    if (!databaseSvc) {
+      : databaseSvc_(std::move(dbSvc)) {
+    if (!databaseSvc_) {
       std::exit(1);
     }
   }

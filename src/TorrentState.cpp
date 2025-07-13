@@ -3,12 +3,13 @@
 #include <fmt/core.h>
 
 #include <string>
+#include <utility>
 
 TorrentState::~TorrentState() = default;
 
 tl::expected<void, TorrentStateError> TorrentState::storeState(
     std::string hashinfo, std::string name) {
-  auto val = databaseSvc->insertOne(hashinfo, name);
+  auto val = databaseSvc_->insertOne(std::move(hashinfo), std::move(name));
   if (!val) {
     return tl::unexpected(TorrentStateError{"failed to save hashinfo"});
   }
@@ -18,6 +19,6 @@ tl::expected<void, TorrentStateError> TorrentState::storeState(
 
 tl::expected<TorrentRecord, TorrentStateError> TorrentState::getState(
     std::string hashinfo) {
-  auto val = databaseSvc->getTorrent(hashinfo);
+  auto val = databaseSvc_->getTorrent(std::move(hashinfo));
   return val.value();
 }

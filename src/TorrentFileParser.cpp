@@ -7,100 +7,102 @@
 #include <utils.h>
 
 #include <cassert>
+#include <cstdint>
 #include <fstream>
 #include <tl/expected.hpp>
 
-constexpr int HASH_LEN = 20;
+constexpr int kHashLen = 20;
 
 TorrentFileParser::TorrentFileParser(const std::string &filePath) {
-  std::ifstream fileStream(filePath, std::ifstream::binary);
-  std::shared_ptr<bencoding::BItem> decodedTorrentFile =
-      bencoding::decode(fileStream);
-  std::shared_ptr<bencoding::BDictionary> rootDict =
-      std::dynamic_pointer_cast<bencoding::BDictionary>(decodedTorrentFile);
-  root = rootDict;
+  std::ifstream file_stream(filePath, std::ifstream::binary);
+  std::shared_ptr<bencoding::BItem> decoded_torrent_file =
+      bencoding::decode(file_stream);
+  std::shared_ptr<bencoding::BDictionary> root_dict =
+      std::dynamic_pointer_cast<bencoding::BDictionary>(decoded_torrent_file);
+  root_ = root_dict;
 }
 
 std::shared_ptr<bencoding::BItem> TorrentFileParser::get(
     std::string key) const {
-  std::shared_ptr<bencoding::BItem> value = root->getValue(key);
+  std::shared_ptr<bencoding::BItem> value = root_->getValue(key);
   return value;
 }
 
 std::string TorrentFileParser::getInfoHash() const {
-  std::shared_ptr<bencoding::BItem> infoDictionary = get("info");
-  std::string infoString = bencoding::encode(infoDictionary);
-  std::string sha1Hash = sha1(infoString);
-  return sha1Hash;
+  std::shared_ptr<bencoding::BItem> info_dictionary = get("info");
+  std::string info_string = bencoding::encode(info_dictionary);
+  std::string sha1_hash = sha1(info_string);
+  return sha1_hash;
 }
 
 tl::expected<std::vector<std::string>, TorrentFileParserError>
 TorrentFileParser::splitPieceHashes() const {
-  std::shared_ptr<bencoding::BItem> piecesValue = get("pieces");
+  std::shared_ptr<bencoding::BItem> pieces_value = get("pieces");
 
-  if (!piecesValue) {
+  if (!pieces_value) {
     return tl::unexpected(
         TorrentFileParserError{"Torrent file is malformed. [File does not "
                                "contain key 'pieces']"});
   }
 
   std::string pieces =
-      std::dynamic_pointer_cast<bencoding::BString>(piecesValue)->value();
+      std::dynamic_pointer_cast<bencoding::BString>(pieces_value)->value();
 
-  std::vector<std::string> pieceHashes;
+  std::vector<std::string> piece_hashes;
 
-  assert(pieces.size() % HASH_LEN == 0);
+  assert(pieces.size() % kHashLen == 0);
 
-  int piecesCount = (int)pieces.size() / HASH_LEN;
-  pieceHashes.reserve(piecesCount);
+  int pieces_count = static_cast<int>(pieces.size()) / kHashLen;
+  piece_hashes.reserve(pieces_count);
 
-  for (int i = 0; i < piecesCount; i++) {
-    pieceHashes.push_back(pieces.substr(i * HASH_LEN, HASH_LEN));
+  for (int i = 0; i < pieces_count; i++) {
+    piece_hashes.push_back(pieces.substr(i * kHashLen, kHashLen));
   }
 
-  return pieceHashes;
+  return piece_hashes;
 }
 
-tl::expected<long, TorrentFileParserError> TorrentFileParser::getFileSize()
+tl::expected<int64_t, TorrentFileParserError> TorrentFileParser::getFileSize()
     const {
-  std::shared_ptr<bencoding::BItem> fileSizeItem = get("length");
-  if (!fileSizeItem) {
+  std::shared_ptr<bencoding::BItem> file_size_item = get("length");
+  if (!file_size_item) {
     return tl::unexpected(
         TorrentFileParserError{"Torrent file is malformed. [File does not "
                                "contain key 'length']"});
   }
 
-  return std::dynamic_pointer_cast<bencoding::BInteger>(fileSizeItem)->value();
+  return std::dynamic_pointer_cast<bencoding::BInteger>(file_size_item)
+      ->value();
 }
 
-tl::expected<long, TorrentFileParserError> TorrentFileParser::getPieceLength()
-    const {
-  std::shared_ptr<bencoding::BItem> pieceLengthItem = get("piece length");
-  if (!pieceLengthItem) {
+tl::expected<int64_t, TorrentFileParserError>
+TorrentFileParser::getPieceLength() const {
+  std::shared_ptr<bencoding::BItem> piece_length_item = get("piece length");
+  if (!piece_length_item) {
     return tl::unexpected(TorrentFileParserError{
         "Torrent file is malformed. [File does not contain key 'piece "
         "length']"});
   }
-  return std::dynamic_pointer_cast<bencoding::BInteger>(pieceLengthItem)
+  return std::dynamic_pointer_cast<bencoding::BInteger>(piece_length_item)
       ->value();
 }
 
 tl::expected<std::string, TorrentFileParserError>
 TorrentFileParser::getFileName() const {
-  std::shared_ptr<bencoding::BItem> filenameItem = get("name");
-  if (!filenameItem) {
+  std::shared_ptr<bencoding::BItem> filename_item = get("name");
+  if (!filename_item) {
     return tl::unexpected(TorrentFileParserError{
         "Torrent file is malformed. [File does not contain key 'name']"});
   }
-  return std::dynamic_pointer_cast<bencoding::BString>(filenameItem)->value();
+  return std::dynamic_pointer_cast<bencoding::BString>(filename_item)->value();
 }
 
 tl::expected<std::string, TorrentFileParserError>
 TorrentFileParser::getAnnounce() const {
-  std::shared_ptr<bencoding::BItem> announceItem = get("announce");
-  if (!announceItem) {
+  std::shared_ptr<bencoding::BItem> announce_item = get("announce");
+  if (!announce_item) {
     return tl::unexpected(TorrentFileParserError{
         "Torrent file is malformed. [File does not contain key 'announce']"});
   }
-  return std::dynamic_pointer_cast<bencoding::BString>(announceItem)->value();
+  return std::dynamic_pointer_cast<bencoding::BString>(announce_item)->value();
 }

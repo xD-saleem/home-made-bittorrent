@@ -1,6 +1,7 @@
 #ifndef BITTORRENTCLIENT_PIECE_H
 #define BITTORRENTCLIENT_PIECE_H
 
+#include <memory>
 #include <string>
 #include <tl/expected.hpp>
 #include <vector>
@@ -17,16 +18,18 @@ class Piece {
 
  public:
   const int index;
-  std::vector<Block*> blocks;
+  std::vector<std::unique_ptr<Block>> blocks;
 
-  explicit Piece(int index, std::vector<Block*> blocks, std::string hashValue);
-  ~Piece();
+  explicit Piece(int index, std::vector<std::unique_ptr<Block>> blocks,
+                 std::string hashValue);
   void reset();
   std::string getData();
   Block* nextRequest();
   tl::expected<void, PieceError> blockReceived(int offset, std::string data);
-  bool isComplete();
+  bool isComplete() const;
   bool isHashMatching();
+
+  ~Piece() = default;
 };
 
 #endif  // BITTORRENTCLIENT_PIECE_H

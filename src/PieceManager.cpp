@@ -99,11 +99,12 @@ std::vector<Piece*> PieceManager::initiatePieces() {
           1);
     }
 
-    std::vector<Block*> blocks;
+    std::vector<std::unique_ptr<Block>> blocks;
     blocks.reserve(block_count);
 
     for (int offset = 0; offset < block_count; offset++) {
-      auto* block = new Block;
+      auto block = std::make_unique<Block>();
+
       block->piece = i;
       block->status = kMissing;
       block->offset = offset * BLOCK_SIZE;
@@ -115,10 +116,11 @@ std::vector<Piece*> PieceManager::initiatePieces() {
       }
 
       block->length = block_size;
-      blocks.push_back(block);
+      blocks.push_back(std::move(block));
     }
 
-    auto* piece = new Piece(i, blocks, piece_hashes_value[i]);
+    // change to unique pointer.
+    auto* piece = new Piece(i, std::move(blocks), piece_hashes_value[i]);
     torrent_pieces.emplace_back(piece);
   }
 

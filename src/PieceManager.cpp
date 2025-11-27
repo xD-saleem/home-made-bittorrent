@@ -27,8 +27,8 @@
 #define PROGRESS_BAR_WIDTH 40
 #define PROGRESS_DISPLAY_INTERVAL 1  // 1 sec
 
-PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser> &fileParser,
-                           const std::string &downloadPath,
+PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
+                           const std::string& downloadPath,
                            const int maximumConnections)
     : pieceLength_(fileParser->getPieceLength().value()),
       fileParser_(fileParser),
@@ -49,11 +49,11 @@ PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser> &fileParser,
  * Destructor of the PieceManager class. Frees all resources allocated.
  */
 PieceManager::~PieceManager() {
-  for (Piece *piece : missingPieces_) delete piece;
+  for (Piece* piece : missingPieces_) delete piece;
 
-  for (Piece *piece : ongoingPieces_) delete piece;
+  for (Piece* piece : ongoingPieces_) delete piece;
 
-  for (PendingRequest *pending : pendingRequests_) delete pending;
+  for (PendingRequest* pending : pendingRequests_) delete pending;
 
   downloadedFile_.close();
 }
@@ -63,7 +63,7 @@ PieceManager::~PieceManager() {
  * the number of pieces and the size of the block.
  * @return a vector containing all the pieces in the file.
  */
-std::vector<Piece *> PieceManager::initiatePieces() {
+std::vector<Piece*> PieceManager::initiatePieces() {
   tl::expected<std::vector<std::string>, TorrentFileParserError> piece_hashes =
       fileParser_->splitPieceHashes();
 
@@ -72,7 +72,7 @@ std::vector<Piece *> PieceManager::initiatePieces() {
   }
   auto piece_hashes_value = piece_hashes.value();
   total_pieces = piece_hashes_value.size();
-  std::vector<Piece *> torrent_pieces;
+  std::vector<Piece*> torrent_pieces;
   missingPieces_.reserve(total_pieces);
 
   tl::expected<int64_t, TorrentFileParserError> total_length_result =
@@ -99,11 +99,11 @@ std::vector<Piece *> PieceManager::initiatePieces() {
           1);
     }
 
-    std::vector<Block *> blocks;
+    std::vector<Block*> blocks;
     blocks.reserve(block_count);
 
     for (int offset = 0; offset < block_count; offset++) {
-      auto *block = new Block;
+      auto* block = new Block;
       block->piece = i;
       block->status = kMissing;
       block->offset = offset * BLOCK_SIZE;
@@ -118,7 +118,7 @@ std::vector<Piece *> PieceManager::initiatePieces() {
       blocks.push_back(block);
     }
 
-    auto *piece = new Piece(i, blocks, piece_hashes_value[i]);
+    auto* piece = new Piece(i, blocks, piece_hashes_value[i]);
     torrent_pieces.emplace_back(piece);
   }
 
@@ -134,7 +134,7 @@ bool PieceManager::isComplete() {
   return is_complete;
 }
 
-void PieceManager::addPeer(const std::string &peerId, std::string bitField) {
+void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
   lock_.lock();
   peers_[peerId] = std::move(bitField);
   lock_.unlock();
@@ -148,9 +148,10 @@ void PieceManager::addPeer(const std::string &peerId, std::string bitField) {
  * a Have message).
  */
 tl::expected<void, PieceManagerError> PieceManager::updatePeer(
-    const std::string &peerId, int index) {
+    const std::string& peerId, int index) {
   lock_.lock();
   if (peers_.find(peerId) != peers_.end()) {
+    // check error here.
     setPiece(peers_[peerId], index);
     lock_.unlock();
   } else {
@@ -167,7 +168,7 @@ tl::expected<void, PieceManagerError> PieceManager::updatePeer(
  * @param peerId: Id of the peer to be removed.
  */
 tl::expected<void, PieceManagerError> PieceManager::removePeer(
-    const std::string &peerId) {
+    const std::string& peerId) {
   if (isComplete()) {
     return {};
   }
@@ -188,7 +189,7 @@ tl::expected<void, PieceManagerError> PieceManager::removePeer(
   return {};
 }
 
-std::vector<Piece *> PieceManager::getPieces() { return havePieces; }
+std::vector<Piece*> PieceManager::getPieces() { return havePieces; }
 
 /**
  * Retrieves the next block that should be requested from the given peer.
@@ -196,7 +197,7 @@ std::vector<Piece *> PieceManager::getPieces() { return havePieces; }
  * have any of the missing pieces, None is returned
  * @return pointer to the Block struct to be requested.
  */
-Block *PieceManager::nextRequest(const std::string peerId) {
+Block* PieceManager::nextRequest(const std::string peerId) {
   // The algorithm implemented for which piece to retrieve is a simple
   // one. This should preferably be replaced with an implementation of
   // "rarest-piece-first" algorithm instead.
@@ -219,7 +220,7 @@ Block *PieceManager::nextRequest(const std::string peerId) {
     return nullptr;
   }
 
-  Block *block = expiredRequest(peerId);
+  Block* block = expiredRequest(peerId);
   if (!block) {
     block = nextOngoing(peerId);
     if (!block) block = getRarestPiece(peerId)->nextRequest();
@@ -234,10 +235,10 @@ Block *PieceManager::nextRequest(const std::string peerId) {
  * requested state for longer than `MAX_PENDING_TIME` returns the block to
  * be re-requested. If no pending blocks exist, None is returned
  */
-Block *PieceManager::expiredRequest(std::string peerId) {
+Block* PieceManager::expiredRequest(std::string peerId) {
   time_t current_time = std::time(nullptr);
-  for (PendingRequest *pending : pendingRequests_) {
-    if (hasPiece(peers_[peerId], pending->block->piece)) {
+  for (PendingRequest* pending : pendingRequests_) {
+    if (doesHavePiece(peers_[peerId], pending->block->piece)) {
       // If the request has expired
       auto diff = std::difftime(current_time, pending->timestamp);
       if (diff >= MAX_PENDING_TIME) {
@@ -255,12 +256,12 @@ Block *PieceManager::expiredRequest(std::string peerId) {
  * returns the next Block to be requested or NULL if no Block is left to be
  * requested from the list of Pieces.
  */
-Block *PieceManager::nextOngoing(std::string peerId) {
-  for (Piece *piece : ongoingPieces_) {
-    if (hasPiece(peers_[peerId], piece->index)) {
-      Block *block = piece->nextRequest();
+Block* PieceManager::nextOngoing(std::string peerId) {
+  for (Piece* piece : ongoingPieces_) {
+    if (doesHavePiece(peers_[peerId], piece->index)) {
+      Block* block = piece->nextRequest();
       if (block) {
-        auto *new_pending_request = new PendingRequest;
+        auto* new_pending_request = new PendingRequest;
         new_pending_request->block = block;
         new_pending_request->timestamp = std::time(nullptr);
         pendingRequests_.push_back(new_pending_request);
@@ -275,23 +276,23 @@ Block *PieceManager::nextOngoing(std::string peerId) {
  * Given the list of missing pieces, finds the rarest one (i.e. a piece
  * which is owned by the fewest number of peers).
  */
-Piece *PieceManager::getRarestPiece(std::string peerId) {
+Piece* PieceManager::getRarestPiece(std::string peerId) {
   // Custom comparator to make sure that the map is ordered by the index of
   // the Piece.
-  auto comp = [](const Piece *a, const Piece *b) {
+  auto comp = [](const Piece* a, const Piece* b) {
     return a->index < b->index;
   };
-  std::map<Piece *, int, decltype(comp)> piece_count(comp);
-  for (Piece *piece : missingPieces_) {
+  std::map<Piece*, int, decltype(comp)> piece_count(comp);
+  for (Piece* piece : missingPieces_) {
     // If a connection has been established with the peer
     if (peers_.find(peerId) != peers_.end()) {
-      if (hasPiece(peers_[peerId], piece->index)) piece_count[piece] += 1;
+      if (doesHavePiece(peers_[peerId], piece->index)) piece_count[piece] += 1;
     }
   }
 
-  Piece *rarest;
+  Piece* rarest;
   int least_count = INT16_MAX;
-  for (auto const &[piece, count] : piece_count) {
+  for (auto const& [piece, count] : piece_count) {
     if (count < least_count) {
       least_count = count;
       rarest = piece;
@@ -316,9 +317,9 @@ Piece *PieceManager::getRarestPiece(std::string peerId) {
 tl::expected<void, PieceManagerError> PieceManager::blockReceived(
     int pieceIndex, int blockOffset, std::string data) {
   // Removes the received block from pending requests
-  PendingRequest *request_to_remove = nullptr;
+  PendingRequest* request_to_remove = nullptr;
   lock_.lock();
-  for (PendingRequest *pending : pendingRequests_) {
+  for (PendingRequest* pending : pendingRequests_) {
     if (pending->block->piece == pieceIndex &&
         pending->block->offset == blockOffset) {
       request_to_remove = pending;
@@ -331,8 +332,8 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
                          pendingRequests_.end());
 
   // Retrieves the Piece to which this Block belongs
-  Piece *target_piece = nullptr;
-  for (Piece *piece : ongoingPieces_) {
+  Piece* target_piece = nullptr;
+  for (Piece* piece : ongoingPieces_) {
     if (piece->index == pieceIndex) {
       target_piece = piece;
       break;
@@ -376,7 +377,7 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
 /**
  * Writes the given Piece to disk.
  */
-void PieceManager::write(Piece *piece) {
+void PieceManager::write(Piece* piece) {
   int64_t position = piece->index * fileParser_->getPieceLength().value();
   downloadedFile_.seekp(position);
   downloadedFile_ << piece->getData();

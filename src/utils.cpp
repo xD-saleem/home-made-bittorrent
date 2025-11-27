@@ -5,23 +5,23 @@
 #include <cctype>
 #include <cmath>
 #include <cstdint>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
+#include <format>
 #include <string>
 #include <string_view>
 
-using std::array;
+#include "Piece.h"
 
-std::string sha1(const std::string &str) {
+std::string sha1(const std::string& str) {
   unsigned char hash[SHA_DIGEST_LENGTH];
-  SHA1(reinterpret_cast<const unsigned char *>(str.c_str()), str.size(), hash);
+  SHA1(reinterpret_cast<const unsigned char*>(str.data()), str.size(), hash);
 
-  std::stringstream ss;
-  for (unsigned char i : hash) {
-    ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(i);
+  std::string result;
+  result.reserve(SHA_DIGEST_LENGTH * 2);
+  for (unsigned char byte : hash) {
+    result += std::format("{:02x}", byte);
   }
-  return ss.str();
+
+  return result;
 }
 
 std::string urlEncode(std::string_view value) {
@@ -30,7 +30,6 @@ std::string urlEncode(std::string_view value) {
            c == '_' || c == '.' || c == '~';
   };
 
-  // Estimate worst-case size: every char becomes "%XX" (3 bytes)
   std::string result;
   result.reserve(value.size() * 3);
 
@@ -38,53 +37,63 @@ std::string urlEncode(std::string_view value) {
     if (kIsUnreserved(c)) {
       result.push_back(c);
     } else {
-      static constexpr array<char, 16> kHex = {'0', '1', '2', '3', '4', '5',
-                                               '6', '7', '8', '9', 'A', 'B',
-                                               'C', 'D', 'E', 'F'};
-      result.push_back('%');
-      result.push_back(kHex[c >> 4]);
-      result.push_back(kHex[c & 0xF]);
+      // 2 digit uppercase hex
+      result += std::format("%{:02X}", c);
     }
   }
+
   return result;
 }
 
-std::string hexDecode(const std::string &value) {
+std::string hexDecode(const std::string& value) {
   int hash_length = value.length();
   std::string decoded_hex_string;
   for (int i = 0; i < hash_length; i += 2) {
     std::string byte = value.substr(i, 2);
-    char c =
-        static_cast<char>(static_cast<int>(strtol(byte.c_str(), nullptr, 16)));
+    char c = static_cast<char>(strtol(byte.c_str(), nullptr, 16));
     decoded_hex_string.push_back(c);
   }
   return decoded_hex_string;
 }
 
-std::string hexEncode(const std::string &input) {
-  static const char kHexDigits[] = "0123456789ABCDEF";
+std::string hexEncode(const std::string& input) {
+  static const char hexLetters[] = "0123456789ABCDEF";
 
   std::string output;
   output.reserve(input.length() * 2);
-  for (unsigned char c : input) {
+  for (auto c : input) {
     output.push_back('\\');
     output.push_back('x');
-    output.push_back(kHexDigits[c >> 4]);
-    output.push_back(kHexDigits[c & 15]);
+    output.push_back(hexLetters[c >> 4]);
+    output.push_back(hexLetters[c & 15]);
   }
   return output;
 }
 
-bool hasPiece(const std::string &bitField, int index) {
-  float byte_index = floor(index / 8);
-  int offset = index % 8;
-  return (bitField[byte_index] >> (7 - offset) & 1) != 0;
+bool doesHavePiece(const std::string& bitField, int index) {
+  // Compute byte index and bit offset
+  size_t byte_index = index / 8;
+  int bit_offset = index % 8;
+
+  // Safety check: make sure byteIndex is in bounds
+  if (byte_index >= bitField.size()) return false;
+
+  // Check the bit (most significant bit first)
+  return (bitField[byte_index] & (1 << (7 - bit_offset))) != 0;
 }
 
-void setPiece(std::string &bitField, int index) {
-  int byte_index = floor(index / 8);
-  int offset = index % 8;
-  bitField[byte_index] |= (1 << (7 - offset));
+tl::expected<void, PieceError> setPiece(std::string& bitField, int index) {
+  size_t byte_index = index / 8;
+  int bit_offset = index % 8;
+
+  // Safety check: make sure byteIndex is valid
+  if (byte_index >= bitField.size()) {
+    return tl::unexpected(PieceError("bit index is out of range"));
+  }
+
+  // Set the specific bit (most significant bit first)
+  bitField[byte_index] |= (1 << (7 - bit_offset));
+  return {};
 }
 
 int bytesToInt(std::string bytes) {

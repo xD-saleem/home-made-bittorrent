@@ -89,7 +89,7 @@ enable_testing()
 add_executable(tests ${TEST_SRC}
 
 # Business logic
-src/Main_test.cpp
+src/main_test.cpp
 
 src/utils.cpp
 src/utils.h

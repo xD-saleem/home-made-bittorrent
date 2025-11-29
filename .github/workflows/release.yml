@@ -26,8 +26,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          style: 'file'  # Use .clang-format config file
-          tidy-checks: '' # Use .clang-tidy config file
+          style: 'file'  # Use .clang-format config file.
+          tidy-checks: '' # Use .clang-tidy config file.
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
       - name: Fail fast?!
@@ -56,7 +56,11 @@ jobs:
           name: ${{ matrix.config.out_name }}
           path: ${{ matrix.config.out_name }}
 
-  release:
+release:
+    if: github.event_name == 'pull_request' &&
+        github.event.action == 'closed' &&
+        github.event.pull_request.merged == true &&
+        github.event.pull_request.base.ref == 'main'
     name: Create Release
     runs-on: ubuntu-latest
     needs: build

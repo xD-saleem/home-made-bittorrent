@@ -24,7 +24,7 @@ struct TorrentRecord {
 
 // SQLiteDeleter functor to properly close the SQLite connection
 struct SQLiteDeleter {
-  void operator()(sqlite3 *db) const {
+  void operator()(sqlite3* db) const {
     if (db) {
       sqlite3_close(db);
     }
@@ -52,6 +52,6 @@ class DatabaseService {
   virtual ~DatabaseService();
 };
 
-std::shared_ptr<SQLite::Database> initDB(const std::string &dbName);
+std::shared_ptr<SQLite::Database> initDB(const std::string& dbName);
 
 #endif  // BITTORRENTCLIENT_DatabaseService_H

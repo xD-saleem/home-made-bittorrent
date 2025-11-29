@@ -13,9 +13,9 @@
 
 using std::array;
 
-std::string sha1(const std::string &str) {
+std::string sha1(const std::string& str) {
   unsigned char hash[SHA_DIGEST_LENGTH];
-  SHA1(reinterpret_cast<const unsigned char *>(str.c_str()), str.size(), hash);
+  SHA1(reinterpret_cast<const unsigned char*>(str.c_str()), str.size(), hash);
 
   std::stringstream ss;
   for (unsigned char i : hash) {
@@ -49,7 +49,7 @@ std::string urlEncode(std::string_view value) {
   return result;
 }
 
-std::string hexDecode(const std::string &value) {
+std::string hexDecode(const std::string& value) {
   int hash_length = value.length();
   std::string decoded_hex_string;
   for (int i = 0; i < hash_length; i += 2) {
@@ -61,7 +61,7 @@ std::string hexDecode(const std::string &value) {
   return decoded_hex_string;
 }
 
-std::string hexEncode(const std::string &input) {
+std::string hexEncode(const std::string& input) {
   static const char kHexDigits[] = "0123456789ABCDEF";
 
   std::string output;
@@ -75,13 +75,13 @@ std::string hexEncode(const std::string &input) {
   return output;
 }
 
-bool hasPiece(const std::string &bitField, int index) {
+bool hasPiece(const std::string& bitField, int index) {
   float byte_index = floor(index / 8);
   int offset = index % 8;
   return (bitField[byte_index] >> (7 - offset) & 1) != 0;
 }
 
-void setPiece(std::string &bitField, int index) {
+void setPiece(std::string& bitField, int index) {
   int byte_index = floor(index / 8);
   int offset = index % 8;
   bitField[byte_index] |= (1 << (7 - offset));

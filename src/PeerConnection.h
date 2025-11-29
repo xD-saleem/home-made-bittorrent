@@ -16,13 +16,13 @@ struct PeerConnectionError {
 class PeerConnection {
  private:
   int sock{};
-  SharedQueue<Peer *> *queue;
+  SharedQueue<Peer*>* queue;
   bool choked = true;
   bool terminated = false;
   bool requestPending = false;
   const std::string clientId;
   const std::string infoHash;
-  Peer *peer;
+  Peer* peer;
   std::string peerBitField;
   std::string peerId;
   std::shared_ptr<PieceManager> pieceManager;
@@ -44,9 +44,9 @@ class PeerConnection {
   void sendPiece();
 
  public:
-  const std::string &getPeerId() const;
+  const std::string& getPeerId() const;
 
-  explicit PeerConnection(SharedQueue<Peer *> *queue, std::string clientId,
+  explicit PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
                           std::string infoHash,
                           std::shared_ptr<PieceManager> pm);
   ~PeerConnection();

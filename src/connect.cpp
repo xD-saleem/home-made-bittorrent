@@ -43,7 +43,7 @@ static bool setSocketBlocking(int sock, bool blocking) {
   return true;
 }
 
-tl::expected<int, ConnectError> createConnection(const std::string &ip,
+tl::expected<int, ConnectError> createConnection(const std::string& ip,
                                                  int port) {
   int sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock < 0) {
@@ -65,7 +65,7 @@ tl::expected<int, ConnectError> createConnection(const std::string &ip,
     return tl::unexpected(ConnectError{"Failed to set socket to NONBLOCK"});
   }
 
-  connect(sock, reinterpret_cast<struct sockaddr *>(&address), sizeof(address));
+  connect(sock, reinterpret_cast<struct sockaddr*>(&address), sizeof(address));
 
   fd_set fdset;
   timeval tv{.tv_sec = kConnectTimeout, .tv_usec = 0};
@@ -91,7 +91,7 @@ tl::expected<int, ConnectError> createConnection(const std::string &ip,
 }
 
 tl::expected<void, ConnectError> sendData(const int sock,
-                                          const std::string &data) {
+                                          const std::string& data) {
   int n = data.length();
   char buffer[n];
   for (int i = 0; i < n; i++) {

@@ -30,13 +30,13 @@ class Piece {
 
  public:
   const int index;
-  std::vector<Block *> blocks;
+  std::vector<Block*> blocks;
 
-  explicit Piece(int index, std::vector<Block *> blocks, std::string hashValue);
+  explicit Piece(int index, std::vector<Block*> blocks, std::string hashValue);
   ~Piece();
   void reset();
   std::string getData();
-  Block *nextRequest();
+  Block* nextRequest();
   tl::expected<void, PieceError> blockReceived(int offset, std::string data);
   bool isComplete();
   bool isHashMatching();

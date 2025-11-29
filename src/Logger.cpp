@@ -5,7 +5,7 @@
 Logger::LogFunction Logger::log_function_ = Logger::defaultLogFunc;
 
 // Default log function using fmt
-void Logger::defaultLogFunc(const std::string &message) {
+void Logger::defaultLogFunc(const std::string& message) {
   fmt::print("[LOG]: {}\n", message);
 }
 
@@ -16,4 +16,4 @@ Logger::Logger(LogFunction logFunc) {
 }
 
 // Static log method
-void Logger::log(const std::string &message) { log_function_(message); }
+void Logger::log(const std::string& message) { log_function_(message); }

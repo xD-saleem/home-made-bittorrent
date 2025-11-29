@@ -26,7 +26,7 @@ class BitTorrentMessage {
   const std::string payload_;
 
  public:
-  explicit BitTorrentMessage(uint8_t id, const std::string &payload = "");
+  explicit BitTorrentMessage(uint8_t id, const std::string& payload = "");
   std::string toString();
   [[nodiscard]] uint8_t getMessageId() const;
   [[nodiscard]] std::string getPayload() const;

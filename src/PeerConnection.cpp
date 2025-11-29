@@ -30,7 +30,7 @@
  * @param infoHash: info hash of the Torrent file.
  * @param pieceManager: pointer to the PieceManager.
  */
-PeerConnection::PeerConnection(SharedQueue<Peer *> *queue, std::string clientId,
+PeerConnection::PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
                                std::string infoHash,
                                std::shared_ptr<PieceManager> pieceManager)
     : queue(queue),
@@ -97,7 +97,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
           }
         }
       }
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       closeSock();
     }
   }
@@ -111,7 +111,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::performHandshake() {
   try {
     auto sock_option = createConnection(peer->ip, peer->port);
     sock = sock_option.value();
-  } catch (std::runtime_error &e) {
+  } catch (std::runtime_error& e) {
     return tl::make_unexpected(PeerConnectionError{e.what()});
   }
 
@@ -155,7 +155,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::receiveBitField() {
 }
 
 void PeerConnection::requestPiece() {
-  Block *block = pieceManager->nextRequest(peerId);
+  Block* block = pieceManager->nextRequest(peerId);
 
   if (!block) return;
 
@@ -246,7 +246,7 @@ BitTorrentMessage PeerConnection::receiveMessage() const {
   return BitTorrentMessage(message_id, payload);
 }
 
-const std::string &PeerConnection::getPeerId() const { return peerId; }
+const std::string& PeerConnection::getPeerId() const { return peerId; }
 
 void PeerConnection::closeSock() {
   if (!sock) {

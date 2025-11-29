@@ -13,7 +13,7 @@
 
 constexpr int kHashLen = 20;
 
-TorrentFileParser::TorrentFileParser(const std::string &filePath) {
+TorrentFileParser::TorrentFileParser(const std::string& filePath) {
   std::ifstream file_stream(filePath, std::ifstream::binary);
   std::shared_ptr<bencoding::BItem> decoded_torrent_file =
       bencoding::decode(file_stream);

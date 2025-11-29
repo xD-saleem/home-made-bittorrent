@@ -21,7 +21,7 @@ const std::string kDbState = std::string("torrent_state.db");
 DatabaseService::~DatabaseService() = default;
 
 // Function to initialize the SQLite database
-std::shared_ptr<SQLite::Database> initDB(const std::string &dbName) {
+std::shared_ptr<SQLite::Database> initDB(const std::string& dbName) {
   auto db_conn = std::make_shared<SQLite::Database>(
       dbName, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 

@@ -18,23 +18,21 @@ jobs:
           - os: macos-15
             vcpkg_triplet: x64-osx-release
             out_name: bittorrent-macos-x64
-
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Lint (cpp-linter)
-        uses: cpp-linter/cpp-linter-action@v2
+      - uses: cpp-linter/cpp-linter-action@v2
         id: linter
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          style: "file"
-          tidy-checks: ""
+          style: 'file'
+          tidy-checks: ''
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
 
-      - name: Fail Fast?? 
-        if: steps.linter.outputs.checks-failed > 0
+      - name: Fail fast?!
+        if: fromJson(steps.linter.outputs.checks-failed) > 0
         run: exit 1
 
       - name: vcpkg build

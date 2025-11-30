@@ -13,7 +13,7 @@
 #include "TorrentState.h"
 #include "string"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int threads = 50;
   std::string download_directory = "./";
 

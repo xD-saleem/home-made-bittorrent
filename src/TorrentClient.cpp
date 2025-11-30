@@ -61,7 +61,7 @@ TorrentClient::TorrentClient(
  */
 TorrentClient::~TorrentClient() = default;
 
-void TorrentClient::start(const std::string &downloadDirectory) {
+void TorrentClient::start(const std::string& downloadDirectory) {
   const std::string info_hash = torrentFileParser->getInfoHash();
   const std::string filename = torrentFileParser->getFileName().value();
 
@@ -81,7 +81,7 @@ void TorrentClient::start(const std::string &downloadDirectory) {
   torrentState->storeState(info_hash, filename);
 }
 
-void TorrentClient::downloadFile(const std::string &torrentFile) {
+void TorrentClient::downloadFile(const std::string& torrentFile) {
   std::string announce_url = torrentFileParser->getAnnounce().value();
 
   int64_t file_size = torrentFileParser->getFileSize().value();
@@ -110,13 +110,13 @@ void TorrentClient::downloadFile(const std::string &torrentFile) {
     if (last_peer_query == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
       PeerRetriever peer_retriever(logger, peerId, announce_url, info_hash,
                                    PORT, file_size);
-      std::vector<Peer *> peers =
+      std::vector<Peer*> peers =
           peer_retriever.retrievePeers(pieceManager->bytesDownloaded());
       last_peer_query = current_time;
 
       if (!peers.empty()) {
         queue.clear();
-        for (auto *peer : peers) {
+        for (auto* peer : peers) {
           queue.push_back(peer);
         }
       }
@@ -138,12 +138,12 @@ void TorrentClient::terminate() {
   // Pushes dummy Peers into the queue so that
   // the waiting threads can terminate
   for (int i = 0; i < threadNum; i++) {
-    Peer *dummy_peer = new Peer{.ip = "0.0.0.0", .port = 0};
+    Peer* dummy_peer = new Peer{.ip = "0.0.0.0", .port = 0};
     queue.push_back(dummy_peer);
   }
-  for (auto *connection : connections) connection->stop();
+  for (auto* connection : connections) connection->stop();
 
-  for (std::thread &thread : threadPool) {
+  for (std::thread& thread : threadPool) {
     if (thread.joinable()) {
       thread.join();
     }

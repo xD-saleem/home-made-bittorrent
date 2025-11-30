@@ -12,7 +12,7 @@
 
 #include "utils.h"
 
-Piece::Piece(int index, std::vector<Block *> blocks, std::string hashValue)
+Piece::Piece(int index, std::vector<Block*> blocks, std::string hashValue)
     : index(index), hashValue_(std::move(hashValue)) {
   this->blocks = std::move(blocks);
 }
@@ -21,14 +21,14 @@ Piece::Piece(int index, std::vector<Block *> blocks, std::string hashValue)
  * Destructor of the object. Releases all the allocated memory for blocks.
  */
 Piece::~Piece() {
-  for (Block *block : blocks) delete block;
+  for (Block* block : blocks) delete block;
 }
 
 /**
  * Resets the status of all Blocks in this Piece to Missing.
  */
 void Piece::reset() {
-  for (Block *block : blocks) block->status = kMissing;
+  for (Block* block : blocks) block->status = kMissing;
 }
 
 /**
@@ -37,8 +37,8 @@ void Piece::reset() {
  * Changes that Block's status to Pending before returning.
  * If all Blocks are
  */
-Block *Piece::nextRequest() {
-  for (Block *block : blocks) {
+Block* Piece::nextRequest() {
+  for (Block* block : blocks) {
     if (block->status == kMissing) {
       block->status = kPending;
       return block;
@@ -55,7 +55,7 @@ Block *Piece::nextRequest() {
  */
 tl::expected<void, PieceError> Piece::blockReceived(int offset,
                                                     std::string data) {
-  for (Block *block : blocks) {
+  for (Block* block : blocks) {
     if (block->offset == offset) {
       block->status = kRetrieved;
       block->data = data;
@@ -73,7 +73,7 @@ tl::expected<void, PieceError> Piece::blockReceived(int offset,
  */
 bool Piece::isComplete() {
   return std::all_of(blocks.begin(), blocks.end(),
-                     [](Block *block) { return block->status == kRetrieved; });
+                     [](Block* block) { return block->status == kRetrieved; });
 }
 
 /**
@@ -98,6 +98,6 @@ bool Piece::isHashMatching() {
 std::string Piece::getData() {
   assert(isComplete());
   std::stringstream data;
-  for (Block *block : blocks) data << block->data;
+  for (Block* block : blocks) data << block->data;
   return std::string(data.str());
 }

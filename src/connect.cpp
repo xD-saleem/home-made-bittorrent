@@ -1,6 +1,6 @@
 #include "connect.h"
 
-#include <arpa/inet.h>
+#include <arpa/inet.h>  // for inet_pton
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/poll.h>

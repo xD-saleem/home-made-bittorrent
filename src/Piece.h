@@ -1,44 +1,34 @@
 #ifndef BITTORRENTCLIENT_PIECE_H
 #define BITTORRENTCLIENT_PIECE_H
 
+#include <memory>
 #include <string>
 #include <tl/expected.hpp>
 #include <vector>
 
 #include "Block.h"
 
-/**
- * A class representation of a piece of the Torrent content.
- * Each piece except the final one has a length equal to the
- * value specified by the 'piece length' attribute in the
- * Torrent file.
- * A piece is what is defined in the torrent meta-data. However,
- * when sharing data between peers a smaller unit is used - this
- * smaller piece is refereed to as `Block` by the unofficial
- * specification.
- * The implementation is based on the Python code from the
- * following repository:
- * https://github.com/eliasson/pieces/
- */
 struct PieceError {
   std::string message;
 };
 
 class Piece {
  private:
-  const std::string hashValue_;
+  const std::string hash_value_;
 
  public:
   const int index;
-  std::vector<Block*> blocks;
+  std::vector<std::unique_ptr<Block>> blocks;
 
-  explicit Piece(int index, std::vector<Block*> blocks, std::string hashValue);
-  ~Piece();
+  explicit Piece(int index, std::vector<std::unique_ptr<Block>> blocks,
+                 std::string hashValue);
+
+  ~Piece() = default;
   void reset();
   std::string getData();
   Block* nextRequest();
   tl::expected<void, PieceError> blockReceived(int offset, std::string data);
-  bool isComplete();
+  bool isComplete() const;
   bool isHashMatching();
 };
 

@@ -26,8 +26,8 @@ class PieceManager {
  private:
   std::shared_ptr<Logger> logger_;
   std::map<std::string, std::string> peers_;
-  std::vector<Piece*> missingPieces_;
-  std::vector<Piece*> ongoingPieces_;
+  std::vector<std::unique_ptr<Piece>> missingPieces_;
+  std::vector<std::unique_ptr<Piece>> ongoingPieces_;
   std::vector<PendingRequest*> pendingRequests_;
   std::ofstream downloadedFile_;
   const int64_t pieceLength_;
@@ -39,10 +39,10 @@ class PieceManager {
   // Uses a lock to prevent race condition
   std::mutex lock_;
 
-  std::vector<Piece*> initiatePieces();
+  std::vector<std::unique_ptr<Piece>> initiatePieces();
   Block* expiredRequest(std::string peerId);
   Block* nextOngoing(std::string peerId);
-  Piece* getRarestPiece(std::string peerId);
+  Piece* getRarestPiece(const std::string& peerId);
   void write(Piece* piece);
   void displayProgressBar();
   void trackProgress();

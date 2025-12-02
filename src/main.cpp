@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <memory>
+#include <print>
+#include <string>
 #include <tl/expected.hpp>
 
 #include "DatabaseService.h"
@@ -23,7 +25,7 @@ int main(int argc, char* argv[]) {
   }
 
   std::string download_path = argv[1];
-  std::cout << "You provided the file path: " << download_path << std::endl;
+  std::println("You provided the file path: {}!", download_path);
 
   // Logger
   std::shared_ptr<Logger> logger =

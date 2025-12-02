@@ -2,13 +2,10 @@ cmake_minimum_required(VERSION 3.29)
 project(main)
 
 ## Set C++ standard
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-if(NOT APPLE)
-    # set(CMAKE_CXX_CLANG_TIDY clang-tidy)
-endif()
-
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 ## Dependencies
 find_package(GTest CONFIG REQUIRED)

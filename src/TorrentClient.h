@@ -27,7 +27,7 @@ class TorrentClient {
 
   const int threadNum = 5;
   std::string peerId;
-  SharedQueue<Peer*> queue;
+  SharedQueue<std::unique_ptr<Peer>> queue;
   std::vector<std::thread> threadPool;
   std::vector<PeerConnection*> connections;
 

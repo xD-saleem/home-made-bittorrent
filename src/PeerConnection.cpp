@@ -30,10 +30,11 @@
  * @param infoHash: info hash of the Torrent file.
  * @param pieceManager: pointer to the PieceManager.
  */
-PeerConnection::PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
-                               std::string infoHash,
+
+PeerConnection::PeerConnection(SharedQueue<std::unique_ptr<Peer>>& queue,
+                               std::string clientId, std::string infoHash,
                                std::shared_ptr<PieceManager> pieceManager)
-    : queue(queue),
+    : queue(std::move(queue)),
       clientId(std::move(clientId)),
       infoHash(std::move(infoHash)),
       pieceManager(std::move(pieceManager)) {}
@@ -46,7 +47,7 @@ PeerConnection::~PeerConnection() { closeSock(); }
 
 tl::expected<void, PeerConnectionError> PeerConnection::start() {
   while (!(terminated || pieceManager->isComplete())) {
-    peer = queue->pop_front();
+    peer = queue.pop_front();
     // Terminates the thread if it has received a dummy Peer
     if (peer->ip == DUMMY_PEER_IP) {
       return {};

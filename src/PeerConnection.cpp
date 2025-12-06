@@ -47,7 +47,7 @@ PeerConnection::~PeerConnection() { closeSock(); }
 
 tl::expected<void, PeerConnectionError> PeerConnection::start() {
   while (!(terminated || pieceManager->isComplete())) {
-    peer = queue.pop_front();
+    peer = std::move(queue.pop_front());
     // Terminates the thread if it has received a dummy Peer
     if (peer->ip == DUMMY_PEER_IP) {
       return {};

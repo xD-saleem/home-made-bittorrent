@@ -90,9 +90,12 @@ void TorrentClient::downloadFile(const std::string& torrentFile) {
 
   // Adds threads to the thread pool
   for (int i = 0; i < threadNum; i++) {
-    PeerConnection connection(&queue, peerId, info_hash, pieceManager);
-    connections.push_back(&connection);
-    std::thread thread(&PeerConnection::start, connection);
+    auto connection_ptr = std::make_shared<PeerConnection>(
+        queue, peerId, info_hash, pieceManager);
+
+    connections.push_back(connection_ptr);
+
+    std::thread thread(&PeerConnection::start, connection_ptr);
     threadPool.push_back(std::move(thread));
   }
 
@@ -110,14 +113,14 @@ void TorrentClient::downloadFile(const std::string& torrentFile) {
     if (last_peer_query == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
       PeerRetriever peer_retriever(logger, peerId, announce_url, info_hash,
                                    PORT, file_size);
-      std::vector<Peer*> peers =
+      std::vector<std::unique_ptr<Peer>> peers =
           peer_retriever.retrievePeers(pieceManager->bytesDownloaded());
       last_peer_query = current_time;
 
       if (!peers.empty()) {
         queue.clear();
-        for (auto* peer : peers) {
-          queue.push_back(peer);
+        for (auto& peer : peers) {
+          queue.push_back(std::move(peer));
         }
       }
     }
@@ -138,10 +141,14 @@ void TorrentClient::terminate() {
   // Pushes dummy Peers into the queue so that
   // the waiting threads can terminate
   for (int i = 0; i < threadNum; i++) {
-    Peer* dummy_peer = new Peer{.ip = "0.0.0.0", .port = 0};
-    queue.push_back(dummy_peer);
+    std::unique_ptr<Peer> dummy_peer =
+        std::make_unique<Peer>(Peer{.ip = "0.0.0.0", .port = 0});
+
+    queue.push_back(std::move(dummy_peer));
   }
-  for (auto* connection : connections) connection->stop();
+  for (const auto& connection : connections) {
+    connection->stop();
+  }
 
   for (std::thread& thread : threadPool) {
     if (thread.joinable()) {

@@ -26,6 +26,12 @@ class SharedQueue {
   int size();
   bool empty();
 
+  SharedQueue(SharedQueue&& other) noexcept {
+    std::lock_guard<std::mutex> lock(other.mutex_);
+    queue_ = std::move(other.queue_);
+    // mutex_ and cond_ remain default-constructed for the new object
+  }
+
  private:
   std::deque<T> queue_;
   std::mutex mutex_;

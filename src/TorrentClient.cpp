@@ -90,11 +90,12 @@ void TorrentClient::downloadFile(const std::string& torrentFile) {
 
   // Adds threads to the thread pool
   for (int i = 0; i < threadNum; i++) {
-    PeerConnection connection(queue, peerId, info_hash, pieceManager);
+    auto connection_ptr = std::make_shared<PeerConnection>(
+        queue, peerId, info_hash, pieceManager);
 
-    connections.push_back(&connection);
+    connections.push_back(connection_ptr);
 
-    std::thread thread(&PeerConnection::start, &connection);
+    std::thread thread(&PeerConnection::start, connection_ptr);
     threadPool.push_back(std::move(thread));
   }
 
@@ -145,7 +146,9 @@ void TorrentClient::terminate() {
 
     queue.push_back(std::move(dummy_peer));
   }
-  for (auto* connection : connections) connection->stop();
+  for (const auto& connection : connections) {
+    connection->stop();
+  }
 
   for (std::thread& thread : threadPool) {
     if (thread.joinable()) {

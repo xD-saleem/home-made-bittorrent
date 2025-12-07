@@ -1,107 +1,88 @@
-
 #ifndef BITTORRENTCLIENT_SHAREDQUEUE_H
 #define BITTORRENTCLIENT_SHAREDQUEUE_H
 
 #include <condition_variable>
 #include <deque>
 #include <mutex>
+#include <utility>
 
-/**
- * Implementation of a thread-safe Queue. Code from
- * https://stackoverflow.com/questions/36762248/why-is-stdqueue-not-thread-safe
- */
 template <typename T>
 class SharedQueue {
  public:
-  SharedQueue();
-  ~SharedQueue();
+  SharedQueue() = default;
+  ~SharedQueue() = default;
 
-  T& front();
-  T& pop_front();
+  // Non-copyable
+  SharedQueue(const SharedQueue&) = delete;
+  SharedQueue& operator=(const SharedQueue&) = delete;
 
-  void push_back(const T& item);
-  void push_back(T&& item);
-  void clear();
-
-  int size();
-  bool empty();
-
+  // Movable
   SharedQueue(SharedQueue&& other) noexcept {
     std::lock_guard<std::mutex> lock(other.mutex_);
     queue_ = std::move(other.queue_);
-    // mutex_ and cond_ remain default-constructed for the new object
   }
+  SharedQueue& operator=(SharedQueue&& other) noexcept {
+    if (this != &other) {
+      std::lock_guard<std::mutex> lock1(mutex_);
+      std::lock_guard<std::mutex> lock2(other.mutex_);
+      queue_ = std::move(other.queue_);
+    }
+    return *this;
+  }
+
+  // Add an element (lvalue)
+  void push_back(const T& item) {
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      queue_.push_back(item);
+    }
+    cond_.notify_one();
+  }
+
+  // Add an element (rvalue / move)
+  void push_back(T&& item) {
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      queue_.push_back(std::move(item));
+    }
+    cond_.notify_one();
+  }
+
+  // Remove and return the front element (blocking)
+  T pop_front() {
+    std::unique_lock<std::mutex> lock(mutex_);
+    cond_.wait(lock, [this] { return !queue_.empty(); });
+    T front = std::move(queue_.front());
+    queue_.pop_front();
+    return front;
+  }
+
+  // Peek at the front element (blocking)
+  T front() {
+    std::unique_lock<std::mutex> lock(mutex_);
+    cond_.wait(lock, [this] { return !queue_.empty(); });
+    return queue_.front();  // copy or reference depending on T
+  }
+
+  // Clear the queue
+  void clear() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    queue_.clear();
+    cond_.notify_all();  // notify anyone waiting
+  }
+
+  // Size of the queue
+  int size() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return static_cast<int>(queue_.size());
+  }
+
+  // Is the queue empty?
+  bool empty() const { return size() == 0; }
 
  private:
-  std::deque<T> queue_;
-  std::mutex mutex_;
+  mutable std::mutex mutex_;
   std::condition_variable cond_;
+  std::deque<T> queue_;
 };
-
-template <typename T>
-SharedQueue<T>::SharedQueue() = default;
-
-template <typename T>
-SharedQueue<T>::~SharedQueue() = default;
-
-template <typename T>
-T& SharedQueue<T>::front() {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  while (queue_.empty()) {
-    cond_.wait(mlock);
-  }
-  return queue_.front();
-}
-
-template <typename T>
-T& SharedQueue<T>::pop_front() {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  while (queue_.empty()) {
-    cond_.wait(mlock);
-  }
-  T& front = queue_.front();
-  queue_.pop_front();
-  return front;
-}
-
-template <typename T>
-void SharedQueue<T>::push_back(const T& item) {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  queue_.push_back(item);
-  mlock.unlock();      // unlock before notification to minimize mutex con
-  cond_.notify_one();  // notify one waiting thread
-}
-
-template <typename T>
-void SharedQueue<T>::push_back(T&& item) {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  queue_.push_back(std::move(item));
-  mlock.unlock();      // unlock before notification to minimize mutex con
-  cond_.notify_one();  // notify one waiting thread
-}
-
-template <typename T>
-int SharedQueue<T>::size() {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  int size = queue_.size();
-  mlock.unlock();
-  return size;
-}
-
-template <typename T>
-bool SharedQueue<T>::empty() {
-  return size() == 0;
-}
-
-/**
- * Empties the queue
- */
-template <typename T>
-void SharedQueue<T>::clear() {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  std::deque<T>().swap(queue_);
-  mlock.unlock();
-  cond_.notify_one();
-}
-
 #endif  // BITTORRENTCLIENT_SHAREDQUEUE_H

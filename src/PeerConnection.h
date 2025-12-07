@@ -2,6 +2,9 @@
 #ifndef BITTORRENTCLIENT_PEERCONNECTION_H
 #define BITTORRENTCLIENT_PEERCONNECTION_H
 
+#include <algorithm>
+#include <memory>
+
 #include "BitTorrentMessage.h"
 #include "PeerRetriever.h"
 #include "PieceManager.h"
@@ -16,13 +19,15 @@ struct PeerConnectionError {
 class PeerConnection {
  private:
   int sock{};
-  SharedQueue<Peer*>* queue;
+  SharedQueue<std::unique_ptr<Peer>> queue;
   bool choked = true;
   bool terminated = false;
   bool requestPending = false;
   const std::string clientId;
   const std::string infoHash;
-  Peer* peer;
+
+  std::unique_ptr<Peer> peer;
+
   std::string peerBitField;
   std::string peerId;
   std::shared_ptr<PieceManager> pieceManager;
@@ -46,9 +51,9 @@ class PeerConnection {
  public:
   const std::string& getPeerId() const;
 
-  explicit PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
-                          std::string infoHash,
-                          std::shared_ptr<PieceManager> pm);
+  explicit PeerConnection(SharedQueue<std::unique_ptr<Peer>>& queue,
+                          std::string clientId, std::string infoHash,
+                          std::shared_ptr<PieceManager> pieceManager);
   ~PeerConnection();
   tl::expected<void, PeerConnectionError> start();
   void stop();

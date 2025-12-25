@@ -16,15 +16,14 @@ class SharedQueue {
   SharedQueue();
   ~SharedQueue();
 
-  T& front();
-  T& pop_front();
+  T front();
+  T pop_front();
 
-  void push_back(const T& item);
-  void push_back(T&& item);
+  void push_back(T item);
   void clear();
 
   int size();
-  bool empty();
+  bool is_empty();
 
  private:
   std::deque<T> queue_;
@@ -39,51 +38,39 @@ template <typename T>
 SharedQueue<T>::~SharedQueue() = default;
 
 template <typename T>
-T& SharedQueue<T>::front() {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  while (queue_.empty()) {
-    cond_.wait(mlock);
-  }
+T SharedQueue<T>::front() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  cond_.wait(lock, [this] { return !queue_.empty(); });
   return queue_.front();
 }
 
 template <typename T>
-T& SharedQueue<T>::pop_front() {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  while (queue_.empty()) {
-    cond_.wait(mlock);
-  }
-  T& front = queue_.front();
+T SharedQueue<T>::pop_front() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  cond_.wait(lock, [this] { return !queue_.empty(); });
+  T front = std::move(queue_.front());
   queue_.pop_front();
   return front;
 }
 
 template <typename T>
-void SharedQueue<T>::push_back(const T& item) {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  queue_.push_back(item);
-  mlock.unlock();      // unlock before notification to minimize mutex con
-  cond_.notify_one();  // notify one waiting thread
-}
-
-template <typename T>
-void SharedQueue<T>::push_back(T&& item) {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  queue_.push_back(std::move(item));
-  mlock.unlock();      // unlock before notification to minimize mutex con
+void SharedQueue<T>::push_back(const T item) {
+  {
+    std::unique_lock<std::mutex> lock(mutex_);
+    queue_.push_back(std::move(item));
+  }
   cond_.notify_one();  // notify one waiting thread
 }
 
 template <typename T>
 int SharedQueue<T>::size() {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  int size = queue_.size();
-  mlock.unlock();
-  return size;
+  std::lock_guard<std::mutex> lock(mutex_);
+  return queue_.size();
 }
 
 template <typename T>
-bool SharedQueue<T>::empty() {
+bool SharedQueue<T>::is_empty() {
+  std::lock_guard<std::mutex> lock(mutex_);
   return size() == 0;
 }
 
@@ -92,9 +79,8 @@ bool SharedQueue<T>::empty() {
  */
 template <typename T>
 void SharedQueue<T>::clear() {
-  std::unique_lock<std::mutex> mlock(mutex_);
-  std::deque<T>().swap(queue_);
-  mlock.unlock();
+  std::lock_guard<std::mutex> lock(mutex_);
+  queue_.empty();
   cond_.notify_one();
 }
 

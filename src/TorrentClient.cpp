@@ -107,7 +107,8 @@ void TorrentClient::downloadFile(const std::string& torrentFile) {
     auto diff = std::difftime(current_time, last_peer_query);
     // Retrieve peers from the tracker after a certain time interval or
     // whenever the queue is empty
-    if (last_peer_query == -1 || diff >= PEER_QUERY_INTERVAL || queue.empty()) {
+    if (last_peer_query == -1 || diff >= PEER_QUERY_INTERVAL ||
+        queue.is_empty()) {
       PeerRetriever peer_retriever(logger, peerId, announce_url, info_hash,
                                    PORT, file_size);
       std::vector<Peer*> peers =

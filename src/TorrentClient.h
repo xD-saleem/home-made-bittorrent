@@ -20,7 +20,6 @@ struct TorrentClientError {
 class TorrentClient {
  private:
   // Deps
-  std::shared_ptr<Logger> logger;
   std::shared_ptr<TorrentState> torrentState;
   std::shared_ptr<PieceManager> pieceManager;
   std::shared_ptr<TorrentFileParser> torrentFileParser;
@@ -33,12 +32,10 @@ class TorrentClient {
 
  public:
   // Constructor that accepts a shared_ptr to TorrentState
-  explicit TorrentClient(std::shared_ptr<Logger> logger,
-                         std::shared_ptr<TorrentState> torrentState,
+  explicit TorrentClient(std::shared_ptr<TorrentState> torrentState,
                          std::shared_ptr<PieceManager> pieceManager,
                          std::shared_ptr<TorrentFileParser> torrentFileParser,
-                         int threadNum = 5,
-                         std::string logFilePath = "logs/client.log");
+                         int threadNum = 5);
   // Destructor
   ~TorrentClient();
 

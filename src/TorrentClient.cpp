@@ -9,6 +9,7 @@
 #include <memory>
 #include <random>
 #include <thread>
+#include <utility>
 
 #include "PeerConnection.h"
 #include "PeerRetriever.h"
@@ -19,35 +20,28 @@
 #define PEER_QUERY_INTERVAL 60  // 1 minute
 
 TorrentClient::TorrentClient(
-    std::shared_ptr<Logger> logger, std::shared_ptr<TorrentState> torrentState,
+    std::shared_ptr<TorrentState> torrentState,
     std::shared_ptr<PieceManager> pieceManager,
-    std::shared_ptr<TorrentFileParser> torrentFileParser, int threadNum,
-    std::string logFilePath)
-    : logger(),
-      torrentState(torrentState),
-      pieceManager(pieceManager),
-      torrentFileParser(torrentFileParser),
+    std::shared_ptr<TorrentFileParser> torrentFileParser, int threadNum)
+    : torrentState(std::move(torrentState)),
+      pieceManager(std::move(pieceManager)),
+      torrentFileParser(std::move(torrentFileParser)),
       threadNum(threadNum),
-      peerId("-UT2021-"),
-      queue(),
-      threadPool(),
-      connections()
-
-{
+      peerId("-UT2021-") {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> distrib(1, 9);
 
   if (!this->torrentState) {
-    logger->log("torrentState is null!");
+    Logger::log("torrentState is null!");
     throw std::runtime_error("torrentState is null");
   }
   if (!this->torrentFileParser) {
-    logger->log("torrentFileParser is null!");
+    Logger::log("torrentFileParser is null!");
     throw std::runtime_error("torrentFileParser is null");
   }
   if (!this->pieceManager) {
-    logger->log("pieceManager is null!");
+    Logger::log("pieceManager is null!");
     throw std::runtime_error("pieceManager is null");
   }
 
@@ -109,8 +103,8 @@ void TorrentClient::downloadFile(const std::string& torrentFile) {
     // whenever the queue is empty
     if (last_peer_query == -1 || diff >= PEER_QUERY_INTERVAL ||
         queue.is_empty()) {
-      PeerRetriever peer_retriever(logger, peerId, announce_url, info_hash,
-                                   PORT, file_size);
+      PeerRetriever peer_retriever(peerId, announce_url, info_hash, PORT,
+                                   file_size);
       std::vector<Peer*> peers =
           peer_retriever.retrievePeers(pieceManager->bytesDownloaded());
       last_peer_query = current_time;

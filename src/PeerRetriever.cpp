@@ -13,6 +13,7 @@
 #include <tl/expected.hpp>
 #include <utility>
 
+#include "Logger.h"
 #include "utils.h"
 
 #define TRACKER_TIMEOUT 15000
@@ -26,15 +27,14 @@
  * @param port: the TCP port this client listens on.
  * @param fileSize: the size of the file to be downloaded in bytes.
  */
-PeerRetriever::PeerRetriever(std::shared_ptr<Logger> logger, std::string peerId,
-                             std::string announceUrl, std::string infoHash,
-                             int port, const u_int64_t fileSize)
+PeerRetriever::PeerRetriever(std::string peerId, std::string announceUrl,
+                             std::string infoHash, int port,
+                             const u_int64_t fileSize)
     : fileSize_(fileSize) {
   this->peerId_ = std::move(peerId);
   this->announceUrl_ = std::move(announceUrl);
   this->infoHash_ = std::move(infoHash);
   this->port_ = port;
-  this->logger_ = std::move(logger);
 }
 
 /**
@@ -89,11 +89,10 @@ std::vector<Peer*> PeerRetriever::retrievePeers(u_int64_t bytesDownloaded) {
     }
 
     return peers.value();
-  } else {
-    logger_->log(
-        fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
-                    res.status_code, res.text.c_str()));
   }
+  Logger::log(fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
+                          res.status_code, res.text.c_str()));
+
   return std::vector<Peer*>();
 }
 
@@ -134,11 +133,9 @@ std::vector<Peer*> PeerRetriever::retrieveSeedPeers(u_int64_t bytesDownloaded) {
     }
 
     return peers.value();
-  } else {
-    Logger::log(
-        fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
-                    res.status_code, res.text.c_str()));
   }
+  Logger::log(fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
+                          res.status_code, res.text.c_str()));
 
   return std::vector<Peer*>();
 }

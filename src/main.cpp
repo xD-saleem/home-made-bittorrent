@@ -13,7 +13,6 @@
 #include "TorrentClient.h"
 #include "TorrentFileParser.h"
 #include "TorrentState.h"
-#include "string"
 
 int main(int argc, char* argv[]) {
   int threads = 50;
@@ -52,8 +51,8 @@ int main(int argc, char* argv[]) {
       torrent_file_parser, downloaded_file_name, threads);
 
   TorrentClient torrent_client =
-      TorrentClient(logger, torrent_state, piece_manager, torrent_file_parser,
-                    threads, download_directory);
+      // TODO(slim): add where to save torrent
+      TorrentClient(torrent_state, piece_manager, torrent_file_parser, threads);
 
   Logger::log("Parsing Torrent file " + download_path);
 

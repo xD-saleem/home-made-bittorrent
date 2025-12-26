@@ -18,7 +18,8 @@
 constexpr int kReadTimeout = 300;
 constexpr int kConnectTimeout = 5;
 
-static bool setSocketBlocking(int sock, bool blocking) {
+namespace {
+bool setSocketBlocking(int sock, bool blocking) {
   if (sock < 0) {
     std::cerr << "Invalid socket descriptor\n";
     return false;
@@ -31,9 +32,9 @@ static bool setSocketBlocking(int sock, bool blocking) {
   }
 
   if (blocking)
-    flags &= ~O_NONBLOCK;  // Clear O_NONBLOCK flag (blocking mode)
+    flags &= ~O_NONBLOCK;  // blocking mode
   else
-    flags |= O_NONBLOCK;  // Set O_NONBLOCK flag (non-blocking mode)
+    flags |= O_NONBLOCK;  // non-blocking mode
 
   if (fcntl(sock, F_SETFL, flags) == -1) {
     std::cerr << "Failed to set socket flags\n";
@@ -42,6 +43,8 @@ static bool setSocketBlocking(int sock, bool blocking) {
 
   return true;
 }
+
+}  // namespace
 
 tl::expected<int, ConnectError> createConnection(const std::string& ip,
                                                  int port) {

@@ -15,17 +15,17 @@ struct PeerConnectionError {
 
 class PeerConnection {
  private:
-  int sock{};
-  SharedQueue<Peer*>* queue;
-  bool choked = true;
-  bool terminated = false;
-  bool requestPending = false;
-  const std::string clientId;
-  const std::string infoHash;
-  Peer* peer;
-  std::string peerBitField;
-  std::string peerId;
-  std::shared_ptr<PieceManager> pieceManager;
+  int sock_{};
+  SharedQueue<Peer*>* queue_;
+  bool choked_ = true;
+  bool terminated_ = false;
+  bool requestPending_ = false;
+  const std::string clientId_;
+  const std::string infoHash_;
+  Peer* peer_;
+  std::string peerBitField_;
+  std::string peerId_;
+  std::shared_ptr<PieceManager> pieceManager_;
 
   std::string createHandshakeMessage();
   tl::expected<void, PeerConnectionError> performHandshake();

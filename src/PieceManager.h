@@ -24,7 +24,6 @@ struct PieceManagerError {
 
 class PieceManager {
  private:
-  std::shared_ptr<Logger> logger_;
   std::map<std::string, std::string> peers_;
   std::vector<std::unique_ptr<Piece>> missingPieces_;
   std::vector<std::unique_ptr<Piece>> ongoingPieces_;

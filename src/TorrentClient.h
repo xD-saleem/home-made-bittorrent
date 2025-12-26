@@ -20,15 +20,15 @@ struct TorrentClientError {
 class TorrentClient {
  private:
   // Deps
-  std::shared_ptr<TorrentState> torrentState;
-  std::shared_ptr<PieceManager> pieceManager;
-  std::shared_ptr<TorrentFileParser> torrentFileParser;
+  std::shared_ptr<TorrentState> torrentState_;
+  std::shared_ptr<PieceManager> pieceManager_;
+  std::shared_ptr<TorrentFileParser> torrentFileParser_;
 
-  const int threadNum = 5;
-  std::string peerId;
-  SharedQueue<Peer*> queue;
-  std::vector<std::thread> threadPool;
-  std::vector<PeerConnection*> connections;
+  const int threadNum_ = 5;
+  std::string peerId_;
+  SharedQueue<Peer*> queue_;
+  std::vector<std::thread> threadPool_;
+  std::vector<PeerConnection*> connections_;
 
  public:
   // Constructor that accepts a shared_ptr to TorrentState

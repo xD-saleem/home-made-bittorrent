@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
   }
 
   std::string download_path = argv[1];
-  std::println("You provided the file path: {}!", download_path);
+  Logger::log("You provided the file path: " + download_path);
 
   // Logger
   std::shared_ptr<Logger> logger =

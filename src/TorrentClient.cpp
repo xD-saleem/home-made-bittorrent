@@ -57,94 +57,113 @@ TorrentClient::~TorrentClient() = default;
 
 void TorrentClient::start(const std::string& downloadDirectory) {
   const std::string info_hash = torrentFileParser_->getInfoHash();
-  const std::string filename = torrentFileParser_->getFileName().value();
 
-  auto state = torrentState_->getState(info_hash);
+  const tl::expected<std::string, TorrentFileParserError> filename_exp =
+      torrentFileParser_->getFileName();
+
+  if (!filename_exp) {
+    Logger::log("Failed to get torrent filename.");
+    return;
+  }
+  const std::string& filename = filename_exp.value();
+
+  const auto state = torrentState_->getState(info_hash);
   if (!state) {
-    Logger::log("No state found for this infoHash.");
+    Logger::log("No state found for this info hash.");
     return;
   }
 
-  if (state->id == info_hash) {
-    Logger::log("Torrent already downloaded\n");
-    return;
-  }
+  // TODO(slim): enable this once we have all the bugs/refactors done.
+  //  if (state->id == info_hash) {
+  //    Logger::log("Torrent already downloaded.");
+  //    return;
+  //  }
 
   downloadFile(downloadDirectory);
 
-  torrentState_->storeState(info_hash, filename);
+  auto res = torrentState_->storeState(info_hash, filename);
+
+  if (!res) {
+    Logger::log("Failed to store torrent state.");
+    return;
+  }
 }
 
 void TorrentClient::downloadFile(const std::string& torrentFile) {
-  std::string announce_url = torrentFileParser_->getAnnounce().value();
+  const auto announce_url = torrentFileParser_->getAnnounce().value();
+  const auto file_size = torrentFileParser_->getFileSize().value();
+  const auto info_hash = torrentFileParser_->getInfoHash();
+  const auto file_name = torrentFileParser_->getFileName().value();
 
-  int64_t file_size = torrentFileParser_->getFileSize().value();
-  const std::string info_hash = torrentFileParser_->getInfoHash();
-  std::string filename = torrentFileParser_->getFileName().value();
+  // Initialize peer connections and threads
+  connections_.reserve(threadNum_);
+  threadPool_.reserve(threadNum_);
 
-  // Adds threads to the thread pool
-  for (int i = 0; i < threadNum_; i++) {
+  for (int i = 0; i < threadNum_; ++i) {
     PeerConnection connection(&queue_, peerId_, info_hash, pieceManager_);
+    // TODO(slim): fix storing raw pointer.
     connections_.push_back(&connection);
-    std::thread thread(&PeerConnection::start, connection);
-    threadPool_.push_back(std::move(thread));
+
+    threadPool_.emplace_back(&PeerConnection::start, connection);
   }
 
   auto last_peer_query = static_cast<time_t>(-1);
 
-  bool is_download_completed = false;
+  while (!pieceManager_->isComplete()) {
+    const time_t now = std::time(nullptr);
+    const double elapsed = std::difftime(now, last_peer_query);
 
-  while (!is_download_completed) {
-    is_download_completed = pieceManager_->isComplete();
+    const bool should_query_tracker = last_peer_query == -1 ||
+                                      elapsed >= PEER_QUERY_INTERVAL ||
+                                      queue_.is_empty();
 
-    time_t current_time = std::time(nullptr);
-    auto diff = std::difftime(current_time, last_peer_query);
-    // Retrieve peers from the tracker after a certain time interval or
-    // whenever the queue is empty
-    if (last_peer_query == -1 || diff >= PEER_QUERY_INTERVAL ||
-        queue_.is_empty()) {
-      PeerRetriever peer_retriever(peerId_, announce_url, info_hash, PORT,
-                                   file_size);
-      std::vector<Peer*> peers =
-          peer_retriever.retrievePeers(pieceManager_->bytesDownloaded());
-      last_peer_query = current_time;
+    if (!should_query_tracker) {
+      continue;
+    }
 
-      if (!peers.empty()) {
-        queue_.clear();
-        for (auto* peer : peers) {
-          queue_.push_back(peer);
-        }
+    PeerRetriever retriever(peerId_, announce_url, info_hash, PORT, file_size);
+
+    const auto peers =
+        retriever.retrievePeers(pieceManager_->bytesDownloaded());
+
+    last_peer_query = now;
+
+    if (!peers.empty()) {
+      queue_.clear();
+      for (auto* peer : peers) {
+        queue_.push_back(peer);
       }
     }
   }
 
   terminate();
 
-  if (is_download_completed) {
-    Logger::log("Download completed!");
-    Logger::log(fmt::format("Torrent File {} Downloaded", torrentFile));
-  }
+  Logger::log("Download completed!");
+  Logger::log(fmt::format("Torrent file '{}' downloaded.", torrentFile));
 }
 
-/**
- * Terminates the download and cleans up all the resources
- */
 void TorrentClient::terminate() {
-  // Pushes dummy Peers into the queue so that
-  // the waiting threads can terminate
-  for (int i = 0; i < threadNum_; i++) {
-    Peer* dummy_peer = new Peer{.ip = "0.0.0.0", .port = 0};
-    queue_.push_back(dummy_peer);
+  // Signal all worker threads to stop by pushing dummy peers
+  for (int i = 0; i < threadNum_; ++i) {
+    auto dummy_peer = std::make_unique<Peer>();
+    dummy_peer->ip = "0.0.0.0";
+    dummy_peer->port = 0;
+    // TODO(slim): dont use raw peer pointer
+    queue_.push_back(dummy_peer.release());
   }
+
+  // Stop all active connections
   for (auto* connection : connections_) {
     connection->stop();
   }
 
-  for (std::thread& thread : threadPool_) {
+  // Join all threads
+  for (auto& thread : threadPool_) {
     if (thread.joinable()) {
       thread.join();
     }
   }
 
+  // Clean up thread pool
   threadPool_.clear();
 }

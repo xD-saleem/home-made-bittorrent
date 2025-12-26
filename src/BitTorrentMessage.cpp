@@ -25,6 +25,7 @@ std::string BitTorrentMessage::toString() {
 
   return encoded;
 }
+
 uint8_t BitTorrentMessage::getMessageId() const { return id_; }
 
 std::string BitTorrentMessage::getPayload() const { return payload_; }

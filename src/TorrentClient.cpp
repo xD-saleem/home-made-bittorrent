@@ -90,20 +90,23 @@ void TorrentClient::start(const std::string& downloadDirectory) {
 }
 
 void TorrentClient::downloadFile(const std::string& torrentFile) {
+  // Retrieve torrent metadata
+  // TODO(slim): lets check expected before .value()
   const auto announce_url = torrentFileParser_->getAnnounce().value();
   const auto file_size = torrentFileParser_->getFileSize().value();
   const auto info_hash = torrentFileParser_->getInfoHash();
   const auto file_name = torrentFileParser_->getFileName().value();
 
-  // Initialize peer connections and threads
+  // Initialize vectors for threads and connections
   connections_.reserve(threadNum_);
   threadPool_.reserve(threadNum_);
 
   for (int i = 0; i < threadNum_; ++i) {
     PeerConnection connection(&queue_, peerId_, info_hash, pieceManager_);
-    // TODO(slim): fix storing raw pointer.
+    // TODO(slim): unsafe: storing pointer to local object
     connections_.push_back(&connection);
 
+    // Start thread using the connection object
     threadPool_.emplace_back(&PeerConnection::start, connection);
   }
 
@@ -113,16 +116,20 @@ void TorrentClient::downloadFile(const std::string& torrentFile) {
     const time_t now = std::time(nullptr);
     const double elapsed = std::difftime(now, last_peer_query);
 
+    // Determine if we should query the tracker
     const bool should_query_tracker = last_peer_query == -1 ||
                                       elapsed >= PEER_QUERY_INTERVAL ||
                                       queue_.is_empty();
 
     if (!should_query_tracker) {
+      // prevent busy-waiting
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
       continue;
     }
 
+    // Retrieve peers from tracker
     PeerRetriever retriever(peerId_, announce_url, info_hash, PORT, file_size);
-
     const auto peers =
         retriever.retrievePeers(pieceManager_->bytesDownloaded());
 
@@ -131,7 +138,7 @@ void TorrentClient::downloadFile(const std::string& torrentFile) {
     if (!peers.empty()) {
       queue_.clear();
       for (auto* peer : peers) {
-        queue_.push_back(peer);
+        queue_.push_back(peer);  // lets use unique_ptr for memory safety
       }
     }
   }
@@ -148,12 +155,14 @@ void TorrentClient::terminate() {
     auto dummy_peer = std::make_unique<Peer>();
     dummy_peer->ip = "0.0.0.0";
     dummy_peer->port = 0;
-    // TODO(slim): dont use raw peer pointer
+    // TODO(slim): do not use raw pointer, use unique_ptr in queue if possible
     queue_.push_back(dummy_peer.release());
   }
 
   // Stop all active connections
   for (auto* connection : connections_) {
+    // stopping connections before joining threads
+
     connection->stop();
   }
 
@@ -164,6 +173,6 @@ void TorrentClient::terminate() {
     }
   }
 
-  // Clean up thread pool
+  // Clear thread pool vector
   threadPool_.clear();
 }

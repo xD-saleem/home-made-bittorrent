@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <string>
-
+namespace utils {
 std::string sha1(const std::string& str);
 
 std::string urlEncode(const std::string& value);
@@ -21,3 +21,4 @@ int bytesToInt(std::string bytes);
 std::string formatTime(int64_t seconds);
 
 #endif  // BITTORRENTCLIENT_UTILS_H
+}

@@ -1,6 +1,7 @@
 
 #include "PieceManager.h"
 
+#include <Logger.h>
 #include <bencode/bencoding.h>
 #include <fmt/base.h>
 #include <fmt/core.h>
@@ -138,7 +139,7 @@ tl::expected<void, PieceManagerError> PieceManager::updatePeer(
     const std::string& peerId, int index) {
   lock_.lock();
   if (peers_.contains(peerId)) {
-    setPiece(peers_[peerId], index);
+    utils::setPiece(peers_[peerId], index);
     lock_.unlock();
   } else {
     lock_.unlock();
@@ -224,7 +225,7 @@ Block* PieceManager::nextRequest(const std::string peerId) {
 Block* PieceManager::expiredRequest(std::string peerId) {
   time_t current_time = std::time(nullptr);
   for (PendingRequest* pending : pendingRequests_) {
-    if (hasPiece(peers_[peerId], pending->block->piece)) {
+    if (utils::hasPiece(peers_[peerId], pending->block->piece)) {
       // If the request has expired
       auto diff = std::difftime(current_time, pending->timestamp);
       if (diff >= MAX_PENDING_TIME) {
@@ -244,7 +245,7 @@ Block* PieceManager::expiredRequest(std::string peerId) {
  */
 Block* PieceManager::nextOngoing(std::string peerId) {
   for (std::unique_ptr<Piece>& piece : ongoingPieces_) {
-    if (hasPiece(peers_[peerId], piece->index)) {
+    if (utils::hasPiece(peers_[peerId], piece->index)) {
       Block* block = piece->nextRequest();
       if (block) {
         auto* new_pending_request = new PendingRequest;
@@ -263,7 +264,7 @@ Piece* PieceManager::getRarestPiece(const std::string& peerId) {
 
   for (auto& piece_ptr : missingPieces_) {
     if (peers_.contains(peerId)) {
-      if (hasPiece(peers_[peerId], piece_ptr->index)) {
+      if (utils::hasPiece(peers_[peerId], piece_ptr->index)) {
         piece_count[piece_ptr.get()] += 1;
       }
     }
@@ -429,7 +430,7 @@ void PieceManager::displayProgressBar() {
                           static_cast<double>(piecesDownloadedInInterval_);
   int64_t remaining_time =
       ceil(time_per_piece * (total_pieces - downloaded_pieces));
-  info << "ETA: " << formatTime(remaining_time) << "]";
+  info << "ETA: " << utils::formatTime(remaining_time) << "]";
 
   double progress = static_cast<double>(downloaded_pieces) /
                     static_cast<double>(total_pieces);
@@ -452,7 +453,7 @@ void PieceManager::displayProgressBar() {
   time_t current_time = std::time(nullptr);
   int64_t time_since_start = floor(std::difftime(current_time, startingTime_));
 
-  info << "in " << formatTime(time_since_start);
+  info << "in " << utils::formatTime(time_since_start);
   std::cout << info.str() << "\r";
   std::cout.flush();
   lock_.unlock();

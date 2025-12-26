@@ -13,6 +13,8 @@
 
 using std::array;
 
+namespace utils {
+// NOLINTNEXTLINE(misc-use-internal-linkage)
 std::string sha1(const std::string& str) {
   unsigned char hash[SHA_DIGEST_LENGTH];
   SHA1(reinterpret_cast<const unsigned char*>(str.c_str()), str.size(), hash);
@@ -24,6 +26,7 @@ std::string sha1(const std::string& str) {
   return ss.str();
 }
 
+// NOLINTNEXTLINE(misc-use-internal-linkage)
 std::string urlEncode(std::string_view value) {
   static constexpr auto kIsUnreserved = [](char c) noexcept {
     return std::isalnum(static_cast<unsigned char>(c)) || c == '-' ||
@@ -49,6 +52,7 @@ std::string urlEncode(std::string_view value) {
   return result;
 }
 
+// NOLINTNEXTLINE(misc-use-internal-linkage)
 std::string hexDecode(const std::string& value) {
   int hash_length = value.length();
   std::string decoded_hex_string;
@@ -61,6 +65,7 @@ std::string hexDecode(const std::string& value) {
   return decoded_hex_string;
 }
 
+// NOLINTNEXTLINE(misc-use-internal-linkage)
 std::string hexEncode(const std::string& input) {
   static const char kHexDigits[] = "0123456789ABCDEF";
 
@@ -75,18 +80,21 @@ std::string hexEncode(const std::string& input) {
   return output;
 }
 
+// NOLINTNEXTLINE(misc-use-internal-linkage)
 bool hasPiece(const std::string& bitField, int index) {
   float byte_index = floor(index / 8);
   int offset = index % 8;
   return (bitField[byte_index] >> (7 - offset) & 1) != 0;
 }
 
+// NOLINTNEXTLINE(misc-use-internal-linkage)
 void setPiece(std::string& bitField, int index) {
   int byte_index = floor(index / 8);
   int offset = index % 8;
   bitField[byte_index] |= (1 << (7 - offset));
 }
 
+// NOLINTNEXTLINE(misc-use-internal-linkage)
 int bytesToInt(std::string bytes) {
   std::string bin_str;
   int64_t byte_count = bytes.size();
@@ -95,6 +103,7 @@ int bytesToInt(std::string bytes) {
   return stoi(bin_str, nullptr, 2);
 }
 
+// NOLINTNEXTLINE(misc-use-internal-linkage)
 std::string formatTime(int64_t seconds) {
   if (seconds < 0) return "inf";
 
@@ -115,3 +124,4 @@ std::string formatTime(int64_t seconds) {
   }
   return result;
 }
+}  // namespace utils

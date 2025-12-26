@@ -9,7 +9,6 @@
 #include <mutex>
 #include <vector>
 
-#include "Logger.h"
 #include "Piece.h"
 #include "TorrentFileParser.h"
 

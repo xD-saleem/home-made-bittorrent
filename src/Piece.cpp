@@ -56,9 +56,9 @@ bool Piece::isComplete() const {
 
 bool Piece::isHashMatching() {
   std::string data = getData();
-  auto sha1ed_data = sha1(data);
+  auto sha1ed_data = utils::sha1(data);
 
-  std::string piece_hash = hexDecode(sha1ed_data);
+  std::string piece_hash = utils::hexDecode(sha1ed_data);
   return piece_hash == hash_value_;
 }
 

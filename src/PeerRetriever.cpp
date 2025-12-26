@@ -66,7 +66,7 @@ std::vector<Peer*> PeerRetriever::retrievePeers(u_int64_t bytesDownloaded) {
 
   cpr::Response res = cpr::Get(
       cpr::Url{announceUrl_},
-      cpr::Parameters{{"info_hash", std::string(hexDecode(infoHash_))},
+      cpr::Parameters{{"info_hash", std::string(utils::hexDecode(infoHash_))},
                       {"peer_id", std::string(peerId_)},
                       {"port", std::to_string(port_)},
                       {"uploaded", std::to_string(0)},
@@ -109,17 +109,17 @@ std::vector<Peer*> PeerRetriever::retrieveSeedPeers(u_int64_t bytesDownloaded) {
   info << "left: " << std::to_string(fileSize_ - bytesDownloaded) << std::endl;
   info << "compact: " << std::to_string(1);
 
-  cpr::Response res =
-      cpr::Get(cpr::Url{announceUrl_},
-               cpr::Parameters{{"info_hash", std::string(hexDecode(infoHash_))},
-                               {"peer_id", std::string(peerId_)},
-                               {"port", std::to_string(port_)},
-                               {"uploaded", std::to_string(0)},
-                               {"downloaded", std::to_string(bytesDownloaded)},
-                               {"left", std::to_string(0)},
-                               {"event", "completed"},
-                               {"compact", std::to_string(1)}},
-               cpr::Timeout{TRACKER_TIMEOUT});
+  cpr::Response res = cpr::Get(
+      cpr::Url{announceUrl_},
+      cpr::Parameters{{"info_hash", std::string(utils::hexDecode(infoHash_))},
+                      {"peer_id", std::string(peerId_)},
+                      {"port", std::to_string(port_)},
+                      {"uploaded", std::to_string(0)},
+                      {"downloaded", std::to_string(bytesDownloaded)},
+                      {"left", std::to_string(0)},
+                      {"event", "completed"},
+                      {"compact", std::to_string(1)}},
+      cpr::Timeout{TRACKER_TIMEOUT});
 
   // If response successfully retrieved
   if (res.status_code == 200) {
@@ -186,7 +186,7 @@ PeerRetriever::decodeResponse(std::string response) {
       peer_ip << std::to_string(static_cast<uint8_t>(peers_string[offset + 2]))
               << ".";
       peer_ip << std::to_string(static_cast<uint8_t>(peers_string[offset + 3]));
-      int peer_port = bytesToInt(peers_string.substr(offset + 4, 2));
+      int peer_port = utils::bytesToInt(peers_string.substr(offset + 4, 2));
       Peer* new_peer = new Peer{.ip = peer_ip.str(), .port = peer_port};
       peers.push_back(new_peer);
     }

@@ -31,7 +31,7 @@ std::shared_ptr<bencoding::BItem> TorrentFileParser::get(
 std::string TorrentFileParser::getInfoHash() const {
   std::shared_ptr<bencoding::BItem> info_dictionary = get("info");
   std::string info_string = bencoding::encode(info_dictionary);
-  std::string sha1_hash = sha1(info_string);
+  std::string sha1_hash = utils::sha1(info_string);
   return sha1_hash;
 }
 

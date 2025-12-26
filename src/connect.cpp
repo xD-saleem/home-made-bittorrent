@@ -43,7 +43,6 @@ bool setSocketBlocking(int sock, bool blocking) {
 
   return true;
 }
-
 }  // namespace
 
 tl::expected<int, ConnectError> createConnection(const std::string& ip,
@@ -135,7 +134,8 @@ tl::expected<std::string, ConnectError> receiveData(int sock,
           "Failed to read message length from socket " + std::to_string(sock)});
     }
 
-    bufferSize = bytesToInt(std::string(length_buffer, kLengthIndicatorSize));
+    bufferSize =
+        utils::bytesToInt(std::string(length_buffer, kLengthIndicatorSize));
   }
 
   if (bufferSize > std::numeric_limits<uint16_t>::max()) {

@@ -13,7 +13,6 @@
 #include <utility>
 
 #include "BitTorrentMessage.h"
-#include "Piece.h"
 #include "connect.h"
 #include "utils.h"
 
@@ -25,8 +24,8 @@
 /**
  * Constructor of the class PeerConnection.
  * @param queue: the thread-safe queue that contains the available peers.
- * @param clientId: the peer ID of this C++ BitTorrent client. Generated in the
- * TorrentClient class.
+ * @param clientId: the peer ID of this C++ BitTorrent client. Generated in
+ * the TorrentClient class.
  * @param infoHash: info hash of the Torrent file.
  * @param pieceManager: pointer to the PieceManager.
  */
@@ -74,15 +73,15 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
             case kPiece: {
               requestPending_ = false;
               std::string payload = message.getPayload();
-              int index = bytesToInt(payload.substr(0, 4));
-              int begin = bytesToInt(payload.substr(4, 4));
+              int index = utils::bytesToInt(payload.substr(0, 4));
+              int begin = utils::bytesToInt(payload.substr(4, 4));
               std::string block_data = payload.substr(8);
               pieceManager_->blockReceived(index, begin, block_data);
               break;
             }
             case kHave: {
               std::string payload = message.getPayload();
-              int piece_index = bytesToInt(payload);
+              int piece_index = utils::bytesToInt(payload);
               pieceManager_->updatePeer(peerId_, piece_index);
               break;
             }
@@ -228,7 +227,7 @@ std::string PeerConnection::createHandshakeMessage() {
   buffer.write("\0\0\0\0\0\0\0\0", kReservedBytes);
 
   // Append info hash and client ID
-  buffer << hexDecode(infoHash_) << clientId_;
+  buffer << utils::hexDecode(infoHash_) << clientId_;
 
   assert(buffer.str().size() == (sizeof(kProtocolName) - 1) + 49);
   return buffer.str();

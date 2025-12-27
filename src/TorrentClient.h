@@ -5,7 +5,6 @@
 #include <memory>
 #include <string>
 
-#include "Logger.h"
 #include "PeerConnection.h"
 #include "PeerRetriever.h"
 #include "PieceManager.h"
@@ -26,7 +25,7 @@ class TorrentClient {
 
   const int threadNum_ = 5;
   std::string peerId_;
-  SharedQueue<Peer*> queue_;
+  SharedQueue<std::unique_ptr<Peer>> queue_;
   std::vector<std::thread> threadPool_;
   std::vector<PeerConnection*> connections_;
 

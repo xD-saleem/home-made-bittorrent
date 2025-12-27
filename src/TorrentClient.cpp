@@ -123,7 +123,6 @@ void TorrentClient::downloadFile(const std::string& torrentFile) {
 
     if (!should_query_tracker) {
       // prevent busy-waiting
-
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
       continue;
     }
@@ -155,8 +154,7 @@ void TorrentClient::terminate() {
     auto dummy_peer = std::make_unique<Peer>();
     dummy_peer->ip = "0.0.0.0";
     dummy_peer->port = 0;
-    // TODO(slim): do not use raw pointer, use unique_ptr in queue if possible
-    queue_.push_back(dummy_peer.release());
+    queue_.push_back(std::move(dummy_peer));
   }
 
   // Stop all active connections

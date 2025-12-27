@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <tl/expected.hpp>
 #include <utility>
@@ -51,7 +52,8 @@ PeerRetriever::PeerRetriever(std::string peerId, std::string announceUrl,
  * not.
  * @return a vector that contains the information of all peers.
  */
-std::vector<Peer*> PeerRetriever::retrievePeers(u_int64_t bytesDownloaded) {
+std::vector<std::unique_ptr<Peer>> PeerRetriever::retrievePeers(
+    u_int64_t bytesDownloaded) {
   std::stringstream info;
   info << "Retrieving peers from " << announceUrl_
        << " with the following parameters..." << std::endl;
@@ -80,23 +82,25 @@ std::vector<Peer*> PeerRetriever::retrievePeers(u_int64_t bytesDownloaded) {
     std::shared_ptr<bencoding::BItem> decoded_response =
         bencoding::decode(res.text);
 
-    auto peers = decodeResponse(res.text);
+    tl::expected<std::vector<std::unique_ptr<Peer>>, PeerRetrieverError> peers =
+        decodeResponse(res.text);
 
     if (!peers.has_value()) {
       Logger::log(fmt::format("Decoding tracker response: FAILED [ {} ]",
                               peers.error().message.c_str()));
-      return std::vector<Peer*>();
+      return std::vector<std::unique_ptr<Peer>>();
     }
 
-    return peers.value();
+    return std::move(peers.value());
   }
   Logger::log(fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
                           res.status_code, res.text.c_str()));
 
-  return std::vector<Peer*>();
+  return std::vector<std::unique_ptr<Peer>>();
 }
 
-std::vector<Peer*> PeerRetriever::retrieveSeedPeers(u_int64_t bytesDownloaded) {
+std::vector<std::unique_ptr<Peer>> PeerRetriever::retrieveSeedPeers(
+    u_int64_t bytesDownloaded) {
   std::stringstream info;
   info << "Retrieving peers from " << announceUrl_
        << " with the following parameters..." << std::endl;
@@ -129,18 +133,18 @@ std::vector<Peer*> PeerRetriever::retrieveSeedPeers(u_int64_t bytesDownloaded) {
     auto peers = decodeResponse(res.text);
 
     if (!peers.has_value()) {
-      return std::vector<Peer*>();
+      return std::vector<std::unique_ptr<Peer>>();
     }
 
-    return peers.value();
+    return std::move(peers.value());
   }
   Logger::log(fmt::format("Retrieving response from tracker: FAILED [ {}: {} ]",
                           res.status_code, res.text.c_str()));
 
-  return std::vector<Peer*>();
+  return std::vector<std::unique_ptr<Peer>>();
 }
 
-tl::expected<std::vector<Peer*>, PeerRetrieverError>
+tl::expected<std::vector<std::unique_ptr<Peer>>, PeerRetrieverError>
 PeerRetriever::decodeResponse(std::string response) {
   std::shared_ptr<bencoding::BItem> decoded_response =
       bencoding::decode(response);
@@ -155,7 +159,7 @@ PeerRetriever::decodeResponse(std::string response) {
         "['peers' not found]"});
   }
 
-  std::vector<Peer*> peers;
+  std::vector<std::unique_ptr<Peer>> peers;
 
   // Handles the first case where peer information is sent in a binary blob
   // (compact)
@@ -186,9 +190,13 @@ PeerRetriever::decodeResponse(std::string response) {
       peer_ip << std::to_string(static_cast<uint8_t>(peers_string[offset + 2]))
               << ".";
       peer_ip << std::to_string(static_cast<uint8_t>(peers_string[offset + 3]));
+
       int peer_port = utils::bytesToInt(peers_string.substr(offset + 4, 2));
-      Peer* new_peer = new Peer{.ip = peer_ip.str(), .port = peer_port};
-      peers.push_back(new_peer);
+
+      std::unique_ptr<Peer> new_peer =
+          std::make_unique<Peer>(Peer{.ip = peer_ip.str(), .port = peer_port});
+
+      peers.push_back(std::move(new_peer));
     }
   }
   // Handles the second case where peer information is stored in a list
@@ -222,8 +230,10 @@ PeerRetriever::decodeResponse(std::string response) {
       int peer_port = static_cast<int>(
           std::dynamic_pointer_cast<bencoding::BInteger>(temp_peer_port)
               ->value());
-      Peer* new_peer = new Peer{.ip = peer_ip, .port = peer_port};
-      peers.push_back(new_peer);
+
+      std::unique_ptr<Peer> peer =
+          std::make_unique<Peer>(Peer{.ip = peer_ip, .port = peer_port});
+      peers.push_back(std::move(peer));
     }
   } else {
     return tl::unexpected(PeerRetrieverError{

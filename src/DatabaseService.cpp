@@ -1,5 +1,6 @@
 #include "DatabaseService.h"
 
+#include <Logger.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <fmt/core.h>
 #include <fmt/format.h>

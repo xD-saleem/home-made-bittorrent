@@ -5,7 +5,7 @@
 #include "BitTorrentMessage.h"
 #include "PeerRetriever.h"
 #include "PieceManager.h"
-#include "SharedQueue.h"
+#include "Queue.h"
 
 using byte = unsigned char;
 
@@ -16,7 +16,7 @@ struct PeerConnectionError {
 class PeerConnection {
  private:
   int sock_{};
-  SharedQueue<Peer*>* queue_;
+  Queue<Peer*>* queue_;
   bool choked_ = true;
   bool terminated_ = false;
   bool requestPending_ = false;
@@ -46,7 +46,7 @@ class PeerConnection {
  public:
   const std::string& getPeerId() const;
 
-  explicit PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
+  explicit PeerConnection(Queue<Peer*>* queue, std::string clientId,
                           std::string infoHash,
                           std::shared_ptr<PieceManager> pm);
   ~PeerConnection();

@@ -1,6 +1,6 @@
 
-#ifndef BITTORRENTCLIENT_SHAREDQUEUE_H
-#define BITTORRENTCLIENT_SHAREDQUEUE_H
+#ifndef BITTORRENTCLIENT_QUEUE_H
+#define BITTORRENTCLIENT_QUEUE_H
 
 #include <condition_variable>
 #include <deque>
@@ -11,10 +11,10 @@
  * https://stackoverflow.com/questions/36762248/why-is-stdqueue-not-thread-safe
  */
 template <typename T>
-class SharedQueue {
+class Queue {
  public:
-  SharedQueue();
-  ~SharedQueue();
+  Queue();
+  ~Queue();
 
   T front();
   T pop_front();
@@ -32,20 +32,20 @@ class SharedQueue {
 };
 
 template <typename T>
-SharedQueue<T>::SharedQueue() = default;
+Queue<T>::Queue() = default;
 
 template <typename T>
-SharedQueue<T>::~SharedQueue() = default;
+Queue<T>::~Queue() = default;
 
 template <typename T>
-T SharedQueue<T>::front() {
+T Queue<T>::front() {
   std::unique_lock<std::mutex> lock(mutex_);
   cond_.wait(lock, [this] { return !queue_.empty(); });
   return queue_.front();
 }
 
 template <typename T>
-T SharedQueue<T>::pop_front() {
+T Queue<T>::pop_front() {
   std::unique_lock<std::mutex> lock(mutex_);
   cond_.wait(lock, [this] { return !queue_.empty(); });
   T front = std::move(queue_.front());
@@ -54,7 +54,7 @@ T SharedQueue<T>::pop_front() {
 }
 
 template <typename T>
-void SharedQueue<T>::push_back(const T item) {
+void Queue<T>::push_back(const T item) {
   {
     std::unique_lock<std::mutex> lock(mutex_);
     queue_.push_back(std::move(item));
@@ -63,13 +63,13 @@ void SharedQueue<T>::push_back(const T item) {
 }
 
 template <typename T>
-int SharedQueue<T>::size() {
+int Queue<T>::size() {
   std::lock_guard<std::mutex> lock(mutex_);
   return queue_.size();
 }
 
 template <typename T>
-bool SharedQueue<T>::is_empty() {
+bool Queue<T>::is_empty() {
   std::lock_guard<std::mutex> lock(mutex_);
   return size() == 0;
 }
@@ -78,10 +78,10 @@ bool SharedQueue<T>::is_empty() {
  * Empties the queue
  */
 template <typename T>
-void SharedQueue<T>::clear() {
+void Queue<T>::clear() {
   std::lock_guard<std::mutex> lock(mutex_);
   queue_.empty();
   cond_.notify_one();
 }
 
-#endif  // BITTORRENTCLIENT_SHAREDQUEUE_H
+#endif  // BITTORRENTCLIENT_QUEUE_H

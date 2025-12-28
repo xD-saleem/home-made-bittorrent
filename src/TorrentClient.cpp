@@ -1,11 +1,11 @@
 #include "TorrentClient.h"
 
+#include <Logger.h>
 #include <bencode/bencoding.h>
 #include <fmt/base.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
 
-#include <iostream>
 #include <memory>
 #include <random>
 #include <thread>

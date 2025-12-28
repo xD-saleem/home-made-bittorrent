@@ -58,7 +58,7 @@ src/Piece.h
 src/PieceManager.cpp
 src/PieceManager.h
 
-src/SharedQueue.h
+src/Queue.h
 
 src/TorrentClient.cpp
 src/TorrentClient.h

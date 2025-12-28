@@ -89,7 +89,7 @@ void TorrentClient::start(const std::string& downloadDirectory) {
   }
 }
 
-void TorrentClient::downloadFile(const std::string& torrentFile) {
+void TorrentClient::downloadFile(const std::string& file) {
   // Retrieve torrent metadata
   // TODO(slim): lets check expected before .value()
   const auto announce_url = torrentFileParser_->getAnnounce().value();
@@ -146,7 +146,7 @@ void TorrentClient::downloadFile(const std::string& torrentFile) {
   terminate();
 
   Logger::log("Download completed!");
-  Logger::log(fmt::format("Torrent file '{}' downloaded.", torrentFile));
+  Logger::log(fmt::format("Torrent file '{}' downloaded.", file));
 }
 
 void TorrentClient::terminate() {

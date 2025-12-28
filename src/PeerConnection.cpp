@@ -29,7 +29,7 @@
  * @param infoHash: info hash of the Torrent file.
  * @param pieceManager: pointer to the PieceManager.
  */
-PeerConnection::PeerConnection(SharedQueue<Peer*>* queue, std::string clientId,
+PeerConnection::PeerConnection(Queue<Peer*>* queue, std::string clientId,
                                std::string infoHash,
                                std::shared_ptr<PieceManager> pieceManager)
     : queue_(queue),

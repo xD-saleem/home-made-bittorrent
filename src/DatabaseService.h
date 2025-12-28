@@ -8,8 +8,6 @@
 #include <string>
 #include <tl/expected.hpp>
 
-#include "Logger.h"
-
 enum class DatabaseServiceError {
   kOpenError,
   kInsertError,
@@ -34,11 +32,9 @@ struct SQLiteDeleter {
 class DatabaseService {
  private:
   std::shared_ptr<SQLite::Database> db_;
-  std::shared_ptr<Logger> logger_;
 
  public:
-  explicit DatabaseService(std::shared_ptr<SQLite::Database> dbState,
-                           std::shared_ptr<Logger> logger);
+  explicit DatabaseService(std::shared_ptr<SQLite::Database> dbState);
 
   virtual tl::expected<void, DatabaseServiceError> insertOne(
       std::string hashinfo, std::string name);

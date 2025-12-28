@@ -6,7 +6,7 @@
 
 class MockDatabaseService : public DatabaseService {
  public:
-  MockDatabaseService() : DatabaseService(nullptr, nullptr) {}
+  MockDatabaseService() : DatabaseService(nullptr) {}
 
   MOCK_METHOD((tl::expected<void, DatabaseServiceError>), up, (), (override));
 

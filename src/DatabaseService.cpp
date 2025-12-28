@@ -29,13 +29,12 @@ std::shared_ptr<SQLite::Database> initDB(const std::string& dbName) {
 }
 
 // Constructor implementation
-DatabaseService::DatabaseService(std::shared_ptr<SQLite::Database> dbState,
-                                 std::shared_ptr<Logger> logger) {
+DatabaseService::DatabaseService(std::shared_ptr<SQLite::Database> dbState) {
   db_ = std::move(dbState);
   if (!db_) {
-    logger->log("Failed to initialize the database");
+    Logger::log("Failed to initialize the database");
   } else {
-    logger->log("Database initialized successfully");
+    Logger::log("Database initialized successfully");
   }
 }
 

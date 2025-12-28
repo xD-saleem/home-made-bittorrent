@@ -25,15 +25,11 @@ int main(int argc, char* argv[]) {
   std::string download_path = argv[1];
   Logger::log("You provided the file path: " + download_path);
 
-  // Logger
-  std::shared_ptr<Logger> logger =
-      std::make_shared<Logger>(Logger::custom_log_function);
-
   std::shared_ptr<SQLite::Database> database = initDB("torrent_state.db3");
 
   // Database Service
   std::shared_ptr<DatabaseService> database_service =
-      std::make_shared<DatabaseService>(database, logger);
+      std::make_shared<DatabaseService>(database);
 
   // Torrent State
   std::shared_ptr<TorrentState> torrent_state =

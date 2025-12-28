@@ -4,14 +4,11 @@
 #include <fmt/core.h>
 #include <gtest/gtest.h>
 
-static std::shared_ptr<Logger> logger =
-    std::make_shared<Logger>(Logger::custom_log_function);
-
 TEST(DatabaseService, InsertOneAndGetOne) {
   std::string memory_db = ":memory:";
 
   auto db = initDB(memory_db);
-  DatabaseService database_svc = DatabaseService(db, logger);
+  DatabaseService database_svc = DatabaseService(db);
 
   database_svc.up();
 

@@ -2,6 +2,7 @@
 #ifndef BITTORRENTCLIENT_TORRENTCLIENT_H
 #define BITTORRENTCLIENT_TORRENTCLIENT_H
 
+#include <algorithm>
 #include <memory>
 #include <string>
 
@@ -24,13 +25,14 @@ class TorrentClient {
 
   const int threadNum_ = 5;
   std::string peerId_;
-  Queue<Peer*> queue_;
+  std::unique_ptr<Queue<std::unique_ptr<Peer>>> queue_;
   std::vector<std::thread> threadPool_;
   std::vector<PeerConnection*> connections_;
 
  public:
   // Constructor that accepts a shared_ptr to TorrentState
-  explicit TorrentClient(std::shared_ptr<TorrentState> torrentState,
+  explicit TorrentClient(std::unique_ptr<Queue<std::unique_ptr<Peer>>> queue,
+                         std::shared_ptr<TorrentState> torrentState,
                          std::shared_ptr<PieceManager> pieceManager,
                          std::shared_ptr<TorrentFileParser> torrentFileParser,
                          int threadNum = 5);

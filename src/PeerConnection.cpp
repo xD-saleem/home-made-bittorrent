@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <tl/expected.hpp>
@@ -29,10 +30,10 @@
  * @param infoHash: info hash of the Torrent file.
  * @param pieceManager: pointer to the PieceManager.
  */
-PeerConnection::PeerConnection(Queue<Peer*>* queue, std::string clientId,
-                               std::string infoHash,
-                               std::shared_ptr<PieceManager> pieceManager)
-    : queue_(queue),
+PeerConnection::PeerConnection(
+    std::unique_ptr<Queue<std::unique_ptr<Peer>>> queue, std::string clientId,
+    std::string infoHash, std::shared_ptr<PieceManager> pieceManager)
+    : queue_(std::move(queue)),
       clientId_(std::move(clientId)),
       infoHash_(std::move(infoHash)),
       pieceManager_(std::move(pieceManager)) {}

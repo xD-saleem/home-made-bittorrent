@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<PieceManager> piece_manager = std::make_shared<PieceManager>(
       torrent_file_parser, downloaded_file_name, threads);
 
-  std::unique_ptr<Queue<std::unique_ptr<Peer>>> queue =
-      std::make_unique<Queue<std::unique_ptr<Peer>>>();
+  std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue =
+      std::make_shared<Queue<std::unique_ptr<Peer>>>();
 
   TorrentClient torrent_client =
       // TODO(slim): add where to save torrent

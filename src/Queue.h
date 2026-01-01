@@ -6,10 +6,6 @@
 #include <deque>
 #include <mutex>
 
-/**
- * Implementation of a thread-safe Queue. Code from
- * https://stackoverflow.com/questions/36762248/why-is-stdqueue-not-thread-safe
- */
 template <typename T>
 class Queue {
  public:
@@ -54,12 +50,12 @@ T Queue<T>::pop_front() {
 }
 
 template <typename T>
-void Queue<T>::push_back(const T item) {
+void Queue<T>::push_back(T item) {
   {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     queue_.push_back(std::move(item));
   }
-  cond_.notify_one();  // notify one waiting thread
+  cond_.notify_one();
 }
 
 template <typename T>
@@ -80,8 +76,8 @@ bool Queue<T>::is_empty() {
 template <typename T>
 void Queue<T>::clear() {
   std::lock_guard<std::mutex> lock(mutex_);
-  queue_.empty();
-  cond_.notify_one();
+  std::deque<T> empty;
+  queue_.swap(empty);
+  cond_.notify_all();
 }
-
 #endif  // BITTORRENTCLIENT_QUEUE_H

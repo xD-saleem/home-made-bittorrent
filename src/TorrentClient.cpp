@@ -20,7 +20,7 @@
 #define PEER_QUERY_INTERVAL 60  // 1 minute
 
 TorrentClient::TorrentClient(
-    std::unique_ptr<Queue<std::unique_ptr<Peer>>> queue,
+    std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue,
     std::shared_ptr<TorrentState> torrentState,
     std::shared_ptr<PieceManager> pieceManager,
     std::shared_ptr<TorrentFileParser> torrentFileParser, int threadNum)
@@ -104,13 +104,12 @@ void TorrentClient::downloadFile(const std::string& file) {
   threadPool_.reserve(threadNum_);
 
   for (int i = 0; i < threadNum_; ++i) {
-    PeerConnection connection(std::move(queue_), peerId_, info_hash,
-                              pieceManager_);
-    // TODO(slim): unsafe: storing pointer to local object
-    connections_.push_back(&connection);
+    auto connection = std::make_unique<PeerConnection>(
+        queue_, peerId_, info_hash, pieceManager_);
 
-    // Start thread using the connection object
-    threadPool_.emplace_back(&PeerConnection::start, connection);
+    threadPool_.emplace_back(&PeerConnection::start, connection.get());
+
+    connections_.push_back(std::move(connection));
   }
 
   auto last_peer_query = static_cast<time_t>(-1);
@@ -158,10 +157,7 @@ void TorrentClient::terminate() {
     queue_->push_back(std::move(dummy_peer));
   }
 
-  // Stop all active connections
-  for (auto* connection : connections_) {
-    // stopping connections before joining threads
-
+  for (auto& connection : connections_) {
     connection->stop();
   }
 

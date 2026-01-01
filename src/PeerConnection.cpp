@@ -31,7 +31,7 @@
  * @param pieceManager: pointer to the PieceManager.
  */
 PeerConnection::PeerConnection(
-    std::unique_ptr<Queue<std::unique_ptr<Peer>>> queue, std::string clientId,
+    std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue, std::string clientId,
     std::string infoHash, std::shared_ptr<PieceManager> pieceManager)
     : queue_(std::move(queue)),
       clientId_(std::move(clientId)),

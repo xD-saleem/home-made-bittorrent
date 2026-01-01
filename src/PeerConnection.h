@@ -19,7 +19,8 @@ class PeerConnection {
  private:
   int sock_{};
 
-  std::unique_ptr<Queue<std::unique_ptr<Peer>>> queue_;
+  std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue_;
+
   bool choked_ = true;
   bool terminated_ = false;
   bool requestPending_ = false;
@@ -51,7 +52,7 @@ class PeerConnection {
  public:
   const std::string& getPeerId() const;
 
-  explicit PeerConnection(std::unique_ptr<Queue<std::unique_ptr<Peer>>> queue,
+  explicit PeerConnection(std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue,
                           std::string clientId, std::string infoHash,
                           std::shared_ptr<PieceManager> pm);
   ~PeerConnection();

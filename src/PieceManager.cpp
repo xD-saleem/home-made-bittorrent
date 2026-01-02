@@ -114,12 +114,11 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
 }
 
 bool PieceManager::isComplete() {
-  lock_.lock();
-  size_t current_size = havePieces.size();
+  std::lock_guard<std::mutex> guard(lock_);
+
   const size_t header = 4;
-  bool is_complete = (current_size + header == total_pieces);
-  lock_.unlock();
-  return is_complete;
+  size_t current_size = havePieces.size();
+  return ((current_size + header) == total_pieces);
 }
 
 void PieceManager::addPeer(const std::string& peerId, std::string bitField) {

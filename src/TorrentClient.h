@@ -47,9 +47,6 @@ class TorrentClient {
 
   // Method to download file from torrent
   void downloadFile(const std::string& downloadDirectory);
-
-  // Method to seed file
-  void seedFile(const std::string& downloadDirectory);
 };
 
 #endif  // BITTORRENTCLIENT_TORRENTCLIENT_H

@@ -76,10 +76,10 @@ void TorrentClient::start(const std::string& downloadDirectory) {
   }
 
   // TODO(slim): enable this once we have all the bugs/refactors done.
-  //  if (state->id == info_hash) {
-  //    Logger::log("Torrent already downloaded.");
-  //    return;
-  //  }
+  if (state->id == info_hash) {
+    Logger::log("Torrent already downloaded.");
+    return;
+  }
 
   downloadFile(downloadDirectory);
 
@@ -126,7 +126,7 @@ void TorrentClient::downloadFile(const std::string& file) {
     if (!should_query_tracker) {
       // prevent busy-waiting
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       continue;
     }
 
@@ -134,6 +134,9 @@ void TorrentClient::downloadFile(const std::string& file) {
     PeerRetriever retriever(peerId_, announce_url, info_hash, PORT, file_size);
 
     auto peers = retriever.retrievePeers(pieceManager_->bytesDownloaded());
+
+    Logger::log(fmt::format("Progress: {}/{} bytes",
+                            pieceManager_->bytesDownloaded(), file_size));
 
     last_peer_query = now;
 

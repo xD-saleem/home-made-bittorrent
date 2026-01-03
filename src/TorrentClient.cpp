@@ -104,7 +104,7 @@ void TorrentClient::downloadFile(const std::string& file) {
   threadPool_.reserve(threadNum_);
 
   for (int i = 0; i < threadNum_; ++i) {
-    auto connection = std::make_unique<PeerConnection>(
+    auto connection = std::make_shared<PeerConnection>(
         queue_, peerId_, info_hash, pieceManager_);
 
     threadPool_.emplace_back(&PeerConnection::start, connection.get());

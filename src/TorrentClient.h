@@ -27,7 +27,7 @@ class TorrentClient {
   std::string peerId_;
   std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue_;
   std::vector<std::thread> threadPool_;
-  std::vector<std::unique_ptr<PeerConnection>> connections_;
+  std::vector<std::shared_ptr<PeerConnection>> connections_;
 
  public:
   // Constructor that accepts a shared_ptr to TorrentState

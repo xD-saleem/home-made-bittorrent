@@ -1,20 +1,23 @@
-
 #ifndef BITTORRENTCLIENT_QUEUE_H
 #define BITTORRENTCLIENT_QUEUE_H
 
 #include <condition_variable>
 #include <deque>
 #include <mutex>
+#include <sstream>
+#include <thread>
 
-/**
- * Implementation of a thread-safe Queue. Code from
- * https://stackoverflow.com/questions/36762248/why-is-stdqueue-not-thread-safe
- */
+inline std::string thread_id_str() {
+  std::ostringstream oss;
+  oss << std::this_thread::get_id();
+  return oss.str();
+}
+
 template <typename T>
 class Queue {
  public:
-  Queue();
-  ~Queue();
+  Queue() = default;
+  ~Queue() = default;
 
   T front();
   T pop_front();
@@ -32,15 +35,10 @@ class Queue {
 };
 
 template <typename T>
-Queue<T>::Queue() = default;
-
-template <typename T>
-Queue<T>::~Queue() = default;
-
-template <typename T>
 T Queue<T>::front() {
   std::unique_lock<std::mutex> lock(mutex_);
   cond_.wait(lock, [this] { return !queue_.empty(); });
+
   return queue_.front();
 }
 
@@ -48,40 +46,44 @@ template <typename T>
 T Queue<T>::pop_front() {
   std::unique_lock<std::mutex> lock(mutex_);
   cond_.wait(lock, [this] { return !queue_.empty(); });
+
   T front = std::move(queue_.front());
   queue_.pop_front();
+
   return front;
 }
 
 template <typename T>
-void Queue<T>::push_back(const T item) {
+void Queue<T>::push_back(T item) {
   {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
+
     queue_.push_back(std::move(item));
   }
-  cond_.notify_one();  // notify one waiting thread
+
+  cond_.notify_one();
 }
 
 template <typename T>
 int Queue<T>::size() {
   std::lock_guard<std::mutex> lock(mutex_);
-  return queue_.size();
+  return static_cast<int>(queue_.size());
 }
 
 template <typename T>
 bool Queue<T>::is_empty() {
   std::lock_guard<std::mutex> lock(mutex_);
-  return size() == 0;
+  return queue_.empty();  // avoid double locking via size()
 }
 
-/**
- * Empties the queue
- */
 template <typename T>
 void Queue<T>::clear() {
   std::lock_guard<std::mutex> lock(mutex_);
-  queue_.empty();
-  cond_.notify_one();
+  std::deque<T> empty;
+
+  queue_.swap(empty);
+
+  cond_.notify_all();
 }
 
 #endif  // BITTORRENTCLIENT_QUEUE_H

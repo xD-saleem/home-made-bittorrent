@@ -24,13 +24,14 @@ class TorrentClient {
 
   const int threadNum_ = 5;
   std::string peerId_;
-  Queue<Peer*> queue_;
+  std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue_;
   std::vector<std::thread> threadPool_;
-  std::vector<PeerConnection*> connections_;
+  std::vector<std::shared_ptr<PeerConnection>> connections_;
 
  public:
   // Constructor that accepts a shared_ptr to TorrentState
-  explicit TorrentClient(std::shared_ptr<TorrentState> torrentState,
+  explicit TorrentClient(std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue,
+                         std::shared_ptr<TorrentState> torrentState,
                          std::shared_ptr<PieceManager> pieceManager,
                          std::shared_ptr<TorrentFileParser> torrentFileParser,
                          int threadNum = 5);
@@ -45,9 +46,6 @@ class TorrentClient {
 
   // Method to download file from torrent
   void downloadFile(const std::string& downloadDirectory);
-
-  // Method to seed file
-  void seedFile(const std::string& downloadDirectory);
 };
 
 #endif  // BITTORRENTCLIENT_TORRENTCLIENT_H

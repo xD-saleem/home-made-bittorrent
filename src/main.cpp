@@ -6,9 +6,11 @@
 #include <memory>
 #include <string>
 #include <tl/expected.hpp>
+#include <utility>
 
 #include "DatabaseService.h"
 #include "Logger.h"
+#include "Queue.h"
 #include "TorrentClient.h"
 #include "TorrentFileParser.h"
 #include "TorrentState.h"
@@ -45,9 +47,13 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<PieceManager> piece_manager = std::make_shared<PieceManager>(
       torrent_file_parser, downloaded_file_name, threads);
 
+  std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue =
+      std::make_shared<Queue<std::unique_ptr<Peer>>>();
+
   TorrentClient torrent_client =
       // TODO(slim): add where to save torrent
-      TorrentClient(torrent_state, piece_manager, torrent_file_parser, threads);
+      TorrentClient(std::move(queue), torrent_state, piece_manager,
+                    torrent_file_parser, threads);
 
   Logger::log("Parsing Torrent file " + download_path);
 

@@ -8,7 +8,6 @@
 #include <sys/types.h>
 
 #include <cstdint>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <tl/expected.hpp>

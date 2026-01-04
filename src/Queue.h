@@ -7,8 +7,6 @@
 #include <sstream>
 #include <thread>
 
-#include "Logger.h"
-
 inline std::string thread_id_str() {
   std::ostringstream oss;
   oss << std::this_thread::get_id();

@@ -2,7 +2,6 @@
 #include <fmt/base.h>
 #include <fmt/color.h>
 
-#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <string>

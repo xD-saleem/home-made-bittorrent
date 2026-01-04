@@ -2,7 +2,6 @@
 #ifndef BITTORRENTCLIENT_TORRENTCLIENT_H
 #define BITTORRENTCLIENT_TORRENTCLIENT_H
 
-#include <algorithm>
 #include <memory>
 #include <string>
 

@@ -107,9 +107,9 @@ void TorrentClient::downloadFile(const std::string& file) {
     auto connection = std::make_shared<PeerConnection>(
         queue_, peerId_, info_hash, pieceManager_);
 
-    threadPool_.emplace_back(&PeerConnection::start, connection.get());
+    threadPool_.emplace_back([connection]() { connection->start(); });
 
-    connections_.push_back(std::move(connection));
+    connections_.push_back(connection);
   }
 
   auto last_peer_query = static_cast<time_t>(-1);
@@ -134,9 +134,6 @@ void TorrentClient::downloadFile(const std::string& file) {
     PeerRetriever retriever(peerId_, announce_url, info_hash, PORT, file_size);
 
     auto peers = retriever.retrievePeers(pieceManager_->bytesDownloaded());
-
-    Logger::log(fmt::format("Progress: {}/{} bytes",
-                            pieceManager_->bytesDownloaded(), file_size));
 
     last_peer_query = now;
 

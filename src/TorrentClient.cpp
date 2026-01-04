@@ -137,9 +137,11 @@ void TorrentClient::downloadFile(const std::string& file) {
 
     last_peer_query = now;
 
-    queue_->clear();
-    for (auto& peer : peers) {
-      queue_->push_back(std::move(peer));
+    if (!peers.empty()) {
+      queue_->clear();
+      for (auto& peer : peers) {
+        queue_->push_back(std::move(peer));
+      }
     }
   }
 

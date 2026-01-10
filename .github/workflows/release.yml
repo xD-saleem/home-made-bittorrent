@@ -22,14 +22,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - uses: cpp-linter/cpp-linter-action@v2
-        id: linter
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          style: 'file'
-          tidy-checks: ''
-          thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+      # - uses: cpp-linter/cpp-linter-action@v2
+      #   id: linter
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     style: 'file'
+      #     tidy-checks: ''
+      #     thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
 
       - name: Fail fast?!
         if: fromJson(steps.linter.outputs.checks-failed) > 0

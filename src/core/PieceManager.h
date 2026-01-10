@@ -9,8 +9,8 @@
 #include <mutex>
 #include <vector>
 
-#include "Piece.h"
-#include "TorrentFileParser.h"
+#include "core/Piece.h"
+#include "utils/TorrentFileParser.h"
 
 struct PendingRequest {
   Block* block;

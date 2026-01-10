@@ -1,11 +1,11 @@
 
 #include "PieceManager.h"
 
-#include <Logger.h>
 #include <bencode/bencoding.h>
 #include <fmt/base.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <infra/Logger.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -20,9 +20,9 @@
 #include <tl/expected.hpp>
 #include <utility>
 
-#include "Block.h"
-#include "TorrentFileParser.h"
-#include "utils.h"
+#include "core/Block.h"
+#include "utils/TorrentFileParser.h"
+#include "utils/utils.h"
 
 #define BLOCK_SIZE 16384    // 2 ^ 14
 #define MAX_PENDING_TIME 5  // 5 sec

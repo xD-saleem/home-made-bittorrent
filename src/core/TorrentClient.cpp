@@ -1,20 +1,19 @@
-#include "TorrentClient.h"
+#include "core/TorrentClient.h"
 
-#include <Logger.h>
 #include <bencode/bencoding.h>
 #include <fmt/base.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <infra/Logger.h>
 
 #include <memory>
 #include <random>
 #include <thread>
-#include <utility>
 
-#include "PeerConnection.h"
-#include "PeerRetriever.h"
-#include "PieceManager.h"
-#include "TorrentFileParser.h"
+#include "core/PieceManager.h"
+#include "network/PeerConnection.h"
+#include "network/PeerRetriever.h"
+#include "utils/TorrentFileParser.h"
 
 #define PORT 8080
 #define PEER_QUERY_INTERVAL 60  // 1 minute

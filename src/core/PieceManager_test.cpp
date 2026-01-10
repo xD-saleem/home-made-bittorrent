@@ -1,4 +1,4 @@
-#include "PieceManager.h"
+#include "core/PieceManager.h"
 
 #include <gtest/gtest.h>
 

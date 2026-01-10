@@ -8,12 +8,12 @@
 #include <tl/expected.hpp>
 #include <utility>
 
-#include "DatabaseService.h"
-#include "Logger.h"
-#include "Queue.h"
-#include "TorrentClient.h"
-#include "TorrentFileParser.h"
-#include "TorrentState.h"
+#include "core/TorrentClient.h"
+#include "core/TorrentState.h"
+#include "infra/DatabaseService.h"
+#include "infra/Logger.h"
+#include "infra/Queue.h"
+#include "utils/TorrentFileParser.h"
 
 int main(int argc, char* argv[]) {
   int threads = 50;
@@ -50,8 +50,8 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue =
       std::make_shared<Queue<std::unique_ptr<Peer>>>();
 
+  // TODO(slim): add where to save torrent
   TorrentClient torrent_client =
-      // TODO(slim): add where to save torrent
       TorrentClient(std::move(queue), torrent_state, piece_manager,
                     torrent_file_parser, threads);
 

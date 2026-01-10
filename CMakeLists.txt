@@ -37,84 +37,81 @@ set(
 # Main
 add_executable(main ${CPP_TEMPLATE_SOURCES}
 
-# Classes
-src/BitTorrentMessage.cpp
-src/BitTorrentMessage.h
+    # Core Logic
+    src/core/Block.h
+    src/core/Piece.h
+    src/core/Piece.cpp
+    src/core/PieceManager.h
+    src/core/PieceManager.cpp
+    src/core/TorrentClient.h
+    src/core/TorrentClient.cpp
+    src/core/TorrentState.h
+    src/core/TorrentState.cpp
 
-src/Block.h
+    # Infrastructure & Storage
+    src/infra/DatabaseService.h
+    src/infra/DatabaseService.cpp
+    src/infra/Logger.h
+    src/infra/Logger.cpp
+    src/infra/Queue.h
+    src/utils/TorrentFileParser.h
+    src/utils/TorrentFileParser.cpp
 
-src/connect.cpp
-src/connect.h
+    # Network
+    src/network/BitTorrentMessage.h
+    src/network/BitTorrentMessage.cpp
+    src/network/connect.h
+    src/network/connect.cpp
+    src/network/PeerConnection.h
+    src/network/PeerConnection.cpp
+    src/network/PeerRetriever.h
+    src/network/PeerRetriever.cpp
 
-src/PeerConnection.cpp
-src/PeerConnection.h
-
-src/PeerRetriever.cpp
-src/PeerRetriever.h
-
-src/Piece.cpp
-src/Piece.h
-
-src/PieceManager.cpp
-src/PieceManager.h
-
-src/Queue.h
-
-src/TorrentClient.cpp
-src/TorrentClient.h
-
-src/TorrentFileParser.cpp
-src/TorrentFileParser.h
-
-src/TorrentState.cpp
-src/TorrentState.h
-
-src/DatabaseService.h
-src/DatabaseService.cpp
-
-src/Logger.cpp
-src/Logger.h
-
-src/utils.h
-src/utils.cpp
+    # Utils
+    src/utils/utils.h
+    src/utils/utils.cpp
 )
 
 target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp fmt::fmt tl::expected SQLiteCpp)
 
 # Tests
 enable_testing()
-add_executable(tests ${TEST_SRC}
+add_executable(tests
+    src/main_test.cpp
 
-# Business logic
-src/main_test.cpp
+    # Utils & Infra used in tests
+    src/utils/utils.h
+    src/utils/utils.cpp
 
-src/utils.cpp
-src/utils.h
+    src/infra/Logger.h
+    src/infra/Logger.cpp
+    src/infra/DatabaseService.h
+    src/infra/DatabaseService.cpp
+    src/infra/DatabaseService_mock.h
+    src/infra/DatabaseService_test.cpp
 
-src/TorrentFileParser.h
-src/TorrentFileParser.cpp
-src/TorrentFileParser_test.cpp
+    # Parsers and Logic
+    src/utils/TorrentFileParser.h
+    src/utils/TorrentFileParser.cpp
+    src/utils/TorrentFileParser_test.cpp
 
-src/BitTorrentMessage.h
-src/BitTorrentMessage.cpp
-src/BitTorrentMessage_test.cpp
+    # Network Logic
+    src/network/BitTorrentMessage.h
+    src/network/BitTorrentMessage.cpp
+    src/network/BitTorrentMessage_test.cpp
 
-src/TorrentState.h
-src/TorrentState.cpp
-src/TorrentState_test.cpp
+    # Core State
+    src/core/TorrentState.h
+    src/core/TorrentState.cpp
+    src/core/TorrentState_test.cpp
 
-src/DatabaseService.h
-src/DatabaseService.cpp
-src/DatabaseService_mock.h
-src/DatabaseService_test.cpp
-
-src/Logger.cpp
-src/Logger.h
-
-# src/PieceManager.h
-# src/PieceManager.cpp
-# src/PieceManager_test.cpp
+    # # Piece Management (uncommented as per your structure)
+    # src/core/PieceManager.h
+    # src/core/PieceManager.cpp
+    # src/core/PieceManager_test.cpp
 )
+
+target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main OpenSSL::SSL SQLiteCpp)
 
 # Link libraries
 target_link_libraries(tests PRIVATE bencoding fmt::fmt GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main OpenSSL::SSL SQLiteCpp)

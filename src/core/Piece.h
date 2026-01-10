@@ -6,7 +6,7 @@
 #include <tl/expected.hpp>
 #include <vector>
 
-#include "Block.h"
+#include "core/Block.h"
 
 struct PieceError {
   std::string message;

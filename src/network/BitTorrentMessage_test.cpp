@@ -1,4 +1,4 @@
-#include "BitTorrentMessage.h"
+#include "network/BitTorrentMessage.h"
 
 #include <fmt/core.h>
 #include <gtest/gtest.h>

@@ -1,5 +1,4 @@
-
-#include "Piece.h"
+#include "core/Piece.h"
 
 #include <openssl/sha.h>
 
@@ -11,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "utils.h"
+#include "utils/utils.h"
 
 Piece::Piece(int index, std::vector<std::unique_ptr<Block>> blocks,
              std::string hashValue)

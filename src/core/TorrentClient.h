@@ -5,11 +5,11 @@
 #include <memory>
 #include <string>
 
-#include "PeerConnection.h"
-#include "PieceManager.h"
-#include "Queue.h"
-#include "TorrentFileParser.h"
-#include "TorrentState.h"
+#include "core/PieceManager.h"
+#include "core/TorrentState.h"
+#include "infra/Queue.h"
+#include "network/PeerConnection.h"
+#include "utils/TorrentFileParser.h"
 
 struct TorrentClientError {
   std::string message;

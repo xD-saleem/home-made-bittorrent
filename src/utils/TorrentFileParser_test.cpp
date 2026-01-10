@@ -1,4 +1,4 @@
-#include "TorrentFileParser.h"
+#include "utils/TorrentFileParser.h"
 
 #include <gtest/gtest.h>
 

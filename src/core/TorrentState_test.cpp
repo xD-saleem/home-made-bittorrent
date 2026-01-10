@@ -1,10 +1,10 @@
 
-#include "TorrentState.h"
+#include "core/TorrentState.h"
 
-#include <DatabaseService.h>
-#include <DatabaseService_mock.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <infra/DatabaseService.h>
+#include <infra/DatabaseService_mock.h>
 
 TEST(TorrentState, storeStateHandlesInsertError) {
   // Create a mock database service

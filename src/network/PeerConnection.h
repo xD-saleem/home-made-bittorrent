@@ -4,10 +4,10 @@
 
 #include <memory>
 
-#include "BitTorrentMessage.h"
 #include "PeerRetriever.h"
-#include "PieceManager.h"
-#include "Queue.h"
+#include "core/PieceManager.h"
+#include "infra/Queue.h"
+#include "network/BitTorrentMessage.h"
 
 using byte = unsigned char;
 

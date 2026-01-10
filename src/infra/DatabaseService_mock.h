@@ -2,7 +2,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "DatabaseService.h"
+#include "infra/DatabaseService.h"
 
 class MockDatabaseService : public DatabaseService {
  public:

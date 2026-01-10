@@ -13,9 +13,9 @@
 #include <tl/expected.hpp>
 #include <utility>
 
-#include "BitTorrentMessage.h"
-#include "connect.h"
-#include "utils.h"
+#include "network/BitTorrentMessage.h"
+#include "network/connect.h"
+#include "utils/utils.h"
 
 #define INFO_HASH_STARTING_POS 28
 #define PEER_ID_STARTING_POS 48

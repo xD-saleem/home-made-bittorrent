@@ -31,9 +31,9 @@ jobs:
       #     tidy-checks: ''
       #     thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
 
-      - name: Fail fast?!
-        if: fromJson(steps.linter.outputs.checks-failed) > 0
-        run: exit 1
+      # - name: Fail fast?!
+      #   if: fromJson(steps.linter.outputs.checks-failed) > 0
+      #   run: exit 1
 
       - name: vcpkg build
         uses: johnwason/vcpkg-action@v6

@@ -6,6 +6,8 @@
 
 #include "infra/Logger.h"
 
+PeerRegistry::PeerRegistry() = default;
+
 namespace {
 void setPiece(std::string& bitField, int index) {
   int byte_index = index >> 3;
@@ -40,6 +42,18 @@ std::expected<void, PeerRegistryError> PeerRegistry::updatePeer(
   return std::unexpected(
       PeerRegistryError{"Attempting to update a peer " + peerId +
                         " with whom a connection has not been established."});
+}
+
+std::expected<std::string, PeerRegistryError> PeerRegistry::getPeer(
+    const std::string& peerId) {
+  std::lock_guard<std::mutex> lock(lock_);
+
+  auto it = peers_.find(peerId);
+  if (it != peers_.end()) {
+    return it->second;
+  }
+
+  return std::unexpected(PeerRegistryError{"Attempting to get peer " + peerId});
 }
 
 std::expected<void, PeerRegistryError> PeerRegistry::removePeer(

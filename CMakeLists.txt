@@ -47,6 +47,7 @@ add_executable(main ${CPP_TEMPLATE_SOURCES}
     src/core/TorrentClient.cpp
     src/core/TorrentState.h
     src/core/TorrentState.cpp
+
     src/core/PeerRegistry.cpp
     src/core/PeerRegistry.h
 

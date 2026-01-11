@@ -20,7 +20,7 @@ class PeerRegistry {
  public:
   explicit PeerRegistry();
   // Destructor
-  ~PeerRegistry();
+  ~PeerRegistry() = default;
 
   void addPeer(const std::string& peerId, const std::string& bitField);
 
@@ -31,6 +31,9 @@ class PeerRegistry {
                                                     int index);
 
   std::expected<void, PeerRegistryError> removePeer(const std::string& peerId);
+
+  std::expected<std::string, PeerRegistryError> getPeer(
+      const std::string& peerId);
 };
 
 #endif  // BITTORRENTCLIENT_PEERREGISTRY_H

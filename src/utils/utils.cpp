@@ -88,6 +88,7 @@ bool hasPiece(const std::string& bitField, int index) {
 }
 
 // NOLINTNEXTLINE(misc-use-internal-linkage)
+// TODO(slim): delete since its used in the peerRegistry.
 void setPiece(std::string& bitField, int index) {
   int byte_index = floor(index / 8);
   int offset = index % 8;

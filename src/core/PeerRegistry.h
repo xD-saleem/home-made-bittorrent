@@ -27,13 +27,16 @@ class PeerRegistry {
   std::expected<void, PeerRegistryError> updatePeer(const std::string& peerId,
                                                     int index);
 
-  std::expected<void, PeerRegistryError> deletePeer(const std::string& peerId,
-                                                    int index);
-
   std::expected<void, PeerRegistryError> removePeer(const std::string& peerId);
 
   std::expected<std::string, PeerRegistryError> getPeer(
       const std::string& peerId);
+
+  bool hasPeer(const std::string& peerId) const;
+
+  bool peerHasPiece(const std::string& peerId, int pieceIndex) const;
+
+  size_t peerCount() const;
 };
 
 #endif  // BITTORRENTCLIENT_PEERREGISTRY_H

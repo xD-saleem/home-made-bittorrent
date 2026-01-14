@@ -6,6 +6,7 @@
 
 #include "infra/Logger.h"
 
+// TODO(slim): add a injectable peerRegistry.
 PeerRegistry::PeerRegistry() = default;
 
 namespace {

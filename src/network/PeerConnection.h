@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "PeerRetriever.h"
+#include "core/PeerRegistry.h"
 #include "core/PieceManager.h"
 #include "infra/Queue.h"
 #include "network/BitTorrentMessage.h"
@@ -31,7 +32,9 @@ class PeerConnection {
   std::unique_ptr<Peer> peer_;
   std::string peerBitField_;
   std::string peerId_;
+
   std::shared_ptr<PieceManager> pieceManager_;
+  std::shared_ptr<PeerRegistry> peerRegistry_;
 
   std::string createHandshakeMessage();
   tl::expected<void, PeerConnectionError> performHandshake();
@@ -54,7 +57,8 @@ class PeerConnection {
 
   explicit PeerConnection(std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue,
                           std::string clientId, std::string infoHash,
-                          std::shared_ptr<PieceManager> pm);
+                          std::shared_ptr<PieceManager> pm,
+                          std::shared_ptr<PeerRegistry> peerRegistry);
   ~PeerConnection();
   tl::expected<void, PeerConnectionError> start();
   void stop();

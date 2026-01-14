@@ -45,6 +45,11 @@ class PieceManager {
   void displayProgressBar();
   void trackProgress();
 
+  // Block* nextRequest(const std::string& peerId);
+  //
+  // tl::expected<void, PieceManagerError>
+  // blockReceived(int pieceIndex, int blockOffset, std::string data);
+
  public:
   explicit PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
                         const std::string& downloadPath,

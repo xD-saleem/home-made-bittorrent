@@ -1,4 +1,5 @@
 // Copyright 2025
+#include <core/PeerRegistry.h>
 #include <fmt/base.h>
 #include <fmt/color.h>
 
@@ -50,10 +51,13 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue =
       std::make_shared<Queue<std::unique_ptr<Peer>>>();
 
+  std::shared_ptr<PeerRegistry> peer_registry =
+      std::make_shared<PeerRegistry>();
+
   // TODO(slim): add where to save torrent
   TorrentClient torrent_client =
       TorrentClient(std::move(queue), torrent_state, piece_manager,
-                    torrent_file_parser, threads);
+                    peer_registry, torrent_file_parser, threads);
 
   Logger::log("Parsing Torrent file " + download_path);
 

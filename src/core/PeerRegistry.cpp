@@ -32,8 +32,6 @@ void PeerRegistry::addPeer(const std::string& peerId,
     peers_[peerId] = std::move(bitField);
     current_count = peers_.size();
   }
-
-  Logger::log(fmt::format("{}", current_count));
 }
 
 std::expected<void, PeerRegistryError> PeerRegistry::updatePeer(

@@ -26,7 +26,7 @@ void PeerRegistry::addPeer(const std::string& peerId,
     current_count = peers_.size();
   }
 
-  Logger::log(fmt::format("{}", current_count));
+  // Logger::log(fmt::format("{}", current_count));
 }
 
 std::expected<void, PeerRegistryError> PeerRegistry::updatePeer(

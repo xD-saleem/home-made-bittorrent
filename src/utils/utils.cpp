@@ -81,21 +81,6 @@ std::string hexEncode(const std::string& input) {
 }
 
 // NOLINTNEXTLINE(misc-use-internal-linkage)
-bool hasPiece(const std::string& bitField, int index) {
-  float byte_index = floor(index / 8);
-  int offset = index % 8;
-  return (bitField[byte_index] >> (7 - offset) & 1) != 0;
-}
-
-// NOLINTNEXTLINE(misc-use-internal-linkage)
-// TODO(slim): delete since its used in the peerRegistry.
-void setPiece(std::string& bitField, int index) {
-  int byte_index = floor(index / 8);
-  int offset = index % 8;
-  bitField[byte_index] |= (1 << (7 - offset));
-}
-
-// NOLINTNEXTLINE(misc-use-internal-linkage)
 int bytesToInt(std::string bytes) {
   std::string bin_str;
   int64_t byte_count = bytes.size();

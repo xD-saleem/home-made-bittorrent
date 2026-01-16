@@ -44,15 +44,15 @@ int main(int argc, char* argv[]) {
 
   auto downloaded_file_name = torrent_file_parser->getFileName().value();
 
+  std::shared_ptr<PeerRegistry> peer_registry =
+      std::make_shared<PeerRegistry>();
+
   // Torrent Piece Manager
   std::shared_ptr<PieceManager> piece_manager = std::make_shared<PieceManager>(
-      torrent_file_parser, downloaded_file_name, threads);
+      torrent_file_parser, peer_registry, downloaded_file_name, threads);
 
   std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue =
       std::make_shared<Queue<std::unique_ptr<Peer>>>();
-
-  std::shared_ptr<PeerRegistry> peer_registry =
-      std::make_shared<PeerRegistry>();
 
   // TODO(slim): add where to save torrent
   TorrentClient torrent_client =

@@ -21,6 +21,7 @@
 #include <utility>
 
 #include "core/Block.h"
+#include "core/PeerRegistry.h"
 #include "utils/TorrentFileParser.h"
 #include "utils/utils.h"
 
@@ -30,10 +31,12 @@
 #define PROGRESS_DISPLAY_INTERVAL 1  // 1 sec
 
 PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
+                           const std::shared_ptr<PeerRegistry>& peerRegistry,
                            const std::string& downloadPath,
                            const int maximumConnections)
     : pieceLength_(fileParser->getPieceLength().value()),
       fileParser_(fileParser),
+      peerRegistry_(peerRegistry),
       maximumConnections_(maximumConnections) {
   missingPieces_ = initiatePieces();
   downloadedFile_.open(downloadPath, std::ios::binary | std::ios::out);
@@ -121,59 +124,10 @@ bool PieceManager::isComplete() {
   return ((current_size + header) == total_pieces);
 }
 
-void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
-  lock_.lock();
-  peers_[peerId] = std::move(bitField);
-  lock_.unlock();
-  std::stringstream info;
-  info << "Number of connections: " << std::to_string(peers_.size())
-       << "/" + std::to_string(maximumConnections_);
-}
-
 /**
  * Updates the information about which pieces a peer has (i.e. reflects
  * a Have message).
  */
-tl::expected<void, PieceManagerError> PieceManager::updatePeer(
-    const std::string& peerId, int index) {
-  lock_.lock();
-  if (peers_.contains(peerId)) {
-    utils::setPiece(peers_[peerId], index);
-    lock_.unlock();
-  } else {
-    lock_.unlock();
-    return tl::unexpected(
-        PieceManagerError{"Attempting to update a peer " + peerId +
-                          " with whom a connection has not been established."});
-  }
-  return {};
-}
-
-/**
- * Removes a previously added peer in case of a lost connection.
- * @param peerId: Id of the peer to be removed.
- */
-tl::expected<void, PieceManagerError> PieceManager::removePeer(
-    const std::string& peerId) {
-  if (isComplete()) {
-    return {};
-  }
-  lock_.lock();
-  auto iter = peers_.find(peerId);
-  if (iter != peers_.end()) {
-    peers_.erase(iter);
-    lock_.unlock();
-    std::stringstream info;
-    info << "Number of connections: " << std::to_string(peers_.size())
-         << "/" + std::to_string(maximumConnections_);
-  } else {
-    lock_.unlock();
-    return tl::unexpected(
-        PieceManagerError{"Attempting to remove a peer " + peerId +
-                          " with whom a connection has not been established."});
-  }
-  return {};
-}
 
 std::vector<Piece*> PieceManager::getPieces() { return havePieces; }
 
@@ -201,7 +155,7 @@ Block* PieceManager::nextRequest(const std::string peerId) {
     return nullptr;
   }
 
-  if (!peers_.contains(peerId)) {
+  if (!peerRegistry_->hasPeer(peerId)) {
     lock_.unlock();
     return nullptr;
   }
@@ -224,7 +178,7 @@ Block* PieceManager::nextRequest(const std::string peerId) {
 Block* PieceManager::expiredRequest(std::string peerId) {
   time_t current_time = std::time(nullptr);
   for (PendingRequest* pending : pendingRequests_) {
-    if (utils::hasPiece(peers_[peerId], pending->block->piece)) {
+    if (peerRegistry_->peerHasPiece(peerId, pending->block->piece)) {
       // If the request has expired
       auto diff = std::difftime(current_time, pending->timestamp);
       if (diff >= MAX_PENDING_TIME) {
@@ -244,7 +198,7 @@ Block* PieceManager::expiredRequest(std::string peerId) {
  */
 Block* PieceManager::nextOngoing(std::string peerId) {
   for (std::unique_ptr<Piece>& piece : ongoingPieces_) {
-    if (utils::hasPiece(peers_[peerId], piece->index)) {
+    if (peerRegistry_->peerHasPiece(peerId, piece->index)) {
       Block* block = piece->nextRequest();
       if (block) {
         auto* new_pending_request = new PendingRequest;
@@ -262,8 +216,8 @@ Piece* PieceManager::getRarestPiece(const std::string& peerId) {
   std::map<Piece*, int> piece_count;
 
   for (auto& piece_ptr : missingPieces_) {
-    if (peers_.contains(peerId)) {
-      if (utils::hasPiece(peers_[peerId], piece_ptr->index)) {
+    if (peerRegistry_->hasPeer(peerId)) {
+      if (peerRegistry_->peerHasPiece(peerId, piece_ptr->index)) {
         piece_count[piece_ptr.get()] += 1;
       }
     }
@@ -419,7 +373,7 @@ void PieceManager::displayProgressBar() {
       static_cast<double>(downloaded_length) / PROGRESS_DISPLAY_INTERVAL;
   double avg_download_speed_in_mbs = avg_download_speed / pow(10, 6);
 
-  info << "[Peers: " + std::to_string(peers_.size()) + "/" +
+  info << "[Peers: " + std::to_string(peerRegistry_->peerCount()) + "/" +
               std::to_string(maximumConnections_) + ", ";
   info << std::fixed << std::setprecision(2) << avg_download_speed_in_mbs
        << " MB/s, ";

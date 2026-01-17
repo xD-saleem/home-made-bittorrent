@@ -2,25 +2,27 @@
 
 #include <netinet/in.h>
 
-#include <array>
-#include <cstring>
-
 BitTorrentMessage::BitTorrentMessage(const uint8_t messageId,
                                      const std::string& payload)
     : messageLength_(payload.length() + 1), id_(messageId), payload_(payload) {}
 
 std::string BitTorrentMessage::toString() {
+  // Convert the message length to network byte order (big-endian)
   uint32_t big_endian_length = htonl(messageLength_);
 
-  std::array<char, 4> length_bytes{};
-  std::memcpy(length_bytes.data(), &big_endian_length,
-              sizeof(big_endian_length));
-
+  // Create the encoded string, reserving enough space in one go
+  // 4 bytes for length, 1 byte for id, and the payload
   std::string encoded;
-  encoded.reserve(length_bytes.size() + 1 + payload_.size());
+  encoded.reserve(4 + 1 + payload_.size());
 
-  encoded.append(length_bytes.data(), length_bytes.size());
+  // Append length bytes
+  encoded.append(reinterpret_cast<char*>(&big_endian_length),
+                 sizeof(big_endian_length));
+
+  // Append the message id
   encoded.push_back(static_cast<char>(id_));
+
+  // Append the payload
   encoded.append(payload_);
 
   return encoded;

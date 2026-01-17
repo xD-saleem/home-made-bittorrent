@@ -13,6 +13,7 @@
 #include <tl/expected.hpp>
 #include <utility>
 
+#include "core/PeerRegistry.h"
 #include "network/BitTorrentMessage.h"
 #include "network/connect.h"
 #include "utils/utils.h"
@@ -32,11 +33,13 @@
  */
 PeerConnection::PeerConnection(
     std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue, std::string clientId,
-    std::string infoHash, std::shared_ptr<PieceManager> pieceManager)
+    std::string infoHash, std::shared_ptr<PieceManager> pieceManager,
+    std::shared_ptr<PeerRegistry> peerRegistry)
     : queue_(std::move(queue)),
       clientId_(std::move(clientId)),
       infoHash_(std::move(infoHash)),
-      pieceManager_(std::move(pieceManager)) {}
+      pieceManager_(std::move(pieceManager)),
+      peerRegistry_(std::move(peerRegistry)) {}
 
 /**
  * Destructor of the PeerConnection class. Closes the established TCP connection
@@ -83,7 +86,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::start() {
             case kHave: {
               std::string payload = message.getPayload();
               int piece_index = utils::bytesToInt(payload);
-              pieceManager_->updatePeer(peerId_, piece_index);
+              peerRegistry_->updatePeer(peerId_, piece_index);
               break;
             }
 
@@ -150,7 +153,7 @@ tl::expected<void, PeerConnectionError> PeerConnection::receiveBitField() {
   peerBitField_ = message.getPayload();
 
   // Informs the PieceManager of the BitField received
-  pieceManager_->addPeer(peerId_, peerBitField_);
+  peerRegistry_->addPeer(peerId_, peerBitField_);
   return {};
 }
 
@@ -261,7 +264,9 @@ void PeerConnection::closeSock() {
   if (!peerBitField_.empty()) {
     peerBitField_.clear();
     if (pieceManager_) {
-      pieceManager_->removePeer(peerId_);
+      if (!pieceManager_->isComplete()) {
+        peerRegistry_->removePeer(peerId_);
+      }
     }
   }
 }

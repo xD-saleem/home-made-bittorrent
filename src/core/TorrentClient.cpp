@@ -22,10 +22,13 @@ TorrentClient::TorrentClient(
     std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue,
     std::shared_ptr<TorrentState> torrentState,
     std::shared_ptr<PieceManager> pieceManager,
+    std::shared_ptr<PeerRegistry> peerRegistry,
     std::shared_ptr<TorrentFileParser> torrentFileParser, int threadNum)
+
     : queue_(std::move(queue)),
       torrentState_(std::move(torrentState)),
       pieceManager_(std::move(pieceManager)),
+      peerRegistry_(std::move(peerRegistry)),
       torrentFileParser_(std::move(torrentFileParser)),
       threadNum_(threadNum),
       peerId_("-UT2021-") {
@@ -104,7 +107,7 @@ void TorrentClient::downloadFile(const std::string& file) {
 
   for (int i = 0; i < threadNum_; ++i) {
     auto connection = std::make_shared<PeerConnection>(
-        queue_, peerId_, info_hash, pieceManager_);
+        queue_, peerId_, info_hash, pieceManager_, peerRegistry_);
 
     threadPool_.emplace_back([connection]() { connection->start(); });
 

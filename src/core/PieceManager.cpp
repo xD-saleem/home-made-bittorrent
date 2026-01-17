@@ -21,6 +21,7 @@
 #include <utility>
 
 #include "core/Block.h"
+#include "core/PeerRegistry.h"
 #include "utils/TorrentFileParser.h"
 #include "utils/utils.h"
 
@@ -30,14 +31,15 @@
 #define PROGRESS_DISPLAY_INTERVAL 1  // 1 sec
 
 PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
+                           const std::shared_ptr<PeerRegistry>& peerRegistry,
                            const std::string& downloadPath,
                            const int maximumConnections)
     : pieceLength_(fileParser->getPieceLength().value()),
       fileParser_(fileParser),
+      peerRegistry_(peerRegistry),
       maximumConnections_(maximumConnections) {
   missingPieces_ = initiatePieces();
   downloadedFile_.open(downloadPath, std::ios::binary | std::ios::out);
-
   int64_t file_size = fileParser->getFileSize().value();
   downloadedFile_.seekp(file_size - 1);
   downloadedFile_.write("", 1);
@@ -56,9 +58,10 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
   if (!piece_hashes.has_value()) {
     return {};
   }
+
   auto piece_hashes_value = piece_hashes.value();
-  total_pieces = piece_hashes_value.size();
-  missingPieces_.reserve(total_pieces);
+  total_pieces_ = piece_hashes_value.size();
+  missingPieces_.reserve(total_pieces_);
   std::vector<std::unique_ptr<Piece>> torrent_pieces;
 
   tl::expected<int64_t, TorrentFileParserError> total_length_result =
@@ -71,14 +74,13 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
 
   int64_t total_length = total_length_result.value();
 
-  // number of blocks in a normal piece (i.e. pieces that are not the last
-  // one)
+  // number of blocks in a normal piece (i.e. pieces that are not the last one)
   int block_count = ceil(static_cast<double>(pieceLength_) / BLOCK_SIZE);
   int64_t rem_length = pieceLength_;
 
-  for (size_t i = 0; i < total_pieces; i++) {
+  for (size_t i = 0; i < total_pieces_; i++) {
     // The final piece is likely to have a smaller size.
-    if (i == total_pieces - 1) {
+    if (i == total_pieces_ - 1) {
       rem_length = total_length % pieceLength_;
       block_count = std::max(
           static_cast<int>(ceil(static_cast<double>(rem_length) / BLOCK_SIZE)),
@@ -96,7 +98,7 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
 
       int block_size = BLOCK_SIZE;
 
-      if (i == total_pieces - 1 && offset == block_count - 1) {
+      if (i == total_pieces_ - 1 && offset == block_count - 1) {
         block_size = rem_length % BLOCK_SIZE;
       }
 
@@ -118,62 +120,13 @@ bool PieceManager::isComplete() {
 
   const size_t header = 4;
   size_t current_size = havePieces.size();
-  return ((current_size + header) == total_pieces);
-}
-
-void PieceManager::addPeer(const std::string& peerId, std::string bitField) {
-  lock_.lock();
-  peers_[peerId] = std::move(bitField);
-  lock_.unlock();
-  std::stringstream info;
-  info << "Number of connections: " << std::to_string(peers_.size())
-       << "/" + std::to_string(maximumConnections_);
+  return ((current_size + header) == total_pieces_);
 }
 
 /**
  * Updates the information about which pieces a peer has (i.e. reflects
  * a Have message).
  */
-tl::expected<void, PieceManagerError> PieceManager::updatePeer(
-    const std::string& peerId, int index) {
-  lock_.lock();
-  if (peers_.contains(peerId)) {
-    utils::setPiece(peers_[peerId], index);
-    lock_.unlock();
-  } else {
-    lock_.unlock();
-    return tl::unexpected(
-        PieceManagerError{"Attempting to update a peer " + peerId +
-                          " with whom a connection has not been established."});
-  }
-  return {};
-}
-
-/**
- * Removes a previously added peer in case of a lost connection.
- * @param peerId: Id of the peer to be removed.
- */
-tl::expected<void, PieceManagerError> PieceManager::removePeer(
-    const std::string& peerId) {
-  if (isComplete()) {
-    return {};
-  }
-  lock_.lock();
-  auto iter = peers_.find(peerId);
-  if (iter != peers_.end()) {
-    peers_.erase(iter);
-    lock_.unlock();
-    std::stringstream info;
-    info << "Number of connections: " << std::to_string(peers_.size())
-         << "/" + std::to_string(maximumConnections_);
-  } else {
-    lock_.unlock();
-    return tl::unexpected(
-        PieceManagerError{"Attempting to remove a peer " + peerId +
-                          " with whom a connection has not been established."});
-  }
-  return {};
-}
 
 std::vector<Piece*> PieceManager::getPieces() { return havePieces; }
 
@@ -201,7 +154,7 @@ Block* PieceManager::nextRequest(const std::string peerId) {
     return nullptr;
   }
 
-  if (!peers_.contains(peerId)) {
+  if (!peerRegistry_->hasPeer(peerId)) {
     lock_.unlock();
     return nullptr;
   }
@@ -224,7 +177,7 @@ Block* PieceManager::nextRequest(const std::string peerId) {
 Block* PieceManager::expiredRequest(std::string peerId) {
   time_t current_time = std::time(nullptr);
   for (PendingRequest* pending : pendingRequests_) {
-    if (utils::hasPiece(peers_[peerId], pending->block->piece)) {
+    if (peerRegistry_->peerHasPiece(peerId, pending->block->piece)) {
       // If the request has expired
       auto diff = std::difftime(current_time, pending->timestamp);
       if (diff >= MAX_PENDING_TIME) {
@@ -244,7 +197,7 @@ Block* PieceManager::expiredRequest(std::string peerId) {
  */
 Block* PieceManager::nextOngoing(std::string peerId) {
   for (std::unique_ptr<Piece>& piece : ongoingPieces_) {
-    if (utils::hasPiece(peers_[peerId], piece->index)) {
+    if (peerRegistry_->peerHasPiece(peerId, piece->index)) {
       Block* block = piece->nextRequest();
       if (block) {
         auto* new_pending_request = new PendingRequest;
@@ -262,8 +215,8 @@ Piece* PieceManager::getRarestPiece(const std::string& peerId) {
   std::map<Piece*, int> piece_count;
 
   for (auto& piece_ptr : missingPieces_) {
-    if (peers_.contains(peerId)) {
-      if (utils::hasPiece(peers_[peerId], piece_ptr->index)) {
+    if (peerRegistry_->hasPeer(peerId)) {
+      if (peerRegistry_->peerHasPiece(peerId, piece_ptr->index)) {
         piece_count[piece_ptr.get()] += 1;
       }
     }
@@ -358,10 +311,10 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
       std::stringstream info;
       info << "(" << std::fixed << std::setprecision(2)
            << ((static_cast<float>(havePieces.size())) /
-               static_cast<float>(total_pieces) * 100)
+               static_cast<float>(total_pieces_) * 100)
            << "%) ";
       info << std::to_string(havePieces.size()) + " / " +
-                  std::to_string(total_pieces) + " Pieces downloaded...";
+                  std::to_string(total_pieces_) + " Pieces downloaded...";
     } else {
       target_piece->reset();
     }
@@ -419,7 +372,7 @@ void PieceManager::displayProgressBar() {
       static_cast<double>(downloaded_length) / PROGRESS_DISPLAY_INTERVAL;
   double avg_download_speed_in_mbs = avg_download_speed / pow(10, 6);
 
-  info << "[Peers: " + std::to_string(peers_.size()) + "/" +
+  info << "[Peers: " + std::to_string(peerRegistry_->peerCount()) + "/" +
               std::to_string(maximumConnections_) + ", ";
   info << std::fixed << std::setprecision(2) << avg_download_speed_in_mbs
        << " MB/s, ";
@@ -428,11 +381,11 @@ void PieceManager::displayProgressBar() {
   double time_per_piece = PROGRESS_DISPLAY_INTERVAL /
                           static_cast<double>(piecesDownloadedInInterval_);
   int64_t remaining_time =
-      ceil(time_per_piece * (total_pieces - downloaded_pieces));
+      ceil(time_per_piece * (total_pieces_ - downloaded_pieces));
   info << "ETA: " << utils::formatTime(remaining_time) << "]";
 
   double progress = static_cast<double>(downloaded_pieces) /
-                    static_cast<double>(total_pieces);
+                    static_cast<double>(total_pieces_);
   int pos = PROGRESS_BAR_WIDTH * progress;
   info << "[";
   for (int i = 0; i < PROGRESS_BAR_WIDTH; i++) {
@@ -445,7 +398,7 @@ void PieceManager::displayProgressBar() {
   }
   info << "] ";
   info << std::to_string(downloaded_pieces) + "/" +
-              std::to_string(total_pieces) + " ";
+              std::to_string(total_pieces_) + " ";
   info << "[" << std::fixed << std::setprecision(2) << (progress * 100)
        << "%] ";
 

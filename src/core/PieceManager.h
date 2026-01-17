@@ -9,6 +9,7 @@
 #include <mutex>
 #include <vector>
 
+#include "core/PeerRegistry.h"
 #include "core/Piece.h"
 #include "utils/TorrentFileParser.h"
 
@@ -23,13 +24,17 @@ struct PieceManagerError {
 
 class PieceManager {
  private:
-  std::map<std::string, std::string> peers_;
   std::vector<std::unique_ptr<Piece>> missingPieces_;
   std::vector<std::unique_ptr<Piece>> ongoingPieces_;
   std::vector<PendingRequest*> pendingRequests_;
   std::ofstream downloadedFile_;
   const int64_t pieceLength_;
+
+  size_t total_pieces_{};
+
   std::shared_ptr<TorrentFileParser> fileParser_;
+  std::shared_ptr<PeerRegistry> peerRegistry_;
+
   const int maximumConnections_;
   int piecesDownloadedInInterval_ = 0;
   time_t startingTime_;
@@ -38,15 +43,23 @@ class PieceManager {
   std::mutex lock_;
 
   std::vector<std::unique_ptr<Piece>> initiatePieces();
+
   Block* expiredRequest(std::string peerId);
   Block* nextOngoing(std::string peerId);
   Piece* getRarestPiece(const std::string& peerId);
+
   void write(Piece* piece);
   void displayProgressBar();
   void trackProgress();
 
+  // Block* nextRequest(const std::string& peerId);
+  //
+  // tl::expected<void, PieceManagerError>
+  // blockReceived(int pieceIndex, int blockOffset, std::string data);
+
  public:
   explicit PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
+                        const std::shared_ptr<PeerRegistry>& peerRegistry,
                         const std::string& downloadPath,
                         int maximumConnections);
   ~PieceManager();
@@ -54,14 +67,9 @@ class PieceManager {
   tl::expected<void, PieceManagerError> blockReceived(int pieceIndex,
                                                       int blockOffset,
                                                       std::string data);
-  void addPeer(const std::string& peerId, std::string bitField);
-  tl::expected<void, PieceManagerError> removePeer(const std::string& peerId);
-  tl::expected<void, PieceManagerError> updatePeer(const std::string& peerId,
-                                                   int index);
 
   std::vector<Piece*> getPieces();
   uint64_t bytesDownloaded();
-  size_t total_pieces{};
   Block* nextRequest(std::string peerId);
   std::vector<Piece*> havePieces;
 };

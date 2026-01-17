@@ -30,6 +30,8 @@ class PieceManager {
   std::ofstream downloadedFile_;
   const int64_t pieceLength_;
 
+  size_t total_pieces_{};
+
   std::shared_ptr<TorrentFileParser> fileParser_;
   std::shared_ptr<PeerRegistry> peerRegistry_;
 
@@ -68,7 +70,6 @@ class PieceManager {
 
   std::vector<Piece*> getPieces();
   uint64_t bytesDownloaded();
-  size_t total_pieces{};
   Block* nextRequest(std::string peerId);
   std::vector<Piece*> havePieces;
 };

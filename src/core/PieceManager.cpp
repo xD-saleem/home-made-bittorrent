@@ -40,7 +40,6 @@ PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
       maximumConnections_(maximumConnections) {
   missingPieces_ = initiatePieces();
   downloadedFile_.open(downloadPath, std::ios::binary | std::ios::out);
-
   int64_t file_size = fileParser->getFileSize().value();
   downloadedFile_.seekp(file_size - 1);
   downloadedFile_.write("", 1);
@@ -61,8 +60,8 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
   }
 
   auto piece_hashes_value = piece_hashes.value();
-  total_pieces = piece_hashes_value.size();
-  missingPieces_.reserve(total_pieces);
+  total_pieces_ = piece_hashes_value.size();
+  missingPieces_.reserve(total_pieces_);
   std::vector<std::unique_ptr<Piece>> torrent_pieces;
 
   tl::expected<int64_t, TorrentFileParserError> total_length_result =
@@ -79,9 +78,9 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
   int block_count = ceil(static_cast<double>(pieceLength_) / BLOCK_SIZE);
   int64_t rem_length = pieceLength_;
 
-  for (size_t i = 0; i < total_pieces; i++) {
+  for (size_t i = 0; i < total_pieces_; i++) {
     // The final piece is likely to have a smaller size.
-    if (i == total_pieces - 1) {
+    if (i == total_pieces_ - 1) {
       rem_length = total_length % pieceLength_;
       block_count = std::max(
           static_cast<int>(ceil(static_cast<double>(rem_length) / BLOCK_SIZE)),
@@ -99,7 +98,7 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
 
       int block_size = BLOCK_SIZE;
 
-      if (i == total_pieces - 1 && offset == block_count - 1) {
+      if (i == total_pieces_ - 1 && offset == block_count - 1) {
         block_size = rem_length % BLOCK_SIZE;
       }
 
@@ -121,7 +120,7 @@ bool PieceManager::isComplete() {
 
   const size_t header = 4;
   size_t current_size = havePieces.size();
-  return ((current_size + header) == total_pieces);
+  return ((current_size + header) == total_pieces_);
 }
 
 /**
@@ -312,10 +311,10 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
       std::stringstream info;
       info << "(" << std::fixed << std::setprecision(2)
            << ((static_cast<float>(havePieces.size())) /
-               static_cast<float>(total_pieces) * 100)
+               static_cast<float>(total_pieces_) * 100)
            << "%) ";
       info << std::to_string(havePieces.size()) + " / " +
-                  std::to_string(total_pieces) + " Pieces downloaded...";
+                  std::to_string(total_pieces_) + " Pieces downloaded...";
     } else {
       target_piece->reset();
     }
@@ -382,11 +381,11 @@ void PieceManager::displayProgressBar() {
   double time_per_piece = PROGRESS_DISPLAY_INTERVAL /
                           static_cast<double>(piecesDownloadedInInterval_);
   int64_t remaining_time =
-      ceil(time_per_piece * (total_pieces - downloaded_pieces));
+      ceil(time_per_piece * (total_pieces_ - downloaded_pieces));
   info << "ETA: " << utils::formatTime(remaining_time) << "]";
 
   double progress = static_cast<double>(downloaded_pieces) /
-                    static_cast<double>(total_pieces);
+                    static_cast<double>(total_pieces_);
   int pos = PROGRESS_BAR_WIDTH * progress;
   info << "[";
   for (int i = 0; i < PROGRESS_BAR_WIDTH; i++) {
@@ -399,7 +398,7 @@ void PieceManager::displayProgressBar() {
   }
   info << "] ";
   info << std::to_string(downloaded_pieces) + "/" +
-              std::to_string(total_pieces) + " ";
+              std::to_string(total_pieces_) + " ";
   info << "[" << std::fixed << std::setprecision(2) << (progress * 100)
        << "%] ";
 

@@ -102,7 +102,6 @@ std::expected<void, PeerRegistryError> PeerRegistry::removePeer(
   }
 
   if (peer_found) {
-    Logger::log(fmt::format("Number of connections: {}", remaining_peers));
     return {};
   }
 

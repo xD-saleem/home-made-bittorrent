@@ -24,6 +24,7 @@ class TorrentClient {
   std::shared_ptr<PeerRegistry> peerRegistry_;
 
   const int threadNum_ = 5;
+
   std::string peerId_;
   std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue_;
   std::vector<std::thread> threadPool_;
@@ -36,7 +37,6 @@ class TorrentClient {
                          std::shared_ptr<PieceManager> pieceManager,
                          std::shared_ptr<PeerRegistry> peerRegistry,
                          std::shared_ptr<TorrentFileParser> torrentFileParser,
-
                          int threadNum = 5);
   // Destructor
   ~TorrentClient();

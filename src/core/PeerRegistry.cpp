@@ -31,6 +31,7 @@ void PeerRegistry::addPeer(const std::string& peerId,
     std::lock_guard<std::mutex> lock(lock_);
     peers_[peerId] = std::move(bitField);
     current_count = peers_.size();
+    fmt::println("{}", current_count);
   }
 }
 

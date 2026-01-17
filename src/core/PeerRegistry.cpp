@@ -12,11 +12,11 @@ PeerRegistry::PeerRegistry() = default;
 
 namespace {
 bool hasPiece(const std::string& bitField, int index) {
-  // float byte_index = floor(index / 8);
   size_t byte_index = index / 8;
   int offset = index % 8;
   return (bitField[byte_index] >> (7 - offset) & 1) != 0;
 }
+
 void setPiece(std::string& bitField, int index) {
   int byte_index = index >> 3;
   int offset = index & 7;

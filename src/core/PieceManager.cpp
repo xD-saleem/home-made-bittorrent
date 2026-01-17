@@ -59,6 +59,7 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
   if (!piece_hashes.has_value()) {
     return {};
   }
+
   auto piece_hashes_value = piece_hashes.value();
   total_pieces = piece_hashes_value.size();
   missingPieces_.reserve(total_pieces);
@@ -74,8 +75,7 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
 
   int64_t total_length = total_length_result.value();
 
-  // number of blocks in a normal piece (i.e. pieces that are not the last
-  // one)
+  // number of blocks in a normal piece (i.e. pieces that are not the last one)
   int block_count = ceil(static_cast<double>(pieceLength_) / BLOCK_SIZE);
   int64_t rem_length = pieceLength_;
 

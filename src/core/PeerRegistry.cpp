@@ -1,5 +1,6 @@
 
 #include <core/PeerRegistry.h>
+#include <fmt/base.h>
 #include <fmt/format.h>
 
 #include <mutex>
@@ -29,9 +30,9 @@ void PeerRegistry::addPeer(const std::string& peerId,
   size_t current_count = 0;
   {
     std::lock_guard<std::mutex> lock(lock_);
+    fmt::println("adding peer {}", peerId);
     peers_[peerId] = std::move(bitField);
     current_count = peers_.size();
-    fmt::println("{}", current_count);
   }
 }
 
@@ -93,6 +94,7 @@ std::expected<void, PeerRegistryError> PeerRegistry::removePeer(
 
   {
     std::lock_guard<std::mutex> lock(lock_);
+    fmt::println("removing peer {}", peerId);
     auto iter = peers_.find(peerId);
     if (iter != peers_.end()) {
       peers_.erase(iter);

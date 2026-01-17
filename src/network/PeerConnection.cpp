@@ -264,7 +264,7 @@ void PeerConnection::closeSock() {
   if (!peerBitField_.empty()) {
     peerBitField_.clear();
     if (pieceManager_) {
-      if (pieceManager_->isComplete()) {
+      if (!pieceManager_->isComplete()) {
         peerRegistry_->removePeer(peerId_);
       }
     }

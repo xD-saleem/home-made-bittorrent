@@ -148,23 +148,22 @@ Block* PieceManager::nextRequest(const std::string peerId) {
   // 2. Check the ongoing pieces to get the next block to request
   // 3. Check if this peer have any of the missing pieces not yet started
 
-  lock_.lock();
+  std::unique_lock<std::mutex> lock(lock_);
   if (missingPieces_.empty()) {
-    lock_.unlock();
     return nullptr;
   }
 
   if (!peerRegistry_->hasPeer(peerId)) {
-    lock_.unlock();
     return nullptr;
   }
 
   Block* block = expiredRequest(peerId);
   if (!block) {
     block = nextOngoing(peerId);
-    if (!block) block = getRarestPiece(peerId)->nextRequest();
+    if (!block) {
+      block = getRarestPiece(peerId)->nextRequest();
+    }
   }
-  lock_.unlock();
 
   return block;
 }
@@ -262,7 +261,6 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
   Piece* target_piece = nullptr;
 
   {
-    // Lock scope #1
     std::unique_lock<std::mutex> lock(lock_);
 
     // Remove the received block from pending requests
@@ -283,14 +281,13 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
         break;
       }
     }
-  }  // mutex unlocked here
+  }
 
   if (!target_piece) {
     return tl::unexpected(PieceManagerError{
         "Received block for a piece that is not being downloaded."});
   }
 
-  // Safe to do without holding the mutex
   target_piece->blockReceived(blockOffset, std::move(data));
 
   if (!target_piece->isComplete()) {
@@ -302,13 +299,10 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
     return {};
   }
 
-  // Expensive I/O without lock
   write(target_piece);
 
   {
-    // Lock scope #2
     std::unique_lock<std::mutex> lock(lock_);
-
     auto it = std::find_if(ongoingPieces_.begin(), ongoingPieces_.end(),
                            [target_piece](const std::unique_ptr<Piece>& p) {
                              return p.get() == target_piece;
@@ -320,7 +314,7 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
 
     havePieces.push_back(target_piece);
     piecesDownloadedInInterval_++;
-  }  // mutex unlocked here
+  }
 
   std::stringstream info;
   info << "(" << std::fixed << std::setprecision(2)

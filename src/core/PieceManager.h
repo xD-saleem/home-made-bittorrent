@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <ctime>
 #include <fstream>
-#include <map>
 #include <mutex>
 #include <vector>
 
@@ -26,7 +25,7 @@ class PieceManager {
  private:
   std::vector<std::unique_ptr<Piece>> missingPieces_;
   std::vector<std::unique_ptr<Piece>> ongoingPieces_;
-  std::vector<PendingRequest*> pendingRequests_;
+  std::vector<std::unique_ptr<PendingRequest>> pendingRequests_;
   std::ofstream downloadedFile_;
   const int64_t pieceLength_;
 

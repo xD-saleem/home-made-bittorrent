@@ -148,23 +148,22 @@ Block* PieceManager::nextRequest(const std::string peerId) {
   // 2. Check the ongoing pieces to get the next block to request
   // 3. Check if this peer have any of the missing pieces not yet started
 
-  lock_.lock();
+  std::unique_lock<std::mutex> lock(lock_);
   if (missingPieces_.empty()) {
-    lock_.unlock();
     return nullptr;
   }
 
   if (!peerRegistry_->hasPeer(peerId)) {
-    lock_.unlock();
     return nullptr;
   }
 
   Block* block = expiredRequest(peerId);
   if (!block) {
     block = nextOngoing(peerId);
-    if (!block) block = getRarestPiece(peerId)->nextRequest();
+    if (!block) {
+      block = getRarestPiece(peerId)->nextRequest();
+    }
   }
-  lock_.unlock();
 
   return block;
 }
@@ -176,7 +175,7 @@ Block* PieceManager::nextRequest(const std::string peerId) {
  */
 Block* PieceManager::expiredRequest(std::string peerId) {
   time_t current_time = std::time(nullptr);
-  for (PendingRequest* pending : pendingRequests_) {
+  for (const auto& pending : pendingRequests_) {
     if (peerRegistry_->peerHasPiece(peerId, pending->block->piece)) {
       // If the request has expired
       auto diff = std::difftime(current_time, pending->timestamp);
@@ -200,10 +199,11 @@ Block* PieceManager::nextOngoing(std::string peerId) {
     if (peerRegistry_->peerHasPiece(peerId, piece->index)) {
       Block* block = piece->nextRequest();
       if (block) {
-        auto* new_pending_request = new PendingRequest;
+        auto new_pending_request = std::make_unique<PendingRequest>();
         new_pending_request->block = block;
         new_pending_request->timestamp = std::time(nullptr);
-        pendingRequests_.push_back(new_pending_request);
+        pendingRequests_.push_back(std::move(new_pending_request));
+
         return block;
       }
     }
@@ -255,70 +255,75 @@ Piece* PieceManager::getRarestPiece(const std::string& peerId) {
  * in the Piece will be reset to a missing state. If the hash matches, the
  * data in the Piece will be written to disk.
  */
+
 tl::expected<void, PieceManagerError> PieceManager::blockReceived(
     int pieceIndex, int blockOffset, std::string data) {
-  // Removes the received block from pending requests
-  PendingRequest* request_to_remove = nullptr;
-  lock_.lock();
-  for (PendingRequest* pending : pendingRequests_) {
-    if (pending->block->piece == pieceIndex &&
-        pending->block->offset == blockOffset) {
-      request_to_remove = pending;
-      break;
-    }
-  }
-
-  pendingRequests_.erase(std::remove(pendingRequests_.begin(),
-                                     pendingRequests_.end(), request_to_remove),
-                         pendingRequests_.end());
-
-  // Retrieves the Piece to which this Block belongs
   Piece* target_piece = nullptr;
-  for (std::unique_ptr<Piece>& piece : ongoingPieces_) {
-    if (piece->index == pieceIndex) {
-      target_piece = piece.get();
-      break;
+
+  {
+    std::unique_lock<std::mutex> lock(lock_);
+
+    // Remove the received block from pending requests
+    auto it = std::ranges::find_if(
+        pendingRequests_, [&](const std::unique_ptr<PendingRequest>& p) {
+          return p->block->piece == pieceIndex &&
+                 p->block->offset == blockOffset;
+        });
+
+    if (it != pendingRequests_.end()) {
+      pendingRequests_.erase(it);
+    }
+
+    // Find target piece
+    for (auto& piece : ongoingPieces_) {
+      if (piece->index == pieceIndex) {
+        target_piece = piece.get();
+        break;
+      }
     }
   }
-  lock_.unlock();
+
   if (!target_piece) {
     return tl::unexpected(PieceManagerError{
         "Received block for a piece that is not being downloaded."});
   }
 
   target_piece->blockReceived(blockOffset, std::move(data));
-  if (target_piece->isComplete()) {
-    // If the Piece is completed and the hash matches,
-    // writes the Piece to disk
-    if (target_piece->isHashMatching()) {
-      write(target_piece);
-      // Removes the Piece from the ongoing list
-      lock_.lock();
 
-      auto it = std::find_if(ongoingPieces_.begin(), ongoingPieces_.end(),
-                             [target_piece](const std::unique_ptr<Piece>& p) {
-                               return p.get() == target_piece;
-                             });
-
-      if (it != ongoingPieces_.end()) {
-        ongoingPieces_.erase(it);
-      }
-
-      havePieces.push_back(target_piece);
-      piecesDownloadedInInterval_++;
-      lock_.unlock();
-
-      std::stringstream info;
-      info << "(" << std::fixed << std::setprecision(2)
-           << ((static_cast<float>(havePieces.size())) /
-               static_cast<float>(total_pieces_) * 100)
-           << "%) ";
-      info << std::to_string(havePieces.size()) + " / " +
-                  std::to_string(total_pieces_) + " Pieces downloaded...";
-    } else {
-      target_piece->reset();
-    }
+  if (!target_piece->isComplete()) {
+    return {};
   }
+
+  if (!target_piece->isHashMatching()) {
+    target_piece->reset();
+    return {};
+  }
+
+  write(target_piece);
+
+  {
+    std::unique_lock<std::mutex> lock(lock_);
+    auto it = std::find_if(ongoingPieces_.begin(), ongoingPieces_.end(),
+                           [target_piece](const std::unique_ptr<Piece>& p) {
+                             return p.get() == target_piece;
+                           });
+
+    if (it != ongoingPieces_.end()) {
+      ongoingPieces_.erase(it);
+    }
+
+    havePieces.push_back(target_piece);
+    piecesDownloadedInInterval_++;
+  }
+
+  std::stringstream info;
+  info << "(" << std::fixed << std::setprecision(2)
+       << (static_cast<float>(havePieces.size()) /
+           static_cast<float>(total_pieces_) * 100)
+       << "%) ";
+  info << havePieces.size() << " / " << total_pieces_
+       << " Pieces downloaded...";
+
   return {};
 }
 

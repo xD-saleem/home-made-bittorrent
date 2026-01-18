@@ -256,69 +256,80 @@ Piece* PieceManager::getRarestPiece(const std::string& peerId) {
  * in the Piece will be reset to a missing state. If the hash matches, the
  * data in the Piece will be written to disk.
  */
+
 tl::expected<void, PieceManagerError> PieceManager::blockReceived(
     int pieceIndex, int blockOffset, std::string data) {
-  // Removes the received block from pending requests
-  PendingRequest* request_to_remove = nullptr;
-
-  std::lock_guard<std::mutex> guard(lock_);
-
-  auto it = std::ranges::find_if(
-      pendingRequests_, [&](const std::unique_ptr<PendingRequest>& p) {
-        return p->block->piece == pieceIndex && p->block->offset == blockOffset;
-      });
-
-  if (it != pendingRequests_.end()) {
-    pendingRequests_.erase(it);
-  }
-
-  // Retrieves the Piece to which this Block belongs
   Piece* target_piece = nullptr;
-  for (std::unique_ptr<Piece>& piece : ongoingPieces_) {
-    if (piece->index == pieceIndex) {
-      target_piece = piece.get();
-      break;
+
+  {
+    // Lock scope #1
+    std::unique_lock<std::mutex> lock(lock_);
+
+    // Remove the received block from pending requests
+    auto it = std::ranges::find_if(
+        pendingRequests_, [&](const std::unique_ptr<PendingRequest>& p) {
+          return p->block->piece == pieceIndex &&
+                 p->block->offset == blockOffset;
+        });
+
+    if (it != pendingRequests_.end()) {
+      pendingRequests_.erase(it);
     }
-  }
-  lock_.unlock();
+
+    // Find target piece
+    for (auto& piece : ongoingPieces_) {
+      if (piece->index == pieceIndex) {
+        target_piece = piece.get();
+        break;
+      }
+    }
+  }  // mutex unlocked here
+
   if (!target_piece) {
     return tl::unexpected(PieceManagerError{
         "Received block for a piece that is not being downloaded."});
   }
 
+  // Safe to do without holding the mutex
   target_piece->blockReceived(blockOffset, std::move(data));
-  if (target_piece->isComplete()) {
-    // If the Piece is completed and the hash matches,
-    // writes the Piece to disk
-    if (target_piece->isHashMatching()) {
-      write(target_piece);
-      // Removes the Piece from the ongoing list
-      lock_.lock();
 
-      auto it = std::find_if(ongoingPieces_.begin(), ongoingPieces_.end(),
-                             [target_piece](const std::unique_ptr<Piece>& p) {
-                               return p.get() == target_piece;
-                             });
-
-      if (it != ongoingPieces_.end()) {
-        ongoingPieces_.erase(it);
-      }
-
-      havePieces.push_back(target_piece);
-      piecesDownloadedInInterval_++;
-      lock_.unlock();
-
-      std::stringstream info;
-      info << "(" << std::fixed << std::setprecision(2)
-           << ((static_cast<float>(havePieces.size())) /
-               static_cast<float>(total_pieces_) * 100)
-           << "%) ";
-      info << std::to_string(havePieces.size()) + " / " +
-                  std::to_string(total_pieces_) + " Pieces downloaded...";
-    } else {
-      target_piece->reset();
-    }
+  if (!target_piece->isComplete()) {
+    return {};
   }
+
+  if (!target_piece->isHashMatching()) {
+    target_piece->reset();
+    return {};
+  }
+
+  // Expensive I/O without lock
+  write(target_piece);
+
+  {
+    // Lock scope #2
+    std::unique_lock<std::mutex> lock(lock_);
+
+    auto it = std::find_if(ongoingPieces_.begin(), ongoingPieces_.end(),
+                           [target_piece](const std::unique_ptr<Piece>& p) {
+                             return p.get() == target_piece;
+                           });
+
+    if (it != ongoingPieces_.end()) {
+      ongoingPieces_.erase(it);
+    }
+
+    havePieces.push_back(target_piece);
+    piecesDownloadedInInterval_++;
+  }  // mutex unlocked here
+
+  std::stringstream info;
+  info << "(" << std::fixed << std::setprecision(2)
+       << (static_cast<float>(havePieces.size()) /
+           static_cast<float>(total_pieces_) * 100)
+       << "%) ";
+  info << havePieces.size() << " / " << total_pieces_
+       << " Pieces downloaded...";
+
   return {};
 }
 

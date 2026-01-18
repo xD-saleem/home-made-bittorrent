@@ -176,7 +176,7 @@ Block* PieceManager::nextRequest(const std::string peerId) {
  */
 Block* PieceManager::expiredRequest(std::string peerId) {
   time_t current_time = std::time(nullptr);
-  for (PendingRequest* pending : pendingRequests_) {
+  for (const auto& pending : pendingRequests_) {
     if (peerRegistry_->peerHasPiece(peerId, pending->block->piece)) {
       // If the request has expired
       auto diff = std::difftime(current_time, pending->timestamp);
@@ -200,10 +200,11 @@ Block* PieceManager::nextOngoing(std::string peerId) {
     if (peerRegistry_->peerHasPiece(peerId, piece->index)) {
       Block* block = piece->nextRequest();
       if (block) {
-        auto* new_pending_request = new PendingRequest;
+        auto new_pending_request = std::make_unique<PendingRequest>();
         new_pending_request->block = block;
         new_pending_request->timestamp = std::time(nullptr);
-        pendingRequests_.push_back(new_pending_request);
+        pendingRequests_.push_back(std::move(new_pending_request));
+
         return block;
       }
     }
@@ -259,18 +260,17 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
     int pieceIndex, int blockOffset, std::string data) {
   // Removes the received block from pending requests
   PendingRequest* request_to_remove = nullptr;
-  lock_.lock();
-  for (PendingRequest* pending : pendingRequests_) {
-    if (pending->block->piece == pieceIndex &&
-        pending->block->offset == blockOffset) {
-      request_to_remove = pending;
-      break;
-    }
-  }
 
-  pendingRequests_.erase(std::remove(pendingRequests_.begin(),
-                                     pendingRequests_.end(), request_to_remove),
-                         pendingRequests_.end());
+  std::lock_guard<std::mutex> guard(lock_);
+
+  auto it = std::ranges::find_if(
+      pendingRequests_, [&](const std::unique_ptr<PendingRequest>& p) {
+        return p->block->piece == pieceIndex && p->block->offset == blockOffset;
+      });
+
+  if (it != pendingRequests_.end()) {
+    pendingRequests_.erase(it);
+  }
 
   // Retrieves the Piece to which this Block belongs
   Piece* target_piece = nullptr;

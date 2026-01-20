@@ -60,8 +60,10 @@ std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
   }
 
   auto piece_hashes_value = piece_hashes.value();
+
   total_pieces_ = piece_hashes_value.size();
   missingPieces_.reserve(total_pieces_);
+
   std::vector<std::unique_ptr<Piece>> torrent_pieces;
 
   tl::expected<int64_t, TorrentFileParserError> total_length_result =
@@ -340,9 +342,11 @@ void PieceManager::write(Piece* piece) {
  * Calculates the number of bytes downloaded.
  */
 uint64_t PieceManager::bytesDownloaded() {
-  lock_.lock();
-  uint64_t bytes_downloaded = havePieces.size() * pieceLength_;
-  lock_.unlock();
+  uint64_t bytes_downloaded = 0;
+  {
+    std::unique_lock<std::mutex> lock(lock_);
+    bytes_downloaded = havePieces.size() * pieceLength_;
+  }
   return bytes_downloaded;
 }
 

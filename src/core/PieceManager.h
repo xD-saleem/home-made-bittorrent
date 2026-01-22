@@ -51,11 +51,6 @@ class PieceManager {
   void displayProgressBar();
   void trackProgress();
 
-  // Block* nextRequest(const std::string& peerId);
-  //
-  // tl::expected<void, PieceManagerError>
-  // blockReceived(int pieceIndex, int blockOffset, std::string data);
-
  public:
   explicit PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
                         const std::shared_ptr<PeerRegistry>& peerRegistry,
@@ -70,7 +65,7 @@ class PieceManager {
   std::vector<Piece*> getPieces();
   uint64_t bytesDownloaded();
   Block* nextRequest(std::string peerId);
-  std::vector<Piece*> havePieces;
+  std::vector<Piece> havePieces;
 };
 
 #endif  // BITTORRENTCLIENT_PIECEMANAGER_H

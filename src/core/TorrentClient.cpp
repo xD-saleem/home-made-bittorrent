@@ -69,6 +69,7 @@ void TorrentClient::start(const std::string& downloadDirectory) {
     Logger::log("Failed to get torrent filename.");
     return;
   }
+
   const std::string& filename = filename_exp.value();
 
   const auto state = torrentState_->getState(info_hash);
@@ -108,9 +109,7 @@ void TorrentClient::downloadFile(const std::string& file) {
   for (int i = 0; i < threadNum_; ++i) {
     auto connection = std::make_shared<PeerConnection>(
         queue_, peerId_, info_hash, pieceManager_, peerRegistry_);
-
     threadPool_.emplace_back([connection]() { connection->start(); });
-
     connections_.push_back(connection);
   }
 
@@ -127,7 +126,6 @@ void TorrentClient::downloadFile(const std::string& file) {
 
     if (!should_query_tracker) {
       // prevent busy-waiting
-
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       continue;
     }

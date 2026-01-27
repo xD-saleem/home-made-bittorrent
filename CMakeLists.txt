@@ -47,7 +47,6 @@ add_executable(main ${CPP_TEMPLATE_SOURCES}
     src/core/TorrentClient.cpp
     src/core/TorrentState.h
     src/core/TorrentState.cpp
-
     src/core/PeerRegistry.cpp
     src/core/PeerRegistry.h
 
@@ -59,6 +58,8 @@ add_executable(main ${CPP_TEMPLATE_SOURCES}
     src/infra/Queue.h
     src/utils/TorrentFileParser.h
     src/utils/TorrentFileParser.cpp
+    src/infra/DiskManager.cpp
+    src/infra/DiskManager.h
 
     # Network
     src/network/BitTorrentMessage.h
@@ -112,7 +113,10 @@ add_executable(tests
     src/core/PeerRegistry.h
     src/core/PeerRegistry_test.cpp
 
-    # # Piece Management (uncommented as per your structure)
+    src/infra/DiskManager.cpp
+    src/infra/DiskManager.h
+
+    # Piece Management (uncommented as per your structure)
     # src/core/PieceManager.h
     # src/core/PieceManager.cpp
     # src/core/PieceManager_test.cpp

@@ -1,15 +1,19 @@
 
 #include <cstdint>
+#include <fstream>
 #include <string>
+
+#include "core/Piece.h"
 
 class DiskManager {
  public:
-  static void writePiece(int index, const std::string& data);
-  static void readPiece(int index);
-  static void allocateFile(int64_t size);
-  explicit DiskManager();  // Constructor with DI
+  void writePiece(Piece* piece, int64_t pieceLength);
+  void allocateFile(const std::string& downloadPath, int64_t size);
 
-  ~DiskManager() = default;
+  explicit DiskManager() = default;
+
+  ~DiskManager() { downloadedFile_.close(); }
 
  private:
+  std::ofstream downloadedFile_;
 };

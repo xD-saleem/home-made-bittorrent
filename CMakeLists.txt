@@ -84,6 +84,7 @@ add_executable(tests
     src/main_test.cpp
 
     # Utils & Infra used in tests
+
     src/utils/utils.h
     src/utils/utils.cpp
 
@@ -93,6 +94,10 @@ add_executable(tests
     src/infra/DatabaseService.cpp
     src/infra/DatabaseService_mock.h
     src/infra/DatabaseService_test.cpp
+
+    src/infra/DiskManager.cpp
+    src/infra/DiskManager.h
+    src/infra/DiskManager_test.cpp
 
     # Parsers and Logic
     src/utils/TorrentFileParser.h
@@ -105,6 +110,8 @@ add_executable(tests
     src/network/BitTorrentMessage_test.cpp
 
     # Core State
+    src/core/Piece.h
+    src/core/Piece.cpp
     src/core/TorrentState.h
     src/core/TorrentState.cpp
     src/core/TorrentState_test.cpp
@@ -113,8 +120,6 @@ add_executable(tests
     src/core/PeerRegistry.h
     src/core/PeerRegistry_test.cpp
 
-    src/infra/DiskManager.cpp
-    src/infra/DiskManager.h
 
     # Piece Management (uncommented as per your structure)
     # src/core/PieceManager.h

@@ -1,4 +1,4 @@
-
+#pragma once
 #include <cstdint>
 #include <fstream>
 #include <string>
@@ -7,10 +7,10 @@
 
 class DiskManager {
  public:
+  explicit DiskManager() = default;
+
   void writePiece(Piece* piece, int64_t pieceLength);
   void allocateFile(const std::string& downloadPath, int64_t size);
-
-  explicit DiskManager() = default;
 
   ~DiskManager() { downloadedFile_.close(); }
 

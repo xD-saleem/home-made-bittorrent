@@ -10,6 +10,7 @@
 
 #include "core/PeerRegistry.h"
 #include "core/Piece.h"
+#include "infra/DiskManager.h"
 #include "utils/TorrentFileParser.h"
 
 struct PendingRequest {
@@ -33,6 +34,7 @@ class PieceManager {
 
   std::shared_ptr<TorrentFileParser> fileParser_;
   std::shared_ptr<PeerRegistry> peerRegistry_;
+  std::shared_ptr<DiskManager> diskManager_;
 
   const int maximumConnections_;
   int piecesDownloadedInInterval_ = 0;
@@ -51,14 +53,10 @@ class PieceManager {
   void displayProgressBar();
   void trackProgress();
 
-  // Block* nextRequest(const std::string& peerId);
-  //
-  // tl::expected<void, PieceManagerError>
-  // blockReceived(int pieceIndex, int blockOffset, std::string data);
-
  public:
   explicit PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
                         const std::shared_ptr<PeerRegistry>& peerRegistry,
+                        const std::shared_ptr<DiskManager>& diskManager,
                         const std::string& downloadPath,
                         int maximumConnections);
   ~PieceManager();

@@ -12,6 +12,7 @@
 #include "core/TorrentClient.h"
 #include "core/TorrentState.h"
 #include "infra/DatabaseService.h"
+#include "infra/DiskManager.h"
 #include "infra/Logger.h"
 #include "infra/Queue.h"
 #include "utils/TorrentFileParser.h"
@@ -47,9 +48,12 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<PeerRegistry> peer_registry =
       std::make_shared<PeerRegistry>();
 
+  std::shared_ptr<DiskManager> disk_manager = std::make_shared<DiskManager>();
+
   // Torrent Piece Manager
   std::shared_ptr<PieceManager> piece_manager = std::make_shared<PieceManager>(
-      torrent_file_parser, peer_registry, downloaded_file_name, threads);
+      torrent_file_parser, peer_registry, disk_manager, downloaded_file_name,
+      threads);
 
   std::shared_ptr<Queue<std::unique_ptr<Peer>>> queue =
       std::make_shared<Queue<std::unique_ptr<Peer>>>();

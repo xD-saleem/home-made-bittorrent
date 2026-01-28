@@ -32,17 +32,18 @@
 
 PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
                            const std::shared_ptr<PeerRegistry>& peerRegistry,
+                           const std::shared_ptr<DiskManager>& diskManager,
                            const std::string& downloadPath,
                            const int maximumConnections)
     : pieceLength_(fileParser->getPieceLength().value()),
       fileParser_(fileParser),
       peerRegistry_(peerRegistry),
+      diskManager_(diskManager),
       maximumConnections_(maximumConnections) {
   missingPieces_ = initiatePieces();
-  downloadedFile_.open(downloadPath, std::ios::binary | std::ios::out);
+
   int64_t file_size = fileParser->getFileSize().value();
-  downloadedFile_.seekp(file_size - 1);
-  downloadedFile_.write("", 1);
+  diskManager_->allocateFile(downloadPath, file_size);
 
   startingTime_ = std::time(nullptr);
   std::thread progress_thread([this] { this->trackProgress(); });
@@ -301,7 +302,7 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
     return {};
   }
 
-  write(target_piece);
+  diskManager_->writePiece(target_piece, pieceLength_);
 
   {
     std::unique_lock<std::mutex> lock(lock_);

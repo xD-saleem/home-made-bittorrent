@@ -56,8 +56,6 @@ add_executable(main ${CPP_TEMPLATE_SOURCES}
     src/infra/Logger.h
     src/infra/Logger.cpp
     src/infra/Queue.h
-    src/utils/TorrentFileParser.h
-    src/utils/TorrentFileParser.cpp
     src/infra/DiskManager.cpp
     src/infra/DiskManager.h
 
@@ -74,6 +72,10 @@ add_executable(main ${CPP_TEMPLATE_SOURCES}
     # Utils
     src/utils/utils.h
     src/utils/utils.cpp
+
+    src/utils/TorrentFileParser.h
+    src/utils/TorrentFileParser.cpp
+
 )
 
 target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp fmt::fmt tl::expected SQLiteCpp)

@@ -8,7 +8,9 @@
 void DiskManager::writePiece(Piece* piece, int64_t pieceLength) {
   int64_t position = piece->index * pieceLength;
   downloadedFile_.seekp(position);
-  downloadedFile_ << piece->getData();
+  std::string data = piece->getData();
+  downloadedFile_.write(data.data(), data.size());
+  downloadedFile_.flush();
 }
 
 void DiskManager::allocateFile(const std::string& downloadPath, int64_t size) {

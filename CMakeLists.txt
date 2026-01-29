@@ -47,7 +47,6 @@ add_executable(main ${CPP_TEMPLATE_SOURCES}
     src/core/TorrentClient.cpp
     src/core/TorrentState.h
     src/core/TorrentState.cpp
-
     src/core/PeerRegistry.cpp
     src/core/PeerRegistry.h
 
@@ -57,8 +56,8 @@ add_executable(main ${CPP_TEMPLATE_SOURCES}
     src/infra/Logger.h
     src/infra/Logger.cpp
     src/infra/Queue.h
-    src/utils/TorrentFileParser.h
-    src/utils/TorrentFileParser.cpp
+    src/infra/DiskManager.cpp
+    src/infra/DiskManager.h
 
     # Network
     src/network/BitTorrentMessage.h
@@ -73,6 +72,10 @@ add_executable(main ${CPP_TEMPLATE_SOURCES}
     # Utils
     src/utils/utils.h
     src/utils/utils.cpp
+
+    src/utils/TorrentFileParser.h
+    src/utils/TorrentFileParser.cpp
+
 )
 
 target_link_libraries(main PRIVATE bencoding OpenSSL::SSL OpenSSL::Crypto cpr::cpr cryptopp::cryptopp fmt::fmt tl::expected SQLiteCpp)
@@ -83,6 +86,7 @@ add_executable(tests
     src/main_test.cpp
 
     # Utils & Infra used in tests
+
     src/utils/utils.h
     src/utils/utils.cpp
 
@@ -92,6 +96,10 @@ add_executable(tests
     src/infra/DatabaseService.cpp
     src/infra/DatabaseService_mock.h
     src/infra/DatabaseService_test.cpp
+
+    src/infra/DiskManager.cpp
+    src/infra/DiskManager.h
+    src/infra/DiskManager_test.cpp
 
     # Parsers and Logic
     src/utils/TorrentFileParser.h
@@ -104,6 +112,8 @@ add_executable(tests
     src/network/BitTorrentMessage_test.cpp
 
     # Core State
+    src/core/Piece.h
+    src/core/Piece.cpp
     src/core/TorrentState.h
     src/core/TorrentState.cpp
     src/core/TorrentState_test.cpp
@@ -112,7 +122,8 @@ add_executable(tests
     src/core/PeerRegistry.h
     src/core/PeerRegistry_test.cpp
 
-    # # Piece Management (uncommented as per your structure)
+
+    # Piece Management (uncommented as per your structure)
     # src/core/PieceManager.h
     # src/core/PieceManager.cpp
     # src/core/PieceManager_test.cpp

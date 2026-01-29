@@ -50,8 +50,6 @@ PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
   progress_thread.detach();
 }
 
-PieceManager::~PieceManager() { downloadedFile_.close(); }
-
 std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
   tl::expected<std::vector<std::string>, TorrentFileParserError> piece_hashes =
       fileParser_->splitPieceHashes();
@@ -328,15 +326,6 @@ tl::expected<void, PieceManagerError> PieceManager::blockReceived(
        << " Pieces downloaded...";
 
   return {};
-}
-
-/**
- * Writes the given Piece to disk.
- */
-void PieceManager::write(Piece* piece) {
-  int64_t position = piece->index * fileParser_->getPieceLength().value();
-  downloadedFile_.seekp(position);
-  downloadedFile_ << piece->getData();
 }
 
 /**

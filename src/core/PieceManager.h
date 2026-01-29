@@ -4,7 +4,6 @@
 
 #include <cstdint>
 #include <ctime>
-#include <fstream>
 #include <mutex>
 #include <vector>
 
@@ -27,7 +26,7 @@ class PieceManager {
   std::vector<std::unique_ptr<Piece>> missingPieces_;
   std::vector<std::unique_ptr<Piece>> ongoingPieces_;
   std::vector<std::unique_ptr<PendingRequest>> pendingRequests_;
-  std::ofstream downloadedFile_;
+
   const int64_t pieceLength_;
 
   size_t total_pieces_{};
@@ -59,7 +58,7 @@ class PieceManager {
                         const std::shared_ptr<DiskManager>& diskManager,
                         const std::string& downloadPath,
                         int maximumConnections);
-  ~PieceManager();
+  ~PieceManager() = default;
   bool isComplete();
   tl::expected<void, PieceManagerError> blockReceived(int pieceIndex,
                                                       int blockOffset,

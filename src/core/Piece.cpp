@@ -35,7 +35,7 @@ Block* Piece::nextRequest() {
 }
 
 tl::expected<void, PieceError> Piece::blockReceived(int offset,
-                                                    std::string data) {
+                                                    const std::string& data) {
   for (std::unique_ptr<Block>& block : blocks) {
     if (block->offset == offset) {
       block->status = kRetrieved;

@@ -5,9 +5,6 @@
 
 #include <mutex>
 
-#include "infra/Logger.h"
-#include "network/PeerRetriever.h"
-
 // TODO(slim): add a injectable peerRegistry.
 PeerRegistry::PeerRegistry() = default;
 

@@ -258,7 +258,7 @@ Piece* PieceManager::getRarestPiece(const std::string& peerId) {
  */
 
 tl::expected<void, PieceManagerError> PieceManager::blockReceived(
-    int pieceIndex, int blockOffset, std::string data) {
+    int pieceIndex, int blockOffset, const std::string& data) {
   Piece* target_piece = nullptr;
 
   {

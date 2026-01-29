@@ -62,7 +62,7 @@ class PieceManager {
   bool isComplete();
   tl::expected<void, PieceManagerError> blockReceived(int pieceIndex,
                                                       int blockOffset,
-                                                      std::string data);
+                                                      const std::string& data);
 
   std::vector<Piece*> getPieces();
   uint64_t bytesDownloaded();

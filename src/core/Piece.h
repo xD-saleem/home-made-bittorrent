@@ -27,7 +27,8 @@ class Piece {
   void reset();
   std::string getData();
   Block* nextRequest();
-  tl::expected<void, PieceError> blockReceived(int offset, std::string data);
+  tl::expected<void, PieceError> blockReceived(int offset,
+                                               const std::string& data);
   bool isComplete() const;
   bool isHashMatching();
 };

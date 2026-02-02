@@ -1,4 +1,3 @@
-
 #include "PieceManager.h"
 
 #include <bencode/bencoding.h>

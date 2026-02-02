@@ -69,7 +69,6 @@ bool PeerRegistry::peerHasPiece(const std::string& peerId,
     std::string peer = it->second;
     return hasPiece(peer, pieceIndex);
   }
-  // If the peer was not found, return false or handle the error case
   return false;
 }
 

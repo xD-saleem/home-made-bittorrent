@@ -127,8 +127,6 @@ add_executable(tests
     src/core/PieceRepository.cpp
     src/core/PieceRepository.h
 
-
-
     # Piece Management (uncommented as per your structure)
     # src/core/PieceManager.h
     # src/core/PieceManager.cpp

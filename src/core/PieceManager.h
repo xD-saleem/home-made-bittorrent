@@ -9,6 +9,7 @@
 
 #include "core/PeerRegistry.h"
 #include "core/Piece.h"
+#include "core/PieceRepository.h"
 #include "infra/DiskManager.h"
 #include "utils/TorrentFileParser.h"
 
@@ -25,16 +26,16 @@ class PieceManager {
  private:
   std::vector<std::unique_ptr<Piece>> missingPieces_;
   std::vector<std::unique_ptr<Piece>> ongoingPieces_;
+
   std::vector<std::unique_ptr<PendingRequest>> pendingRequests_;
-
-  const int64_t pieceLength_;
-
-  size_t total_pieces_{};
 
   std::shared_ptr<TorrentFileParser> fileParser_;
   std::shared_ptr<PeerRegistry> peerRegistry_;
   std::shared_ptr<DiskManager> diskManager_;
+  std::shared_ptr<PieceRepository> peerRepo_;
 
+  const int64_t pieceLength_;
+  size_t total_pieces_{};
   const int maximumConnections_;
   int piecesDownloadedInInterval_ = 0;
   time_t startingTime_;
@@ -56,6 +57,7 @@ class PieceManager {
   explicit PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
                         const std::shared_ptr<PeerRegistry>& peerRegistry,
                         const std::shared_ptr<DiskManager>& diskManager,
+                        const std::shared_ptr<PieceRepository>& peerRepo,
                         const std::string& downloadPath,
                         int maximumConnections);
   ~PieceManager() = default;
@@ -64,7 +66,7 @@ class PieceManager {
                                                       int blockOffset,
                                                       const std::string& data);
 
-  std::vector<Piece*> getPieces();
+  const std::vector<Piece*> getPieces();
   uint64_t bytesDownloaded();
   Block* nextRequest(std::string peerId);
   std::vector<Piece*> havePieces;

@@ -49,6 +49,8 @@ add_executable(main ${CPP_TEMPLATE_SOURCES}
     src/core/TorrentState.cpp
     src/core/PeerRegistry.cpp
     src/core/PeerRegistry.h
+    src/core/PieceRepository.cpp
+    src/core/PieceRepository.h
 
     # Infrastructure & Storage
     src/infra/DatabaseService.h
@@ -122,6 +124,8 @@ add_executable(tests
     src/core/PeerRegistry.h
     src/core/PeerRegistry_test.cpp
 
+    src/core/PieceRepository.cpp
+    src/core/PieceRepository.h
 
     # Piece Management (uncommented as per your structure)
     # src/core/PieceManager.h

@@ -41,9 +41,9 @@ PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
       peerRepo_(peerRepo),
       diskManager_(diskManager),
       maximumConnections_(maximumConnections) {
-  missingPieces_ = initiatePieces();
+  missingPieces_ = peerRepo_->initiatePieces();
 
-  int64_t file_size = fileParser->getFileSize().value();
+  auto file_size = fileParser->getFileSize().value();
   diskManager_->allocateFile(downloadPath, file_size);
 
   startingTime_ = std::time(nullptr);
@@ -51,77 +51,11 @@ PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
   progress_thread.detach();
 }
 
-std::vector<std::unique_ptr<Piece>> PieceManager::initiatePieces() {
-  tl::expected<std::vector<std::string>, TorrentFileParserError> piece_hashes =
-      fileParser_->splitPieceHashes();
-
-  if (!piece_hashes.has_value()) {
-    return {};
-  }
-
-  auto piece_hashes_value = piece_hashes.value();
-
-  total_pieces_ = piece_hashes_value.size();
-  missingPieces_.reserve(total_pieces_);
-
-  std::vector<std::unique_ptr<Piece>> torrent_pieces;
-
-  tl::expected<int64_t, TorrentFileParserError> total_length_result =
-      fileParser_->getFileSize();
-
-  if (!total_length_result.has_value()) {
-    Logger::log("Failed to get file size");
-    return {};
-  }
-
-  int64_t total_length = total_length_result.value();
-
-  // number of blocks in a normal piece (i.e. pieces that are not the last one)
-  int block_count = ceil(static_cast<double>(pieceLength_) / BLOCK_SIZE);
-  int64_t rem_length = pieceLength_;
-
-  for (size_t i = 0; i < total_pieces_; i++) {
-    // The final piece is likely to have a smaller size.
-    if (i == total_pieces_ - 1) {
-      rem_length = total_length % pieceLength_;
-      block_count = std::max(
-          static_cast<int>(ceil(static_cast<double>(rem_length) / BLOCK_SIZE)),
-          1);
-    }
-
-    std::vector<std::unique_ptr<Block>> blocks;
-    blocks.reserve(block_count);
-
-    for (int offset = 0; offset < block_count; offset++) {
-      std::unique_ptr<Block> block = std::make_unique<Block>();
-      block->piece = i;
-      block->status = kMissing;
-      block->offset = offset * BLOCK_SIZE;
-
-      int block_size = BLOCK_SIZE;
-
-      if (i == total_pieces_ - 1 && offset == block_count - 1) {
-        block_size = rem_length % BLOCK_SIZE;
-      }
-
-      block->length = block_size;
-      blocks.push_back(std::move(block));
-    }
-
-    std::unique_ptr<Piece> piece =
-        std::make_unique<Piece>(i, std::move(blocks), piece_hashes_value[i]);
-
-    torrent_pieces.push_back(std::move(piece));
-  }
-
-  return torrent_pieces;
-}
-
 bool PieceManager::isComplete() {
   std::lock_guard<std::mutex> guard(lock_);
 
   const size_t header = 4;
-  size_t current_size = havePieces.size();
+  auto current_size = havePieces.size();
   return ((current_size + header) == total_pieces_);
 }
 
@@ -130,7 +64,7 @@ bool PieceManager::isComplete() {
  * a Have message).
  */
 
-std::vector<Piece*> PieceManager::getPieces() { return havePieces; }
+const std::vector<Piece*> PieceManager::getPieces() { return havePieces; }
 
 /**
  * Retrieves the next block that should be requested from the given peer.

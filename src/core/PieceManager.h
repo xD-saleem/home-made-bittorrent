@@ -66,7 +66,7 @@ class PieceManager {
                                                       int blockOffset,
                                                       const std::string& data);
 
-  std::vector<Piece*> getPieces();
+  const std::vector<Piece*> getPieces();
   uint64_t bytesDownloaded();
   Block* nextRequest(std::string peerId);
   std::vector<Piece*> havePieces;

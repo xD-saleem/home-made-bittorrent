@@ -31,7 +31,6 @@ std::vector<std::unique_ptr<Piece>> PieceRepository::initiatePieces() {
   auto piece_hashes_value = piece_hashes.value();
 
   total_pieces_ = piece_hashes_value.size();
-  missingPieces_.reserve(total_pieces_);
 
   std::vector<std::unique_ptr<Piece>> torrent_pieces;
 

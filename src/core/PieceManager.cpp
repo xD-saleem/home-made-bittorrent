@@ -32,11 +32,13 @@
 PieceManager::PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
                            const std::shared_ptr<PeerRegistry>& peerRegistry,
                            const std::shared_ptr<DiskManager>& diskManager,
+                           const std::shared_ptr<PieceRepository>& peerRepo,
                            const std::string& downloadPath,
                            const int maximumConnections)
     : pieceLength_(fileParser->getPieceLength().value()),
       fileParser_(fileParser),
       peerRegistry_(peerRegistry),
+      peerRepo_(peerRepo),
       diskManager_(diskManager),
       maximumConnections_(maximumConnections) {
   missingPieces_ = initiatePieces();

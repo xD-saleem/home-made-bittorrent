@@ -15,6 +15,11 @@
 #define PROGRESS_BAR_WIDTH 40
 #define PROGRESS_DISPLAY_INTERVAL 1  // 1 sec
 
+PieceRepository::PieceRepository(
+    const std::shared_ptr<PeerRegistry>& pr,
+    const std::shared_ptr<TorrentFileParser>& fileParser)
+    : peerRegistry_(pr), fileParser_(fileParser) {}
+
 std::vector<std::unique_ptr<Piece>> PieceRepository::initiatePieces() {
   tl::expected<std::vector<std::string>, TorrentFileParserError> piece_hashes =
       fileParser_->splitPieceHashes();

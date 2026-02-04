@@ -9,6 +9,7 @@
 
 #include "core/PeerRegistry.h"
 #include "core/Piece.h"
+#include "core/PieceRepository.h"
 #include "infra/DiskManager.h"
 #include "utils/TorrentFileParser.h"
 
@@ -31,6 +32,7 @@ class PieceManager {
   std::shared_ptr<TorrentFileParser> fileParser_;
   std::shared_ptr<PeerRegistry> peerRegistry_;
   std::shared_ptr<DiskManager> diskManager_;
+  std::shared_ptr<PieceRepository> peerRepo_;
 
   const int64_t pieceLength_;
   size_t total_pieces_{};
@@ -55,6 +57,7 @@ class PieceManager {
   explicit PieceManager(const std::shared_ptr<TorrentFileParser>& fileParser,
                         const std::shared_ptr<PeerRegistry>& peerRegistry,
                         const std::shared_ptr<DiskManager>& diskManager,
+                        const std::shared_ptr<PieceRepository>& peerRepo,
                         const std::string& downloadPath,
                         int maximumConnections);
   ~PieceManager() = default;

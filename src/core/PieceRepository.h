@@ -1,9 +1,8 @@
-
 #include <memory>
 
 #include "core/PeerRegistry.h"
 #include "core/Piece.h"
-#include "core/PieceManager.h"
+#include "utils/TorrentFileParser.h"
 
 class PieceRepository {
  private:
@@ -14,10 +13,11 @@ class PieceRepository {
   // init
   std::vector<std::unique_ptr<Piece>> missingPieces_;
   std::vector<std::unique_ptr<Piece>> ongoingPieces_;
-  std::vector<std::unique_ptr<PendingRequest>> pendingRequests_;
+  // std::vector<std::unique_ptr<PendingRequest>> pendingRequests_;
   size_t total_pieces_{};
 
-  // constructor
+ public:
+  // Constructor
   explicit PieceRepository(
       const std::shared_ptr<PeerRegistry>& pr,
       const std::shared_ptr<TorrentFileParser>& fileParser);
@@ -25,7 +25,6 @@ class PieceRepository {
   // Destructor
   ~PieceRepository() = default;
 
- public:
   std::vector<std::unique_ptr<Piece>> initiatePieces();
   Piece* acquireRarest(const std::string& peerId);
   // Block* nextBlockForPeer(const std::string peerId&);
